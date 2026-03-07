@@ -9,7 +9,7 @@ import ResultsSection from './components/ResultsSection';
 import ErrorBoundary from './components/ErrorBoundary';
 import {useCGPACalculator, useGradeManagement} from './hooks';
 import {StorageProvider, useStorageData} from './StorageContext';
-import {useToast} from './useToast';
+import {useToast} from '../../hooks/useToast';
 import './cgpa-calculator.css';
 
 function CGPACalculatorContent() {
