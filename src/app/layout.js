@@ -1,5 +1,6 @@
 import './globals.css';
 import PropTypes from 'prop-types';
+import Script from 'next/script';
 
 export const viewport = {
   width: 'device-width',
@@ -53,7 +54,21 @@ export const metadata = {
 export default function RootLayout({children}) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-Z6P6BXK9MF"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-Z6P6BXK9MF');
+          `}
+        </Script>
+        {children}
+      </body>
     </html>
   );
 }
