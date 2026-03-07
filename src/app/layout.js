@@ -1,6 +1,7 @@
 import './globals.css';
 import PropTypes from 'prop-types';
 import Script from 'next/script';
+import PostHogProvider from '../providers/PostHogProvider';
 
 export const viewport = {
   width: 'device-width',
@@ -67,7 +68,7 @@ export default function RootLayout({children}) {
             gtag('config', 'G-Z6P6BXK9MF');
           `}
         </Script>
-        {children}
+        <PostHogProvider>{children}</PostHogProvider>
       </body>
     </html>
   );
