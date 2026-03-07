@@ -5,6 +5,6 @@ export default function robots() {
       allow: '/',
       disallow: [],
     },
-    sitemap: 'https://amjadmajed.com/sitemap.xml',
+    sitemap: 'https://auxbox.tools/sitemap.xml',
   };
 }

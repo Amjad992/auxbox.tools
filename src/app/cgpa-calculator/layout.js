@@ -21,15 +21,7 @@ export const metadata = {
     title: 'CGPA Calculator - Calculate Your Grade Point Average',
     description:
       'Free online CGPA and GPA calculator. Calculate your cumulative grade point average with precision. Perfect for students tracking academic performance.',
-    url: 'https://amjadmajed.com/cgpa-calculator',
-    images: [
-      {
-        url: '/assets/amjad-photo.jpg',
-        width: 300,
-        height: 300,
-        alt: 'CGPA Calculator by Amjad Majed',
-      },
-    ],
+    url: 'https://auxbox.tools/cgpa-calculator',
   },
 
   twitter: {
@@ -37,11 +29,10 @@ export const metadata = {
     title: 'CGPA Calculator - Calculate Your Grade Point Average',
     description:
       'Free online CGPA and GPA calculator. Calculate your cumulative grade point average with precision.',
-    images: ['/assets/amjad-photo.jpg'],
   },
 
   alternates: {
-    canonical: 'https://amjadmajed.com/cgpa-calculator',
+    canonical: 'https://auxbox.tools/cgpa-calculator',
   },
 };
 

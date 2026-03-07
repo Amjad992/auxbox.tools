@@ -13,11 +13,6 @@
   --background-alt: #2d2d2d;
   --border-color: #404040;
 
-  /* Social Media Brand Colors */
-  --linkedin: #0077b5;
-  --github: #333333;
-  --upwork: #6fda44;
-  --fiverr: #1dbf73;
 }
 
 /* Dark mode support */
@@ -64,13 +59,6 @@ main {
   background: transparent;
 }
 
-/* Home page specific styling - scrollable */
-.home-main {
-  min-height: 100vh;
-  overflow-x: hidden;
-  background: transparent;
-}
-
 /* Container utility */
 .container {
   max-width: 1200px;
@@ -101,25 +89,6 @@ main {
 .btn-primary:hover {
   background-color: var(--primary-hover);
   transform: translateY(-2px);
-}
-
-/* Social icons */
-.social-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-  color: white;
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-
-.social-icon:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
 /* Responsive typography */

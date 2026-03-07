@@ -12,60 +12,22 @@ export const viewport = {
 };
 
 export const metadata = {
-  metadataBase: new URL('https://amjadmajed.com'),
+  metadataBase: new URL('https://auxbox.tools'),
 
   title: {
-    default: 'Amjad Majed - Software Architect & Technology Leader',
-    template: '%s | Amjad Majed',
+    default: 'Auxbox Tools',
+    template: '%s | Auxbox Tools',
   },
 
-  description:
-    'I help business transform with technology. I lead the team of Desol Int. where we work with clients to build innovative solutions that drive success.',
+  description: 'Free online tools for students and professionals.',
 
   keywords: [
-    'Amjad Majed',
-    'Software Architect',
-    'Technology Leader',
-    'Desol Int',
-    'Software Development',
-    'Web Development',
-    'Full Stack Developer',
-    'React Developer',
-    'Next.js Developer',
     'CGPA Calculator',
-    'Portfolio',
+    'GPA Calculator',
+    'Student Tools',
+    'Online Tools',
+    'Free Tools',
   ],
-
-  authors: [{name: 'Amjad Majed', url: 'https://amjadmajed.com'}],
-  creator: 'Amjad Majed',
-  publisher: 'Amjad Majed',
-
-  openGraph: {
-    type: 'website',
-    locale: 'en_US',
-    url: 'https://amjadmajed.com',
-    siteName: 'Amjad Majed',
-    title: 'Amjad Majed - Software Architect & Technology Leader',
-    description:
-      'I help business transform with technology. I lead the team of Desol Int. where we work with clients to build innovative solutions that drive success.',
-    images: [
-      {
-        url: '/assets/amjad-photo.jpg',
-        width: 300,
-        height: 300,
-        alt: 'Amjad Majed - Software Architect',
-      },
-    ],
-  },
-
-  twitter: {
-    card: 'summary',
-    title: 'Amjad Majed - Software Architect & Technology Leader',
-    description:
-      'I help business transform with technology. I lead the team of Desol Int. where we work with clients to build innovative solutions that drive success.',
-    creator: '@amjad992',
-    images: ['/assets/amjad-photo.jpg'],
-  },
 
   robots: {
     index: true,
@@ -91,11 +53,6 @@ export const metadata = {
 export default function RootLayout({children}) {
   return (
     <html lang="en">
-      <head>
-        {/* DNS Prefetch and Preconnect for external resources */}
-        <link rel="dns-prefetch" href="https://static.cloudflareinsights.com" />
-        <link rel="preconnect" href="https://static.cloudflareinsights.com" crossOrigin="anonymous" />
-      </head>
       <body>{children}</body>
     </html>
   );
