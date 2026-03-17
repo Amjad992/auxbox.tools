@@ -42,6 +42,12 @@ const nextConfig = {
   redirects: async () => {
     return [
       {
+        source: '/:path*',
+        has: [{type: 'host', value: 'www.auxbox.tools'}],
+        destination: 'https://auxbox.tools/:path*',
+        permanent: true,
+      },
+      {
         source: '/',
         destination: '/cgpa-calculator',
         permanent: false,
