@@ -47,11 +47,7 @@ const nextConfig = {
         destination: 'https://auxbox.tools/:path*',
         permanent: true,
       },
-      {
-        source: '/',
-        destination: '/cgpa-calculator',
-        permanent: false,
-      },
+
       {
         source: '/cgpaCalculator',
         destination: '/cgpa-calculator',

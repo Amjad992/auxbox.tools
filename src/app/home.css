@@ -1,0 +1,177 @@
+/* ───────────────────────────────────────────────
+   Home Page – Tools Directory
+   Mirrors the design language of the app
+─────────────────────────────────────────────── */
+
+/* ── Page shell ── */
+.home-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  color: var(--text-primary);
+  padding: 1rem;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+.home-page *,
+.home-page *::before,
+.home-page *::after {
+  box-sizing: border-box;
+}
+
+.home-page .container {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ── Hero ── */
+.home-hero {
+  text-align: center;
+  padding: 80px 0 64px;
+  position: relative;
+}
+
+.home-hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+      circle at 20% 40%,
+      rgba(255, 107, 107, 0.1) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 80% 60%,
+      rgba(255, 107, 107, 0.1) 0%,
+      transparent 50%
+    );
+  z-index: 1;
+}
+
+.home-hero h1 {
+  color: var(--text-primary);
+  font-size: clamp(2.5rem, 5vw, 3.5rem);
+  font-weight: 700;
+  margin-bottom: 24px;
+  position: relative;
+  z-index: 2;
+}
+
+.home-tagline {
+  color: var(--text-secondary);
+  font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+  font-style: italic;
+  max-width: 560px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+}
+
+/* ── Tools grid ── */
+.home-tools-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2rem;
+  margin-bottom: 4rem;
+}
+
+/* ── Tool card ── */
+.home-tool-card {
+  background-color: #2d2d2d;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 2rem;
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+}
+
+.home-tool-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--primary-color);
+  box-shadow: 0 8px 32px rgba(255, 107, 107, 0.15);
+}
+
+/* ── Card icon ── */
+.home-tool-icon {
+  width: 52px;
+  height: 52px;
+  background: linear-gradient(135deg, #ff6b6b, #ff5252);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+  flex-shrink: 0;
+}
+
+/* ── Card text ── */
+.home-tool-name {
+  color: var(--text-primary);
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.home-tool-desc {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0;
+  flex: 1;
+}
+
+/* ── Card CTA ── */
+.home-tool-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--primary-color);
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-top: 4px;
+  transition: gap 0.2s ease;
+}
+
+.home-tool-card:hover .home-tool-cta {
+  gap: 10px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .home-hero {
+    padding: 48px 0 40px;
+  }
+
+  .home-tools-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .home-tool-card:hover {
+    transform: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .home-page {
+    padding: 0.5rem 0.25rem;
+  }
+
+  .home-hero {
+    padding: 32px 0 28px;
+  }
+
+  .home-tool-card {
+    padding: 1.5rem 1rem;
+  }
+}
