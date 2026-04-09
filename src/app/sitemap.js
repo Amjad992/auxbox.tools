@@ -3,6 +3,12 @@ export default function sitemap() {
 
   return [
     {
+      url: baseUrl,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 1,
+    },
+    {
       url: `${baseUrl}/cgpa-calculator`,
       lastModified: new Date(),
       changeFrequency: 'monthly',

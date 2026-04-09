@@ -47,6 +47,12 @@ const nextConfig = {
         destination: 'https://auxbox.tools/:path*',
         permanent: true,
       },
+      {
+        source: '/:path*',
+        has: [{type: 'header', key: 'x-forwarded-proto', value: 'http'}],
+        destination: 'https://auxbox.tools/:path*',
+        permanent: true,
+      },
 
       {
         source: '/cgpaCalculator',
