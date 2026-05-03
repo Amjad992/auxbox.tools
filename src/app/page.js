@@ -23,6 +23,14 @@ const TOOLS = [
     description:
       'Generate offline QR codes instantly — with or without a logo. The QR code embeds your link directly, no internet needed to scan.',
     cta: 'Open tool',
+  },
+  {
+    href: '/salary-raise-calculator',
+    icon: '💰',
+    name: 'Salary Raise Calculator',
+    description:
+      'See exactly what a raise looks like across hourly, weekly, monthly and annual pay. Edit any field and the rest update in real time.',
+    cta: 'Open tool',
   }
 ];
 
