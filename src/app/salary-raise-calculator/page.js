@@ -58,7 +58,6 @@ function SalaryRaiseCalculatorContent() {
       tagline="Plug in your pay, see exactly what a raise looks like across hourly, weekly, monthly and annual."
       schema={SCHEMA}
       schemaId="raise-schema"
-      narrow
       errorMessage="There was an error loading the calculator. Please refresh the page."
     >
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />

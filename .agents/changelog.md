@@ -20,6 +20,14 @@ Append-only log of structural or behavior changes future agents would need to kn
 **Impact:** All future work must follow the protocol in `.agents/agent-protocol-core.md`. Pre-commit blocks any commit that touches source without staging this changelog.
 **Files changed:** `.agents/**`, `CLAUDE.md`, `AGENTS.md`, `agent.md`, `playground/HANDOVER.md`, `.husky/pre-commit`, `package.json`, `.gitignore`, `vitest.config.mjs`.
 
+## 2026-05-03 - Salary-raise calculator uses full container width and 2-col input grid
+**What changed:**
+1. Removed the `narrow` prop on `<ToolPage>` in [src/app/salary-raise-calculator/page.js](src/app/salary-raise-calculator/page.js). The page now uses the default 1200px container, matching CGPA Calculator and QR Code Generator.
+2. Wrapped the inputs in each `PaySection` in a new `.pay-grid` two-column CSS grid. With the wider container the period inputs were too wide; now they pair up — Pay before raise: 2 rows × 2; Raise: 5 fields auto-flowing 2+2+1; Pay after raise: 2 rows × 2. The `<640px` breakpoint collapses back to one column.
+**Why:** At 720px the three-tile results grid squeezed `$250000` against the tile padding. Widening to 1200px fixed the results but made each input span the full container, which felt empty. Pairing the period inputs uses the new horizontal space without affecting the result tiles (still full-width, three across).
+**Impact:** Result tiles get ~380px each. Period inputs sit side-by-side instead of full-width. No behavior change. Tests + lint clean.
+**Files changed:** `src/app/salary-raise-calculator/page.js`, `src/app/salary-raise-calculator/components/PaySection.js`, `src/app/salary-raise-calculator/raise-calculator.css`.
+
 ## 2026-05-03 - Add unit-test layer (Vitest + RTL)
 **What changed:** Added 13 test files / 175 tests covering `src/lib/{storage,createStorageContext}`, `src/hooks/useToast`, shared components (`Button`, `Card`, `Hero`, `ResultCard`, `ToastContainer`, `ErrorBoundary`), and tool-specific utils + validators for both calculators. Added `vitest.setup.js` (jest-dom matchers, RTL cleanup, localStorage clear). Configured Vite/esbuild to handle JSX in `.js` files via the automatic JSX runtime so `createStorageContext.js` and the existing tool components can be imported by tests without a rename.
 **Why:** First test pass to anchor future agent / human changes against regressions. Targets pure logic + shared primitives where ROI is highest. CSS / visual-regression deferred to a separate plan.
