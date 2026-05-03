@@ -1,0 +1,224 @@
+/* Image Compressor — tool-specific layout only.
+   Page shell, hero, card surface, buttons, slider, and drop zone visuals
+   come from src/styles/tools.css. */
+
+.ic-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding-bottom: 2rem;
+}
+
+.ic-label {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.ic-privacy {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.ic-privacy strong {
+  color: var(--text-primary);
+}
+
+/* ── Controls ─────────────────────────────── */
+.ic-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.ic-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.ic-toggle input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary-color);
+  cursor: pointer;
+}
+
+.ic-toggle-hint {
+  color: var(--text-light);
+  font-size: 0.8rem;
+  margin: 0.25rem 0 0 1.6rem;
+}
+
+/* ── Dimension inputs ─────────────────────── */
+.ic-dims {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.ic-dim-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.ic-input {
+  width: 100%;
+  background-color: #1f1f1f;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ic-input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.15);
+}
+
+@media (max-width: 540px) {
+  .ic-dims {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── File list / rows ─────────────────────── */
+.ic-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ic-list-empty {
+  margin: 0;
+  color: var(--text-light);
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 1rem 0;
+}
+
+.ic-list-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+}
+
+.ic-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  background-color: #1f1f1f;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  transition: border-color 0.2s ease;
+}
+
+.ic-row--encoding {
+  border-color: rgba(255, 107, 107, 0.4);
+}
+
+.ic-row--error {
+  border-color: rgba(231, 76, 60, 0.6);
+  background-color: rgba(231, 76, 60, 0.06);
+}
+
+.ic-row--done {
+  border-color: rgba(39, 174, 96, 0.5);
+}
+
+.ic-row-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.ic-row-name {
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ic-row-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.ic-row-size {
+  font-variant-numeric: tabular-nums;
+}
+
+.ic-row-size--out {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.ic-row-arrow {
+  color: var(--text-light);
+}
+
+.ic-row-savings {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.ic-row-savings--positive {
+  color: #2ecc71;
+}
+
+.ic-row-savings--negative {
+  color: #f39c12;
+}
+
+.ic-row-dims {
+  color: var(--text-light);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.ic-row-status {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.ic-row-error {
+  color: #e74c3c;
+}
+
+.ic-row-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+@media (max-width: 600px) {
+  .ic-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .ic-row-actions {
+    justify-content: flex-end;
+  }
+}
