@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import Button from '../../../components/Button';
 import {GRADE_POINT_LIMITS} from '../constants';
 import {useStorageData} from '../StorageContext';
 import {useSaveButton} from '../useSaveButton';
@@ -17,19 +18,11 @@ export default function GradeManagement({
   );
 
   const handleGradeNameChange = (oldGrade, newGrade) => {
-    const points = customGrades[oldGrade];
-    onUpdateGrade(oldGrade, newGrade, points);
+    onUpdateGrade(oldGrade, newGrade, customGrades[oldGrade]);
   };
 
   const handleSaveGrades = () => {
-    const success = saveGrades(customGrades);
-    if (success) {
-      triggerSaveGrades();
-    }
-  };
-
-  const handleClearGrades = () => {
-    clearGrades();
+    if (saveGrades(customGrades)) triggerSaveGrades();
   };
 
   const handlePointsChange = (grade, points) => {
@@ -38,16 +31,13 @@ export default function GradeManagement({
 
   const handlePointsInputChange = (e, grade, currentPoints) => {
     const value = e.target.value;
-
-    // Allow temporary values while typing
     if (
       value === '' ||
       (parseFloat(value) >= GRADE_POINT_LIMITS.min &&
         parseFloat(value) <= GRADE_POINT_LIMITS.max)
     ) {
-      // Valid input or empty, let it be
+      // valid
     } else {
-      // Invalid input, reset to current value
       e.target.value = currentPoints;
     }
   };
@@ -57,28 +47,28 @@ export default function GradeManagement({
       <div className="grade-management-header">
         <h3>Configure Grade Points</h3>
         <div className="grade-management-actions">
-          <button
+          <Button
+            variant="warning"
             onClick={onResetGrades}
-            className="reset-grades-btn"
             title="Reset to default grades"
           >
             Reset to Default
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="success"
             onClick={handleSaveGrades}
-            className="save-grades-btn"
             title="Save current grade configuration"
           >
             {saveButtonText}
-          </button>
+          </Button>
           {hasSavedData.grades && (
-            <button
-              onClick={handleClearGrades}
-              className="clear-saved-btn"
+            <Button
+              variant="neutral"
+              onClick={clearGrades}
               title="Clear saved grade data"
             >
               Clear Saved Data
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -91,11 +81,7 @@ export default function GradeManagement({
                 type="text"
                 defaultValue={grade}
                 onBlur={(e) => handleGradeNameChange(grade, e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.target.blur();
-                  }
-                }}
+                onKeyDown={(e) => e.key === 'Enter' && e.target.blur()}
                 className="grade-name-input"
                 placeholder="Grade"
                 title="Click to edit grade name"
@@ -128,9 +114,9 @@ export default function GradeManagement({
       </div>
 
       <div className="add-grade-container">
-        <button onClick={onAddGrade} className="add-grade-btn">
-          Add New Grade
-        </button>
+        <Button variant="info" onClick={onAddGrade}>
+          + Add New Grade
+        </Button>
       </div>
     </section>
   );

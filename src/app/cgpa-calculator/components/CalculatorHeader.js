@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import Button from '../../../components/Button';
 import {useStorageData} from '../StorageContext';
 import {useSaveButton} from '../useSaveButton';
 
@@ -14,32 +15,26 @@ export default function CalculatorHeader({
   );
 
   const handleSaveSemesters = () => {
-    const success = saveSemesters(semesters);
-    if (success) {
-      triggerSaveSemesters();
-    }
+    if (saveSemesters(semesters)) triggerSaveSemesters();
   };
 
-  const handleClearSemesters = () => {
-    clearSemesters();
-  };
   return (
     <div className="calculator-header">
       <h3>Enter Semesters and Subjects</h3>
       <div className="calculator-actions">
-        <button onClick={onAddSemester} className="add-btn">
+        <Button variant="info" onClick={onAddSemester}>
           Add Semester
-        </button>
-        <button onClick={onResetCalculator} className="reset-btn">
+        </Button>
+        <Button variant="warning" onClick={onResetCalculator}>
           Reset All
-        </button>
-        <button onClick={handleSaveSemesters} className="save-btn">
+        </Button>
+        <Button variant="success" onClick={handleSaveSemesters}>
           {saveButtonText}
-        </button>
+        </Button>
         {hasSavedData.semesters && (
-          <button onClick={handleClearSemesters} className="clear-saved-btn">
+          <Button variant="neutral" onClick={clearSemesters}>
             Clear Saved Data
-          </button>
+          </Button>
         )}
       </div>
     </div>

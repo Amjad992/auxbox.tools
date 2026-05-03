@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import ResultCard from '../../../components/ResultCard';
 import {formatNumber} from '../utils';
 
 export default function ResultsSummary({summary}) {
@@ -6,26 +7,26 @@ export default function ResultsSummary({summary}) {
 
   return (
     <section className="results-section">
-      <div className="results-grid">
-        <div className="result-card">
-          <h3>Before raise</h3>
-          <div className="result-value">${formatNumber(summary.beforeAnnual)}</div>
-          <p>per year</p>
-        </div>
-        <div className="result-card">
-          <h3>Raise</h3>
-          <div className="result-value">
-            {summary.raisePercent !== null
+      <div className="tool-results-grid">
+        <ResultCard
+          label="Before raise"
+          value={`$${formatNumber(summary.beforeAnnual)}`}
+          hint="per year"
+        />
+        <ResultCard
+          label="Raise"
+          value={
+            summary.raisePercent !== null
               ? `${formatNumber(summary.raisePercent)}%`
-              : '—'}
-          </div>
-          <p>+${formatNumber(summary.raiseAnnual)} / year</p>
-        </div>
-        <div className="result-card">
-          <h3>After raise</h3>
-          <div className="result-value">${formatNumber(summary.afterAnnual)}</div>
-          <p>per year</p>
-        </div>
+              : '—'
+          }
+          hint={`+$${formatNumber(summary.raiseAnnual)} / year`}
+        />
+        <ResultCard
+          label="After raise"
+          value={`$${formatNumber(summary.afterAnnual)}`}
+          hint="per year"
+        />
       </div>
     </section>
   );
@@ -40,4 +41,4 @@ ResultsSummary.propTypes = {
     beforeSet: PropTypes.bool,
     raiseSet: PropTypes.bool,
   }).isRequired,
-};
+}

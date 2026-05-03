@@ -1,11 +1,12 @@
 import PropTypes from 'prop-types';
+import Card from '../../../components/Card';
 
 export default function HoursPerWeekCard({value, onChange}) {
   return (
-    <section className="pay-section">
+    <Card>
       <h2 className="pay-section-title">Hours per week</h2>
       <div className="pay-row">
-        <div className="pay-input-wrap full">
+        <div className="pay-input-wrap">
           <input
             type="number"
             inputMode="numeric"
@@ -18,7 +19,7 @@ export default function HoursPerWeekCard({value, onChange}) {
           />
         </div>
       </div>
-    </section>
+    </Card>
   );
 }
 

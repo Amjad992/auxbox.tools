@@ -1,22 +1,22 @@
 import PropTypes from 'prop-types';
+import Button from '../../../components/Button';
 
 export default function Actions({onSave, onClearSaved, onReset, hasSavedData}) {
   return (
     <section className="pay-actions">
-      <button type="button" className="save-btn" onClick={onSave}>
+      <Button variant="success" onClick={onSave}>
         Save locally
-      </button>
-      <button
-        type="button"
-        className="clear-saved-btn"
+      </Button>
+      <Button
+        variant="neutral"
         onClick={onClearSaved}
         disabled={!hasSavedData}
       >
         Clear saved data
-      </button>
-      <button type="button" className="reset-btn" onClick={onReset}>
+      </Button>
+      <Button variant="warning" onClick={onReset}>
         Reset calculator
-      </button>
+      </Button>
     </section>
   );
 }

@@ -1,25 +1,32 @@
 'use client';
 import {useEffect} from 'react';
-import Script from 'next/script';
-import HeroSection from './components/HeroSection';
+import ToolPage from '../../components/ToolPage';
+import ToastContainer from '../../components/ToastContainer';
 import GradeManagement from './components/GradeManagement';
 import CalculatorHeader from './components/CalculatorHeader';
 import SemesterCard from './components/SemesterCard';
 import ResultsSection from './components/ResultsSection';
-import ErrorBoundary from './components/ErrorBoundary';
 import {useCGPACalculator, useGradeManagement} from './hooks';
 import {StorageProvider, useStorageData} from './StorageContext';
 import {useToast} from '../../hooks/useToast';
 import './cgpa-calculator.css';
 
-function CGPACalculatorContent() {
-  // Toast notifications
-  const {toasts, showToast, dismissToast} = useToast();
+const SCHEMA = {
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
+  name: 'CGPA Calculator',
+  description:
+    'Free online CGPA and GPA calculator. Calculate your cumulative grade point average with precision.',
+  url: 'https://auxbox.tools/cgpa-calculator',
+  applicationCategory: 'EducationalApplication',
+  operatingSystem: 'Any',
+  offers: {'@type': 'Offer', price: '0', priceCurrency: 'USD'},
+};
 
-  // Storage hook for error display
+function CGPACalculatorContent() {
+  const {toasts, showToast, dismissToast} = useToast();
   const {storageErrors} = useStorageData();
 
-  // Show toast when storage errors occur
   useEffect(() => {
     if (storageErrors.grades) {
       showToast(`Grades: ${storageErrors.grades}. Using defaults.`, 'error');
@@ -32,7 +39,6 @@ function CGPACalculatorContent() {
     }
   }, [storageErrors.grades, storageErrors.semesters, showToast]);
 
-  // Grade management hook
   const {
     customGrades,
     updateCustomGrade,
@@ -41,11 +47,8 @@ function CGPACalculatorContent() {
     resetGradesToDefault,
   } = useGradeManagement();
 
-  // CGPA calculator hook
   const {
     semesters,
-    cgpa,
-    totalCredits,
     addSemester,
     removeSemester,
     updateSemesterName,
@@ -53,111 +56,67 @@ function CGPACalculatorContent() {
     removeSubject,
     updateSubject,
     resetCalculator,
+    cgpa,
+    totalCredits,
   } = useCGPACalculator(customGrades);
 
-  // Helper to update subject with access to customGrades
   const handleUpdateSubject = (semesterId, subjectIndex, field, value) => {
     updateSubject(semesterId, subjectIndex, field, value, customGrades);
   };
 
   return (
-    <main className="cgpa-calculator-page">
-        {/* Toast notifications */}
-        <div className="toast-container">
-          {toasts.map((toast) => (
-            <div
-              key={toast.id}
-              className={`toast toast-${toast.type}`}
-              onClick={() => dismissToast(toast.id)}
-            >
-              <span className="toast-icon">⚠️</span>
-              <span className="toast-message">{toast.message}</span>
-              <button
-                className="toast-close"
-                onClick={() => dismissToast(toast.id)}
-              >
-                ×
-              </button>
-            </div>
-          ))}
-        </div>
+    <ToolPage
+      title="CGPA and GPA Calculator!"
+      tagline="Calculate your CGPA and GPA with precision"
+      schema={SCHEMA}
+      schemaId="cgpa-schema"
+      errorMessage="There was an error loading the calculator. Please refresh the page."
+    >
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
-        <ErrorBoundary>
-          <div className="container">
-            <HeroSection />
+      <GradeManagement
+        customGrades={customGrades}
+        onUpdateGrade={updateCustomGrade}
+        onAddGrade={addCustomGrade}
+        onRemoveGrade={removeCustomGrade}
+        onResetGrades={resetGradesToDefault}
+      />
 
-          <GradeManagement
+      <section className="calculator-section">
+        <CalculatorHeader
+          onAddSemester={addSemester}
+          onResetCalculator={resetCalculator}
+          semesters={semesters}
+        />
+
+        {semesters.map((semester) => (
+          <SemesterCard
+            key={semester.id}
+            semester={semester}
             customGrades={customGrades}
-            onUpdateGrade={updateCustomGrade}
-            onAddGrade={addCustomGrade}
-            onRemoveGrade={removeCustomGrade}
-            onResetGrades={resetGradesToDefault}
+            onUpdateSemesterName={updateSemesterName}
+            onAddSubject={addSubject}
+            onRemoveSubject={removeSubject}
+            onUpdateSubject={handleUpdateSubject}
+            onRemoveSemester={removeSemester}
+            canRemoveSemester={semesters.length > 1}
           />
+        ))}
+      </section>
 
-          {/* Calculator Section */}
-          <section className="calculator-section">
-            <CalculatorHeader
-              onAddSemester={addSemester}
-              onResetCalculator={resetCalculator}
-              semesters={semesters}
-            />
-
-            {/* Semesters */}
-            {semesters.map((semester) => (
-              <SemesterCard
-                key={semester.id}
-                semester={semester}
-                customGrades={customGrades}
-                onUpdateSemesterName={updateSemesterName}
-                onAddSubject={addSubject}
-                onRemoveSubject={removeSubject}
-                onUpdateSubject={handleUpdateSubject}
-                onRemoveSemester={removeSemester}
-                canRemoveSemester={semesters.length > 1}
-              />
-            ))}
-          </section>
-
-          <ResultsSection
-            cgpa={cgpa}
-            totalCredits={totalCredits}
-            semesterCount={semesters.length}
-          />
-          </div>
-        </ErrorBoundary>
-      </main>
+      <ResultsSection
+        cgpa={cgpa}
+        totalCredits={totalCredits}
+        semesterCount={semesters.length}
+      />
+    </ToolPage>
   );
 }
 
 export default function CGPACalculator() {
-  const webAppSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'WebApplication',
-    name: 'CGPA Calculator',
-    description:
-      'Free online CGPA and GPA calculator. Calculate your cumulative grade point average with precision.',
-    url: 'https://auxbox.tools/cgpa-calculator',
-    applicationCategory: 'EducationalApplication',
-    operatingSystem: 'Any',
-    offers: {
-      '@type': 'Offer',
-      price: '0',
-      priceCurrency: 'USD',
-    },
-  };
-
   return (
-    <>
-      <Script
-        id="webapp-schema"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(webAppSchema),
-        }}
-      />
-      <StorageProvider>
-        <CGPACalculatorContent />
-      </StorageProvider>
-    </>
+    <StorageProvider>
+      <CGPACalculatorContent />
+    </StorageProvider>
   );
 }

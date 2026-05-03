@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import Button from '../../../components/Button';
 import SubjectRow from './SubjectRow';
 import {calculateSemesterGPA} from '../utils';
 
@@ -31,19 +32,16 @@ export default function SemesterCard({
           <span className="semester-credits">Credits: {totalCredits}</span>
         </div>
         <div className="semester-actions">
-          <button
-            onClick={() => onAddSubject(semester.id)}
-            className="add-subject-btn"
-          >
-            Add Subject
-          </button>
-          <button
+          <Button variant="info" onClick={() => onAddSubject(semester.id)}>
+            + Add Subject
+          </Button>
+          <Button
+            variant="danger"
             onClick={() => onRemoveSemester(semester.id)}
-            className="remove-semester-btn"
             disabled={!canRemoveSemester}
           >
             Remove Semester
-          </button>
+          </Button>
         </div>
       </div>
 

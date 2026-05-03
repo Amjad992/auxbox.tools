@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import ResultCard from '../../../components/ResultCard';
 import {
   getPerformanceLevel,
   getPerformanceBarWidth,
@@ -12,25 +13,24 @@ export default function ResultsSection({cgpa, totalCredits, semesterCount}) {
 
   return (
     <section className="results-section">
-      <div className="results-grid">
-        <div className="result-card">
-          <h3>CGPA</h3>
-          <div className="result-value">{formatToDecimalPlaces(cgpa)}</div>
-          <p>Cumulative Grade Point Average</p>
-        </div>
-        <div className="result-card">
-          <h3>Total Credits</h3>
-          <div className="result-value">{totalCredits}</div>
-          <p>Total Credit Hours</p>
-        </div>
-        <div className="result-card">
-          <h3>Semesters</h3>
-          <div className="result-value">{semesterCount}</div>
-          <p>Number of Semesters</p>
-        </div>
+      <div className="tool-results-grid">
+        <ResultCard
+          label="CGPA"
+          value={formatToDecimalPlaces(cgpa)}
+          hint="Cumulative Grade Point Average"
+        />
+        <ResultCard
+          label="Total Credits"
+          value={totalCredits}
+          hint="Total Credit Hours"
+        />
+        <ResultCard
+          label="Semesters"
+          value={semesterCount}
+          hint="Number of Semesters"
+        />
       </div>
 
-      {/* Performance Indicator */}
       <div className="performance-indicator">
         <h3>Performance Level</h3>
         <div className="performance-bar">
@@ -40,7 +40,7 @@ export default function ResultsSection({cgpa, totalCredits, semesterCount}) {
           ></div>
         </div>
         <div className="performance-labels">
-          {PERFORMANCE_BAR_LABELS.map((label, index) => (
+          {PERFORMANCE_BAR_LABELS.map((label) => (
             <span key={label}>{label}</span>
           ))}
         </div>

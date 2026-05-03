@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import Card from '../../../components/Card';
 import {PERIODS} from '../constants';
 
 const PERIOD_LABELS = {
@@ -9,11 +10,11 @@ const PERIOD_LABELS = {
 };
 
 /**
- * Renders a card with one input per pay period. Optionally renders a
+ * One card with a labeled input per pay period. Optionally includes a
  * leading "Percentage" input (used by the raise section).
  *
- * All inputs are bidirectional — typing in any one updates the parent's
- * canonical state, which feeds derived values back into the others.
+ * All inputs are bidirectional — typing in any one calls onChange so the
+ * parent's canonical state can recompute the rest.
  */
 export default function PaySection({
   title,
@@ -26,7 +27,7 @@ export default function PaySection({
   const handle = (field) => (e) => onChange(group, field, e.target.value);
 
   return (
-    <section className="pay-section">
+    <Card>
       <h2 className="pay-section-title">{title}</h2>
 
       {showPercent && (
@@ -63,7 +64,7 @@ export default function PaySection({
           </div>
         </div>
       ))}
-    </section>
+    </Card>
   );
 }
 

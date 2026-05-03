@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import ToolPage from '../components/ToolPage';
 import './home.css';
 
 export const metadata = {
@@ -31,33 +32,25 @@ const TOOLS = [
     description:
       'See exactly what a raise looks like across hourly, weekly, monthly and annual pay. Edit any field and the rest update in real time.',
     cta: 'Open tool',
-  }
+  },
 ];
 
 export default function Home() {
   return (
-    <main className="home-page">
-      <div className="container">
-        <section className="home-hero">
-          <h1>Auxbox Tools</h1>
-          <p className="home-tagline">
-            Free, simple tools that work — no sign-up, no tracking, no nonsense.
-          </p>
-        </section>
-
-        <div className="home-tools-grid">
-          {TOOLS.map((tool) => (
-            <Link key={tool.href} href={tool.href} className="home-tool-card">
-              <div className="home-tool-icon">{tool.icon}</div>
-              <h2 className="home-tool-name">{tool.name}</h2>
-              <p className="home-tool-desc">{tool.description}</p>
-              <span className="home-tool-cta">
-                {tool.cta} →
-              </span>
-            </Link>
-          ))}
-        </div>
+    <ToolPage
+      title="Auxbox Tools"
+      tagline="Free, simple tools that work — no sign-up, no tracking, no nonsense."
+    >
+      <div className="home-tools-grid">
+        {TOOLS.map((tool) => (
+          <Link key={tool.href} href={tool.href} className="home-tool-card">
+            <div className="home-tool-icon">{tool.icon}</div>
+            <h2 className="home-tool-name">{tool.name}</h2>
+            <p className="home-tool-desc">{tool.description}</p>
+            <span className="home-tool-cta">{tool.cta} →</span>
+          </Link>
+        ))}
       </div>
-    </main>
+    </ToolPage>
   );
 }

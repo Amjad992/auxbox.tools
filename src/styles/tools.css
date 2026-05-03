@@ -1,0 +1,357 @@
+/* ───────────────────────────────────────────────
+   Shared tool primitives — used by every tool page.
+   Tool-specific CSS files should only contain
+   tool-specific layout, never re-style these.
+─────────────────────────────────────────────── */
+
+/* ═══ Page shell ═══════════════════════════════ */
+.tool-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  color: var(--text-primary);
+  padding: 1rem;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+.tool-page *,
+.tool-page *::before,
+.tool-page *::after {
+  box-sizing: border-box;
+}
+
+.tool-page .container {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.tool-page .container--narrow {
+  max-width: 720px;
+}
+
+/* ═══ Hero ═════════════════════════════════════ */
+.tool-hero {
+  text-align: center;
+  padding: 80px 0 60px;
+  position: relative;
+}
+
+.tool-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+      circle at 25% 30%,
+      rgba(255, 107, 107, 0.1) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 75% 70%,
+      rgba(255, 107, 107, 0.1) 0%,
+      transparent 50%
+    );
+  z-index: 1;
+}
+
+.tool-hero h1 {
+  color: var(--text-primary);
+  font-size: clamp(2.5rem, 5vw, 3.5rem);
+  font-weight: 700;
+  margin-bottom: 24px;
+  position: relative;
+  z-index: 2;
+}
+
+.tool-tagline {
+  color: var(--text-secondary);
+  font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+  font-style: italic;
+  max-width: 600px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+}
+
+/* ═══ Card surface ═════════════════════════════ */
+.tool-card {
+  background-color: #2d2d2d;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 2rem;
+}
+
+.tool-card--inset {
+  background-color: #1f1f1f;
+}
+
+/* ═══ Buttons ══════════════════════════════════ */
+.btn {
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 12px 24px;
+  color: #ffffff;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: inherit;
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #ff6b6b, #ff5252);
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+}
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ff5252, #e84040);
+  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+  transform: translateY(-2px);
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #27ae60, #229954);
+  box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+}
+.btn-success:hover:not(:disabled) {
+  background: linear-gradient(135deg, #229954, #1e8449);
+  box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4);
+  transform: translateY(-2px);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+}
+.btn-danger:hover:not(:disabled) {
+  background: linear-gradient(135deg, #c0392b, #a93226);
+  box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+  transform: translateY(-2px);
+}
+
+.btn-warning {
+  background: linear-gradient(135deg, #f39c12, #e67e22);
+  box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
+}
+.btn-warning:hover:not(:disabled) {
+  background: linear-gradient(135deg, #e67e22, #d35400);
+  box-shadow: 0 6px 20px rgba(243, 156, 18, 0.4);
+  transform: translateY(-2px);
+}
+
+.btn-info {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+}
+.btn-info:hover:not(:disabled) {
+  background: linear-gradient(135deg, #2980b9, #1e6091);
+  box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+  transform: translateY(-2px);
+}
+
+.btn-neutral {
+  background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+  box-shadow: 0 4px 15px rgba(149, 165, 166, 0.3);
+}
+.btn-neutral:hover:not(:disabled) {
+  background: linear-gradient(135deg, #7f8c8d, #566573);
+  box-shadow: 0 6px 20px rgba(149, 165, 166, 0.4);
+  transform: translateY(-2px);
+}
+
+.btn-block {
+  width: 100%;
+}
+
+/* ═══ Result cards ═════════════════════════════ */
+.tool-results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.tool-result-card {
+  background-color: #1f1f1f;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  transition: transform 0.3s ease;
+}
+
+.tool-result-card:hover {
+  transform: translateY(-3px);
+}
+
+.tool-result-card h3 {
+  color: var(--primary-color);
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.tool-result-value {
+  color: var(--text-primary);
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.tool-result-card p {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+/* ═══ Toast notifications ══════════════════════ */
+.toast-container {
+  position: fixed;
+  top: 90px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 400px;
+}
+
+.toast {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  color: white;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+  cursor: pointer;
+  animation: toastSlideIn 0.3s ease;
+  transition: all 0.3s ease;
+}
+
+.toast:hover {
+  box-shadow: 0 6px 20px rgba(231, 76, 60, 0.5);
+  transform: translateX(-5px);
+}
+
+.toast-success {
+  background: linear-gradient(135deg, #27ae60, #229954);
+  box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4);
+}
+
+.toast-success:hover {
+  box-shadow: 0 6px 20px rgba(39, 174, 96, 0.5);
+}
+
+.toast-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.toast-message {
+  flex: 1;
+  font-size: 0.9rem;
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.toast-close:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ═══ Error boundary ═══════════════════════════ */
+.error-boundary {
+  background-color: #2d2d2d;
+  border-radius: 12px;
+  padding: 3rem 2rem;
+  margin: 2rem auto;
+  max-width: 600px;
+  text-align: center;
+  border: 2px solid #e74c3c;
+}
+
+.error-boundary h2 {
+  color: #e74c3c;
+  margin-bottom: 1rem;
+  font-size: 2rem;
+}
+
+.error-boundary p {
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+  font-size: 1.1rem;
+}
+
+/* ═══ Responsive ═══════════════════════════════ */
+@media (max-width: 768px) {
+  .tool-hero {
+    padding: 48px 0 40px;
+  }
+
+  .toast-container {
+    right: 10px;
+    left: 10px;
+    max-width: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .tool-page {
+    padding: 0.5rem 0.25rem;
+  }
+
+  .tool-hero {
+    padding: 32px 0 28px;
+  }
+
+  .tool-card {
+    padding: 1.5rem 1rem;
+  }
+
+  .toast-container {
+    top: 10px;
+  }
+
+  .toast {
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+  }
+}

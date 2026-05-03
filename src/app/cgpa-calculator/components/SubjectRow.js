@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import Button from '../../../components/Button';
 import {CREDIT_HOUR_LIMITS} from '../constants';
 
 export default function SubjectRow({
@@ -53,13 +54,13 @@ export default function SubjectRow({
       <div className="grade-points-display">
         {subject.gradePoints.toFixed(2)}
       </div>
-      <button
+      <Button
+        variant="danger"
         onClick={() => onRemoveSubject(semester.id, subjectIndex)}
-        className="remove-btn"
         disabled={semester.subjects.length === 1}
       >
         Remove
-      </button>
+      </Button>
     </div>
   );
 }
