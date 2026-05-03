@@ -14,6 +14,12 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-04 - Add Password Generator tool
+**What changed:** New `/password-generator` route. Cryptographically random password generation (`window.crypto.getRandomValues` via rejection-sampled `secureRandomInt`), length slider (6–64), per-class toggles (upper/lower/digits/symbols + exclude-ambiguous), live entropy/strength meter, copy-to-clipboard. Uses shared `<ToolPage>`, `<Card>`, `<Button>`, `<ToastContainer>`. Settings persisted via `createStorageContext` (key `password_generator_settings`, version `1.0.0`); generated passwords are NEVER persisted. Registered in `src/app/page.js` `TOOLS` and `src/app/sitemap.js`. Added 55 tests (utils, storage validators, page render+interactions).
+**Why:** First tool in the tools-batch coordinator plan; expands the tool set with a security-flavored utility.
+**Impact:** New route live. No changes to existing tools or shared primitives. `npm run lint` / `npm test` (230 total) / `npm run build` all green. Coordinator hints: `LengthControl`, `ClassToggles`, `pw-toggle` checkbox styling, and `copyToClipboard` helper are tool-local — flagged for promotion when a second tool needs them.
+**Files changed:** `src/app/password-generator/**`, `src/app/page.js`, `src/app/sitemap.js`.
+
 ## 2026-05-03 - AI collaboration scaffold bootstrapped
 **What changed:** Added `.agents/` (core protocol, loading policy, skill index, skills), root entrypoints (`CLAUDE.md`, `AGENTS.md`, `agent.md`) as `@import` shims, `playground/HANDOVER.md`, Husky + changelog-enforcement pre-commit hook, Vitest test runner.
 **Why:** Make every AI assistant (Claude / Codex / Copilot / Cursor) read the same protocol, plan in the same place, and commit with the same enforcement.

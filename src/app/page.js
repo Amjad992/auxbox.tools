@@ -33,6 +33,14 @@ const TOOLS = [
       'See exactly what a raise looks like across hourly, weekly, monthly and annual pay. Edit any field and the rest update in real time.',
     cta: 'Open tool',
   },
+  {
+    href: '/password-generator',
+    icon: '🔐',
+    name: 'Password Generator',
+    description:
+      'Generate strong, cryptographically random passwords entirely in your browser. Tune length and character classes, see live entropy and strength.',
+    cta: 'Open tool',
+  },
 ];
 
 export default function Home() {
