@@ -27,7 +27,7 @@ import {
  * @param {number} [options.maxHeight]          pixels; blank/<=0 = unconstrained
  * @param {boolean} [options.convertPngToWebp]  re-encode PNG inputs as WebP
  *
- * @returns {Promise<{ blob: Blob, width: number, height: number, mimeType: string }>}
+ * @returns {Promise<{ blob: Blob, width: number, height: number, mimeType: string, srcWidth: number, srcHeight: number }>}
  *
  * @throws {Error} when the input MIME is unsupported, or canvas.toBlob
  *   returns null (which a browser does when it can't encode the requested
@@ -53,6 +53,10 @@ export async function compressImage(file, options = {}) {
         `(${Math.round(MAX_PIXELS / 1_000_000)} MP). Please resize the image first.`
     );
   }
+
+  // Capture source dimensions before scaling so the UI can display them.
+  const srcWidth = bitmap.width;
+  const srcHeight = bitmap.height;
 
   let width;
   let height;
@@ -94,7 +98,7 @@ export async function compressImage(file, options = {}) {
     throw new Error(`Browser could not encode to ${outMime}.${hint}`);
   }
 
-  return {blob, width, height, mimeType: outMime};
+  return {blob, width, height, mimeType: outMime, srcWidth, srcHeight};
 }
 
 // MIN-7: use MIN_QUALITY as the floor so clampQuality matches the UI slider.

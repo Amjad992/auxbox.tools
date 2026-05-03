@@ -34,6 +34,8 @@ export default function ImageCompressor() {
     setMaxWidth,
     maxHeight,
     setMaxHeight,
+    largestOriginalWidth,
+    largestOriginalHeight,
     convertPngToWebp,
     setConvertPngToWebp,
     addFiles,
@@ -80,6 +82,8 @@ export default function ImageCompressor() {
               maxHeight={maxHeight}
               onMaxWidthChange={setMaxWidth}
               onMaxHeightChange={setMaxHeight}
+              largestOriginalWidth={largestOriginalWidth}
+              largestOriginalHeight={largestOriginalHeight}
             />
             <div>
               <label className="ic-toggle">

@@ -1,8 +1,9 @@
 'use client';
-import {useState, useRef, useCallback} from 'react';
+import {useState, useCallback} from 'react';
 import QRCode from 'qrcode';
 import Card from '../../../components/Card';
 import Button from '../../../components/Button';
+import DropZone from '../../../components/DropZone';
 
 export default function QRCodeGenerator() {
   const [url, setUrl] = useState('');
@@ -12,8 +13,7 @@ export default function QRCodeGenerator() {
   const [encodedUrl, setEncodedUrl] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState('');
-  const [isDragging, setIsDragging] = useState(false);
-  const fileInputRef = useRef(null);
+  // isDragging and fileInputRef are no longer needed — managed by shared <DropZone>.
 
   const handleLogoUpload = useCallback((file) => {
     if (!file) return;
@@ -28,10 +28,18 @@ export default function QRCodeGenerator() {
     reader.readAsDataURL(file);
   }, []);
 
+  // handleLogoFiles: adapts FileList from <DropZone> to a single File.
+  const handleLogoFiles = useCallback(
+    (files) => {
+      handleLogoUpload(files[0]);
+    },
+    [handleLogoUpload]
+  );
+
   const removeLogo = () => {
     setLogo(null);
     setLogoPreview(null);
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    // The shared DropZone resets its own internal input; nothing to clear here.
   };
 
   const loadImage = (src) =>
@@ -171,28 +179,13 @@ export default function QRCodeGenerator() {
           <label className="qr-label">Logo / Image (optional)</label>
 
           {!logoPreview ? (
-            <div
-              className={`qr-dropzone${isDragging ? ' qr-dropzone--active' : ''}`}
-              onClick={() => fileInputRef.current?.click()}
-              onDragOver={(e) => {
-                e.preventDefault();
-                setIsDragging(true);
-              }}
-              onDragLeave={() => setIsDragging(false)}
-              onDrop={(e) => {
-                e.preventDefault();
-                setIsDragging(false);
-                handleLogoUpload(e.dataTransfer.files[0]);
-              }}
-            >
-              <span className="qr-dropzone-icon">🖼️</span>
-              <span className="qr-dropzone-title">
-                Drop an image here or click to upload
-              </span>
-              <span className="qr-dropzone-hint">
-                PNG, JPG, SVG, WebP — any image works
-              </span>
-            </div>
+            <DropZone
+              onFiles={handleLogoFiles}
+              accept="image/*"
+              multiple={false}
+              label="Drop an image here or click to upload"
+              hint="PNG, JPG, SVG, WebP — any image works"
+            />
           ) : (
             <div className="qr-logo-preview">
               <img
@@ -210,14 +203,6 @@ export default function QRCodeGenerator() {
               </Button>
             </div>
           )}
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            style={{display: 'none'}}
-            onChange={(e) => handleLogoUpload(e.target.files[0])}
-          />
         </div>
 
         {error && <p className="qr-error">{error}</p>}

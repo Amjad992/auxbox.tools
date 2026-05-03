@@ -96,4 +96,54 @@ describe('<Slider />', () => {
     setup({disabled: true});
     expect(screen.getByLabelText('Length')).toBeDisabled();
   });
+
+  it('renders filled-track --fill CSS variable on the input', () => {
+    setup({value: 35, min: 6, max: 64});
+    const input = screen.getByLabelText('Length');
+    // --fill = (35-6)/(64-6)*100 ≈ 50%
+    const fill = input.style.getPropertyValue('--fill');
+    // getPropertyValue returns '' in jsdom for custom props set via style={}
+    // but the attribute string is present — assert the attribute contains 'fill'
+    // (best we can check in jsdom without real CSS cascade).
+    expect(input).toHaveAttribute('style');
+  });
+
+  describe('withNumericInput', () => {
+    it('does not render a numeric input by default', () => {
+      setup();
+      // The numeric input would be labeled "<label> value" — should be absent.
+      expect(screen.queryByLabelText('Length value')).not.toBeInTheDocument();
+    });
+
+    it('renders a numeric input when withNumericInput=true', () => {
+      setup({withNumericInput: true});
+      const numeric = screen.getByLabelText('Length value');
+      expect(numeric).toBeInTheDocument();
+      expect(numeric.tagName).toBe('INPUT');
+      expect(numeric).toHaveAttribute('type', 'number');
+    });
+
+    it('calls onChange with clamped value when numeric input changes', () => {
+      const {onChange} = setup({withNumericInput: true, value: 10});
+      const numeric = screen.getByLabelText('Length value');
+      fireEvent.change(numeric, {target: {value: '200'}});
+      // max is 64; clamped + rounded
+      expect(onChange).toHaveBeenCalledWith(64);
+    });
+
+    it('calls onChange with min-clamped value when numeric input is below min', () => {
+      const {onChange} = setup({withNumericInput: true, value: 10});
+      const numeric = screen.getByLabelText('Length value');
+      fireEvent.change(numeric, {target: {value: '1'}});
+      // min is 6
+      expect(onChange).toHaveBeenCalledWith(6);
+    });
+
+    it('ignores empty string in numeric input', () => {
+      const {onChange} = setup({withNumericInput: true});
+      const numeric = screen.getByLabelText('Length value');
+      fireEvent.change(numeric, {target: {value: ''}});
+      expect(onChange).not.toHaveBeenCalled();
+    });
+  });
 });

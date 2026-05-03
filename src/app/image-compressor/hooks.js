@@ -63,6 +63,8 @@ function buildItem(file) {
     outputSize: null,
     outputWidth: null,
     outputHeight: null,
+    originalWidth: null,
+    originalHeight: null,
   };
 }
 
@@ -155,27 +157,26 @@ export function useImageCompressor() {
 
   // Re-encode all currently queued / done items when options change.
   // We mark them queued again and bump encodeTick to wake the encode effect.
+  //
+  // Issue 4 fix: we deliberately keep outputBlob/outputUrl/outputSize on the row
+  // so the Download button and meta line remain visible during re-encode, preventing
+  // height/width jumps in the layout. The stale URL is revoked only when the new
+  // encode completes (see the encode loop below). The "encoding" status drives the
+  // in-row spinner/disabled state; it does NOT unmount the Download button.
   const reencodeAll = useCallback(() => {
     setItems((prev) =>
       prev.map((it) => {
         if (it.status === 'error') return it;
-        if (it.outputUrl) revokeUrl(it.outputUrl);
+        // Mark as queued but keep stale output fields intact for layout stability.
         return {
           ...it,
           status: 'queued',
           error: null,
-          outputBlob: null,
-          outputUrl: null,
-          outputName: null,
-          outputMime: null,
-          outputSize: null,
-          outputWidth: null,
-          outputHeight: null,
         };
       })
     );
     setEncodeTick((t) => t + 1);
-  }, [revokeUrl]);
+  }, []);
 
   // Whenever options change, mark non-error items as queued so they
   // re-encode with the new settings.
@@ -224,30 +225,35 @@ export function useImageCompressor() {
           maxHeight: parseDim(deferredMaxHeight),
           convertPngToWebp,
         };
-        const {blob, width, height, mimeType} = await compressImage(
-          queued.file,
-          opts
-        );
+        const {blob, width, height, mimeType, srcWidth, srcHeight} =
+          await compressImage(queued.file, opts);
         if (!mountedRef.current) return;
         const url = URL.createObjectURL(blob);
         registerUrl(url);
         setItems((prev) =>
-          prev.map((it) =>
-            it.id === idToEncode
-              ? {
-                  ...it,
-                  status: 'done',
-                  outputBlob: blob,
-                  outputUrl: url,
-                  outputMime: mimeType,
-                  outputName: buildOutputFilename(it.name, mimeType),
-                  outputSize: blob.size,
-                  outputWidth: width,
-                  outputHeight: height,
-                  error: null,
-                }
-              : it
-          )
+          prev.map((it) => {
+            if (it.id !== idToEncode) return it;
+            // Revoke the stale URL now that we have a fresh one (Issue 4: we kept
+            // the stale URL alive during requeue so the Download button stayed
+            // mounted; now we can safely swap it out).
+            if (it.outputUrl && it.outputUrl !== url) revokeUrl(it.outputUrl);
+            return {
+              ...it,
+              status: 'done',
+              outputBlob: blob,
+              outputUrl: url,
+              outputMime: mimeType,
+              outputName: buildOutputFilename(it.name, mimeType),
+              outputSize: blob.size,
+              outputWidth: width,
+              outputHeight: height,
+              // Store original source dimensions from the decoded bitmap (Issue 3).
+              // Only set on first encode; preserve across re-encodes.
+              originalWidth: it.originalWidth ?? srcWidth,
+              originalHeight: it.originalHeight ?? srcHeight,
+              error: null,
+            };
+          })
         );
       } catch (err) {
         if (!mountedRef.current) return;
@@ -278,6 +284,17 @@ export function useImageCompressor() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [encodeTick]);
 
+  // Largest original dimensions among all rows that have been decoded.
+  // Used by DimensionInputs to set slider max and display the "largest source" label.
+  let largestOriginalWidth = 0;
+  let largestOriginalHeight = 0;
+  for (const it of items) {
+    if (it.originalWidth > largestOriginalWidth)
+      largestOriginalWidth = it.originalWidth;
+    if (it.originalHeight > largestOriginalHeight)
+      largestOriginalHeight = it.originalHeight;
+  }
+
   return {
     items,
     quality,
@@ -286,6 +303,8 @@ export function useImageCompressor() {
     setMaxWidth,
     maxHeight,
     setMaxHeight,
+    largestOriginalWidth,
+    largestOriginalHeight,
     convertPngToWebp,
     setConvertPngToWebp,
     addFiles,

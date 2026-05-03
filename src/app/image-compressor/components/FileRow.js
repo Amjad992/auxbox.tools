@@ -6,6 +6,12 @@ import {savingsPct} from '../utils';
 /**
  * Per-file row: name, original size, output size + savings, status, and
  * a per-row download button.
+ *
+ * Issue 4 — layout stability: the Download button is kept mounted whenever
+ * outputBlob/outputUrl exist, regardless of status. During re-encode the
+ * button is disabled and shows a spinner label. The meta/status line is
+ * always rendered (as a fixed-height flex row) so the row bounding box never
+ * changes height while cycling through queued → encoding → done.
  */
 export default function FileRow({item, onRemove}) {
   const {
@@ -22,8 +28,15 @@ export default function FileRow({item, onRemove}) {
     outputHeight,
   } = item;
 
-  const pct = status === 'done' ? savingsPct(originalSize, outputSize) : 0;
+  const isEncoding = status === 'encoding' || status === 'queued';
+  const isDone = status === 'done';
+  const isError = status === 'error';
+
+  const pct = outputSize != null ? savingsPct(originalSize, outputSize) : 0;
   const pctLabel = formatPct(pct);
+
+  // Whether we have a valid previous or current result to show.
+  const hasOutput = outputBlob != null && outputUrl != null;
 
   return (
     <div className={`ic-row ic-row--${status}`} data-row-id={id}>
@@ -31,9 +44,13 @@ export default function FileRow({item, onRemove}) {
         <div className="ic-row-name" title={name}>
           {name}
         </div>
+
+        {/* Meta line: always rendered so the row height is stable.
+            Shows size/savings when we have output (even stale during re-encode);
+            falls back to original size alone until first encode. */}
         <div className="ic-row-meta">
           <span className="ic-row-size">{formatBytes(originalSize)}</span>
-          {status === 'done' && (
+          {hasOutput && (
             <>
               <span className="ic-row-arrow" aria-hidden="true">
                 →
@@ -55,24 +72,32 @@ export default function FileRow({item, onRemove}) {
               )}
             </>
           )}
-        </div>
-        <div className="ic-row-status" role="status" aria-live="polite">
-          {status === 'queued' && 'Queued'}
-          {status === 'encoding' && 'Compressing…'}
-          {status === 'error' && (
-            <span className="ic-row-error">{error}</span>
-          )}
+          {/* Inline status chip — always occupies this slot so layout doesn't shift */}
+          <span className="ic-row-status-chip" role="status" aria-live="polite">
+            {isEncoding && (
+              <span className="ic-row-chip ic-row-chip--encoding">
+                {status === 'queued' ? 'Queued' : 'Compressing…'}
+              </span>
+            )}
+            {isError && (
+              <span className="ic-row-chip ic-row-chip--error">{error}</span>
+            )}
+          </span>
         </div>
       </div>
+
       <div className="ic-row-actions">
-        {/* MIN-4: use <Button> polymorphic anchor so future Button changes apply here */}
-        {status === 'done' && outputBlob && outputUrl && (
+        {/* Download button: kept mounted when output exists, disabled during re-encode.
+            This prevents position/height jumps in the actions column (Issue 4). */}
+        {hasOutput && (
           <Button
             variant="success"
-            href={outputUrl}
-            download={outputName}
+            href={isDone ? outputUrl : undefined}
+            download={isDone ? outputName : undefined}
+            disabled={isEncoding}
+            data-row-id={id}
           >
-            Download
+            {isEncoding ? 'Compressing…' : 'Download'}
           </Button>
         )}
         <Button variant="neutral" onClick={() => onRemove(id)}>

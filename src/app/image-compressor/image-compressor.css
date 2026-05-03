@@ -198,13 +198,36 @@
   font-variant-numeric: tabular-nums;
 }
 
-.ic-row-status {
-  color: var(--text-secondary);
-  font-size: 0.85rem;
+/* ic-row-status-chip: always rendered inline in the meta row so the row
+   height never changes between status transitions (Issue 4). */
+.ic-row-status-chip {
+  display: inline-flex;
+  align-items: center;
 }
 
-.ic-row-error {
+.ic-row-chip {
+  font-size: 0.78rem;
+  font-weight: 500;
+  padding: 1px 7px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.ic-row-chip--encoding {
+  background: rgba(255, 107, 107, 0.15);
+  color: var(--primary-color);
+}
+
+.ic-row-chip--error {
+  background: rgba(231, 76, 60, 0.12);
   color: #e74c3c;
+}
+
+/* Original dimension label shown above dimension sliders (Issue 3) */
+.ic-dim-orig {
+  font-size: 0.8rem;
+  color: var(--text-light);
+  margin-bottom: 0.4rem;
 }
 
 .ic-row-actions {

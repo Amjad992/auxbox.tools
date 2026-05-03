@@ -174,4 +174,95 @@ describe('useImageCompressor', () => {
     });
   });
 
+  describe('Issue 4: row stability — output fields preserved during re-encode', () => {
+    it('preserves outputUrl and outputBlob on the row while re-encoding (no layout jump)', async () => {
+      compressImage.mockResolvedValue(defaultResult);
+
+      const {result} = renderHook(() => useImageCompressor());
+
+      act(() => {
+        result.current.addFiles([makeFile()]);
+      });
+
+      // Wait for first encode to complete.
+      await waitFor(
+        () => expect(result.current.items[0].status).toBe('done'),
+        {timeout: 2000}
+      );
+
+      const firstUrl = result.current.items[0].outputUrl;
+      expect(firstUrl).toBe(mockUrl);
+
+      // Trigger a re-encode by changing quality.
+      act(() => {
+        result.current.setQuality(0.5);
+      });
+
+      // After setQuality, React flushes effects synchronously in RTL, so the item
+      // may be at 'queued' or already at 'encoding' by the time we read it.
+      // The critical invariant is that outputUrl/outputBlob remain on the item
+      // during the entire re-encode cycle (no layout jump).
+      const itemDuringReencode = result.current.items[0];
+      expect(['queued', 'encoding']).toContain(itemDuringReencode.status);
+      // The stale outputUrl/outputBlob must still be on the item.
+      expect(itemDuringReencode.outputUrl).toBeTruthy();
+      expect(itemDuringReencode.outputBlob).not.toBeNull();
+
+      // Wait for re-encode to complete.
+      await waitFor(
+        () => expect(result.current.items[0].status).toBe('done'),
+        {timeout: 3000}
+      );
+
+      // After re-encode, the item still has an outputUrl.
+      expect(result.current.items[0].outputUrl).toBeTruthy();
+    });
+
+    it('stores originalWidth and originalHeight from the first encode', async () => {
+      const resultWithSrc = {
+        ...defaultResult,
+        srcWidth: 1920,
+        srcHeight: 1080,
+      };
+      compressImage.mockResolvedValue(resultWithSrc);
+
+      const {result} = renderHook(() => useImageCompressor());
+
+      act(() => {
+        result.current.addFiles([makeFile()]);
+      });
+
+      await waitFor(
+        () => expect(result.current.items[0].status).toBe('done'),
+        {timeout: 2000}
+      );
+
+      expect(result.current.items[0].originalWidth).toBe(1920);
+      expect(result.current.items[0].originalHeight).toBe(1080);
+    });
+
+    it('exposes largestOriginalWidth / largestOriginalHeight from the hook', async () => {
+      const resultWithSrc = {
+        ...defaultResult,
+        srcWidth: 3840,
+        srcHeight: 2160,
+      };
+      compressImage.mockResolvedValue(resultWithSrc);
+
+      const {result} = renderHook(() => useImageCompressor());
+
+      act(() => {
+        result.current.addFiles([makeFile()]);
+      });
+
+      await waitFor(
+        () => expect(result.current.items[0].status).toBe('done'),
+        {timeout: 2000}
+      );
+
+      expect(result.current.largestOriginalWidth).toBe(3840);
+      expect(result.current.largestOriginalHeight).toBe(2160);
+    });
+  });
+
 });
