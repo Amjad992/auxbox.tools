@@ -14,6 +14,12 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-04 - local-review-multi-agent skill: file-first protocol + Copilot bridge
+**What changed:** Rewrote `.agents/skills/local-review-multi-agent/SKILL.md`. Codified that all review content moves through files in the round folder, not chat. Added per-round `instructions.md` and `copilot-prompt.md` deliverables; the Copilot prompt is the first artifact of every round and tells Copilot to write to `copilot-findings.md` and to use `communication.md` for questions. Made Copilot a default reviewer (was "manual / optional"). Documented `communication.md` as a two-way file-based channel between coordinator and reviewers.
+**Why:** Keep coordinator chat minimal and reproducible. File-based comm makes rounds resumable across sessions and prevents review content from disappearing into chat history.
+**Impact:** Future review rounds must start by writing `instructions.md` + `copilot-prompt.md` and showing the prompt for copy-paste. No reviewer findings should be pasted in chat.
+**Files changed:** `.agents/skills/local-review-multi-agent/SKILL.md`.
+
 ## 2026-05-03 - AI collaboration scaffold bootstrapped
 **What changed:** Added `.agents/` (core protocol, loading policy, skill index, skills), root entrypoints (`CLAUDE.md`, `AGENTS.md`, `agent.md`) as `@import` shims, `playground/HANDOVER.md`, Husky + changelog-enforcement pre-commit hook, Vitest test runner.
 **Why:** Make every AI assistant (Claude / Codex / Copilot / Cursor) read the same protocol, plan in the same place, and commit with the same enforcement.
