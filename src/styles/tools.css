@@ -109,9 +109,15 @@
   transform: translateY(0);
 }
 
+/* Disabled buttons collapse to a single muted gray regardless of variant.
+   `background` (shorthand) wins over the variant's `background:
+   linear-gradient(...)` and clears `box-shadow`. */
 .btn:disabled {
+  background: var(--text-secondary);
+  box-shadow: none;
   opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
 }
 
 .btn-primary {
