@@ -16,11 +16,11 @@ export const CHARS = {
 export const AMBIGUOUS = '0O1lI';
 
 export const DEFAULT_SETTINGS = {
-  length: 16,
+  length: 18,
   upper: true,
   lower: true,
   digits: true,
-  symbols: false,
+  symbols: true,
   excludeAmbiguous: false,
 };
 

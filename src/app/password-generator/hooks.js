@@ -18,12 +18,15 @@ export function usePasswordGenerator() {
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
   const {loadSettings, saveSettings} = useStorageData();
   // pendingSaveRef holds the next settings value to persist. It is set by
   // updateSetting and reset to null after the effect commits. This avoids
   // calling saveSettings (which triggers StorageContext setState) inside
   // React's render or state-updater phase.
   const pendingSaveRef = useRef(null);
+  // Guard so the auto-generate-on-mount effect fires exactly once.
+  const didAutoGenerateRef = useRef(false);
 
   // Load saved settings on mount — does not trigger a save.
   useEffect(() => {
@@ -32,6 +35,8 @@ export function usePasswordGenerator() {
       if (loaded) setSettings(loaded);
     } catch (e) {
       console.error('Error loading password settings:', e);
+    } finally {
+      setSettingsLoaded(true);
     }
   }, [loadSettings]);
 
@@ -59,6 +64,15 @@ export function usePasswordGenerator() {
       setPassword('');
     }
   }, [settings]);
+
+  // Auto-generate one password on first visit, after the load effect has
+  // committed (so the auto-generate uses persisted settings if any, defaults
+  // otherwise). Fires exactly once per mount.
+  useEffect(() => {
+    if (!settingsLoaded || didAutoGenerateRef.current) return;
+    didAutoGenerateRef.current = true;
+    generate();
+  }, [settingsLoaded, generate]);
 
   const reset = useCallback(() => {
     setSettings(DEFAULT_SETTINGS);

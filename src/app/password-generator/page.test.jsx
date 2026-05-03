@@ -27,41 +27,42 @@ beforeEach(() => {
 });
 
 describe('<PasswordGenerator /> (page)', () => {
-  it('renders the hero, controls, and an empty result', () => {
+  it('renders the hero, controls, and an auto-generated result', async () => {
     render(<PasswordGenerator />);
     expect(
       screen.getByRole('heading', {name: /password generator/i})
     ).toBeInTheDocument();
-    expect(screen.getByLabelText(/generated password/i)).toHaveValue('');
-    // Default length is 16.
-    expect(screen.getByText('16')).toBeInTheDocument();
-    // The default-class checkboxes.
+    // Default length is 18.
+    expect(screen.getByText('18')).toBeInTheDocument();
+    // All four classes are on by default (upper / lower / digits / symbols).
     expect(screen.getByLabelText(/uppercase/i)).toBeChecked();
     expect(screen.getByLabelText(/lowercase/i)).toBeChecked();
     expect(screen.getByLabelText(/digits/i)).toBeChecked();
-    expect(screen.getByLabelText(/^symbols/i)).not.toBeChecked();
+    expect(screen.getByLabelText(/^symbols/i)).toBeChecked();
+    // Auto-generates one password on mount (length-18).
+    const out = await screen.findByLabelText(/generated password/i);
+    await vi.waitFor(() => expect(out.value.length).toBe(18));
   });
 
-  it('Generate fills the result with a non-empty password', async () => {
+  it('Generate produces a fresh length-18 password on click', async () => {
     const user = userEvent.setup();
     render(<PasswordGenerator />);
+    const out = await screen.findByLabelText(/generated password/i);
+    await vi.waitFor(() => expect(out.value.length).toBe(18));
+    const first = out.value;
     await user.click(screen.getByRole('button', {name: /^generate/i}));
-    const out = screen.getByLabelText(/generated password/i);
-    expect(out.value.length).toBe(16);
+    expect(out.value.length).toBe(18);
+    expect(out.value).not.toBe(first);
   });
 
   it('Copy invokes copyToClipboard with the current password', async () => {
     const user = userEvent.setup();
     render(<PasswordGenerator />);
-    await user.click(screen.getByRole('button', {name: /^generate/i}));
-    const pw = screen.getByLabelText(/generated password/i).value;
+    const out = await screen.findByLabelText(/generated password/i);
+    await vi.waitFor(() => expect(out.value.length).toBe(18));
+    const pw = out.value;
     await user.click(screen.getByRole('button', {name: /^copy$/i}));
     expect(copyToClipboard).toHaveBeenCalledWith(pw);
-  });
-
-  it('Copy is disabled before any password has been generated', () => {
-    render(<PasswordGenerator />);
-    expect(screen.getByRole('button', {name: /^copy$/i})).toBeDisabled();
   });
 
   it('does not allow unchecking the last enabled class (MAJ-3 prevention)', async () => {
@@ -70,9 +71,10 @@ describe('<PasswordGenerator /> (page)', () => {
     // normal interaction.
     const user = userEvent.setup();
     render(<PasswordGenerator />);
-    // Uncheck upper and lower — digits is now the only enabled class.
+    // Default has upper, lower, digits, symbols enabled. Uncheck three.
     await user.click(screen.getByLabelText(/uppercase/i));
     await user.click(screen.getByLabelText(/lowercase/i));
+    await user.click(screen.getByLabelText(/^symbols/i));
     // Digits is now the last enabled class — its checkbox must be disabled.
     expect(screen.getByLabelText(/digits/i)).toBeDisabled();
     // Generate stays enabled because hasAnyClass is still true.
@@ -84,9 +86,10 @@ describe('<PasswordGenerator /> (page)', () => {
   it('last enabled class checkbox is disabled to prevent all-off state', async () => {
     const user = userEvent.setup();
     render(<PasswordGenerator />);
-    // Default has upper, lower, digits enabled. Uncheck two.
+    // Default has upper, lower, digits, symbols enabled. Uncheck three.
     await user.click(screen.getByLabelText(/uppercase/i));
     await user.click(screen.getByLabelText(/lowercase/i));
+    await user.click(screen.getByLabelText(/^symbols/i));
     // Only digits remains — its checkbox should be disabled.
     expect(screen.getByLabelText(/digits/i)).toBeDisabled();
     // Unchecking it is blocked, so re-checking upper is fine.
