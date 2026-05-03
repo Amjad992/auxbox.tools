@@ -75,6 +75,10 @@ export default function DropZone({
     [openPicker]
   );
 
+  // MIN-3: give the hint a stable id so aria-describedby can reference it.
+  // MIN-5: the icon is now an inline SVG (no emoji / system font dependency).
+  const hintId = hint ? 'dropzone-hint' : undefined;
+
   return (
     <div
       className={[
@@ -91,7 +95,7 @@ export default function DropZone({
       onDragLeave={handleDragLeave}
       role="button"
       tabIndex={disabled ? -1 : 0}
-      aria-label={label}
+      aria-describedby={hintId}
       aria-disabled={disabled || undefined}
     >
       <input
@@ -106,11 +110,33 @@ export default function DropZone({
         tabIndex={-1}
         aria-hidden="true"
       />
+      {/* MIN-5: inline SVG upload arrow — no emoji / system font dependency */}
       <div className="tool-dropzone-icon" aria-hidden="true">
-        ⬆
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          width="32"
+          height="32"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <line x1="12" y1="19" x2="12" y2="5" />
+          <polyline points="5 12 12 5 19 12" />
+        </svg>
       </div>
       <p className="tool-dropzone-label">{label}</p>
-      {hint && <p className="tool-dropzone-hint">{hint}</p>}
+      {hint && (
+        <p id={hintId} className="tool-dropzone-hint">
+          {hint}
+        </p>
+      )}
+      {/* MIN-3: live region announces drag-over state to screen readers */}
+      <div role="status" aria-live="polite" className="tool-dropzone-sr-status">
+        {dragOver ? 'Ready to drop' : ''}
+      </div>
     </div>
   );
 }

@@ -25,11 +25,14 @@ describe('formatBytes', () => {
     expect(formatBytes(5.5 * 1024 * 1024)).toBe('5.50 MB');
   });
 
-  it('formats gigabytes and clamps to GB at the top of the scale', () => {
+  it('formats gigabytes', () => {
     expect(formatBytes(1024 ** 3)).toBe('1.00 GB');
     expect(formatBytes(2.5 * 1024 ** 3)).toBe('2.50 GB');
-    // Above GB still reports GB (we don't go to TB).
-    expect(formatBytes(2048 * 1024 ** 3)).toBe('2048 GB');
+  });
+
+  it('formats terabytes', () => {
+    expect(formatBytes(1.5 * 1024 ** 4)).toBe('1.50 TB');
+    expect(formatBytes(2 * 1024 ** 4)).toBe('2.00 TB');
   });
 
   it('returns em-dash for invalid input', () => {

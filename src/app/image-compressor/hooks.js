@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useRef, useState, useDeferredValue} from 'react';
 import {
   DEFAULT_QUALITY,
   MAX_FILE_BYTES,
@@ -79,6 +79,28 @@ export function useImageCompressor() {
   const [maxHeight, setMaxHeight] = useState('');
   const [convertPngToWebp, setConvertPngToWebp] = useState(false);
 
+  // Debounce dimension inputs (MIN-1): the deferred values are used only for
+  // the encode opts and the reencode effect, not for the input display value.
+  const deferredMaxWidth = useDeferredValue(maxWidth);
+  const deferredMaxHeight = useDeferredValue(maxHeight);
+
+  // BLK-1 fix: decouple the encode loop from `items` so that calling
+  // setItems(... 'encoding') inside the effect does not re-trigger cleanup
+  // (which would set `cancelled = true` before the await resolves). Instead:
+  // - `encodeTick` is a counter that only goes up; the encode effect depends
+  //   on it (not on `items`) so its cleanup only fires on genuine unmount or
+  //   when a new tick is requested.
+  // - `isEncodingRef` prevents concurrent runs.
+  // - `itemsRef` gives the effect synchronous access to the latest items
+  //   without adding `items` to the dep array.
+  const [encodeTick, setEncodeTick] = useState(0);
+  const isEncodingRef = useRef(false);
+  const itemsRef = useRef([]);
+  const mountedRef = useRef(true);
+
+  // Keep itemsRef current on every render.
+  itemsRef.current = items;
+
   // Track object URLs so we can revoke them on replace / unmount.
   const urlsRef = useRef(new Set());
 
@@ -93,10 +115,12 @@ export function useImageCompressor() {
     }
   }, []);
 
-  // Revoke every outstanding object URL on unmount.
+  // Revoke every outstanding object URL on unmount; mark component as gone.
   useEffect(() => {
+    mountedRef.current = true;
     const urls = urlsRef.current;
     return () => {
+      mountedRef.current = false;
       for (const url of urls) URL.revokeObjectURL(url);
       urls.clear();
     };
@@ -106,6 +130,7 @@ export function useImageCompressor() {
     if (!fileList || fileList.length === 0) return;
     const incoming = Array.from(fileList).map(buildItem);
     setItems((prev) => [...prev, ...incoming]);
+    setEncodeTick((t) => t + 1);
   }, []);
 
   const removeItem = useCallback(
@@ -129,7 +154,7 @@ export function useImageCompressor() {
   }, [revokeUrl]);
 
   // Re-encode all currently queued / done items when options change.
-  // We mark them queued again and let the encode effect pick them up.
+  // We mark them queued again and bump encodeTick to wake the encode effect.
   const reencodeAll = useCallback(() => {
     setItems((prev) =>
       prev.map((it) => {
@@ -149,11 +174,14 @@ export function useImageCompressor() {
         };
       })
     );
+    setEncodeTick((t) => t + 1);
   }, [revokeUrl]);
 
   // Whenever options change, mark non-error items as queued so they
   // re-encode with the new settings.
   // Use refs to detect "real" changes vs first mount.
+  // deferredMaxWidth / deferredMaxHeight (MIN-1) are used here so keystroke
+  // changes are batched by React's scheduler before triggering a reencode.
   const firstRunRef = useRef(true);
   useEffect(() => {
     if (firstRunRef.current) {
@@ -161,35 +189,46 @@ export function useImageCompressor() {
       return;
     }
     reencodeAll();
-  }, [quality, maxWidth, maxHeight, convertPngToWebp, reencodeAll]);
+  }, [quality, deferredMaxWidth, deferredMaxHeight, convertPngToWebp, reencodeAll]);
 
-  // Sequential encode loop. Watches for the first 'queued' item and runs it.
+  // Sequential encode loop (BLK-1 fix).
+  //
+  // Previously the effect depended on `items`, so the synchronous
+  // setItems(...'encoding') inside it triggered cleanup (cancelled=true)
+  // before the awaited compressImage resolved — every encode silently aborted.
+  //
+  // Fix: the effect depends only on `encodeTick` (a monotonically increasing
+  // counter bumped by addFiles / reencodeAll). `isEncodingRef` prevents
+  // concurrent runs. `itemsRef` gives synchronous read access to the latest
+  // items array without re-triggering the effect. `mountedRef` replaces the
+  // per-effect `cancelled` flag for genuine unmount protection.
   useEffect(() => {
-    const queued = items.find((it) => it.status === 'queued');
-    if (!queued) return;
+    async function runNext() {
+      if (isEncodingRef.current) return;
+      const queued = itemsRef.current.find((it) => it.status === 'queued');
+      if (!queued) return;
 
-    let cancelled = false;
-    const idToEncode = queued.id;
+      isEncodingRef.current = true;
+      const idToEncode = queued.id;
 
-    setItems((prev) =>
-      prev.map((it) =>
-        it.id === idToEncode ? {...it, status: 'encoding'} : it
-      )
-    );
+      setItems((prev) =>
+        prev.map((it) =>
+          it.id === idToEncode ? {...it, status: 'encoding'} : it
+        )
+      );
 
-    (async () => {
       try {
         const opts = {
           quality,
-          maxWidth: parseDim(maxWidth),
-          maxHeight: parseDim(maxHeight),
+          maxWidth: parseDim(deferredMaxWidth),
+          maxHeight: parseDim(deferredMaxHeight),
           convertPngToWebp,
         };
         const {blob, width, height, mimeType} = await compressImage(
           queued.file,
           opts
         );
-        if (cancelled) return;
+        if (!mountedRef.current) return;
         const url = URL.createObjectURL(blob);
         registerUrl(url);
         setItems((prev) =>
@@ -211,7 +250,7 @@ export function useImageCompressor() {
           )
         );
       } catch (err) {
-        if (cancelled) return;
+        if (!mountedRef.current) return;
         setItems((prev) =>
           prev.map((it) =>
             it.id === idToEncode
@@ -223,13 +262,21 @@ export function useImageCompressor() {
               : it
           )
         );
+      } finally {
+        isEncodingRef.current = false;
+        // After finishing (success or error), nudge the loop to pick up the
+        // next queued item, if any.
+        if (mountedRef.current) {
+          setEncodeTick((t) => t + 1);
+        }
       }
-    })();
+    }
 
-    return () => {
-      cancelled = true;
-    };
-  }, [items, quality, maxWidth, maxHeight, convertPngToWebp, registerUrl]);
+    runNext();
+    // This effect intentionally does NOT depend on `items`. The encode loop is
+    // driven by `encodeTick` alone; options are read at call time via closure.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [encodeTick]);
 
   return {
     items,

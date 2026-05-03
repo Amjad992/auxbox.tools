@@ -65,14 +65,15 @@ export default function FileRow({item, onRemove}) {
         </div>
       </div>
       <div className="ic-row-actions">
+        {/* MIN-4: use <Button> polymorphic anchor so future Button changes apply here */}
         {status === 'done' && outputBlob && outputUrl && (
-          <a
-            className="btn btn-success"
+          <Button
+            variant="success"
             href={outputUrl}
             download={outputName}
           >
             Download
-          </a>
+          </Button>
         )}
         <Button variant="neutral" onClick={() => onRemove(id)}>
           Remove

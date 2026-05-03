@@ -34,7 +34,9 @@ export default function sitemap() {
     },
     {
       url: `${baseUrl}/image-compressor`,
-      lastModified: new Date(),
+      // MIN-8: hardcoded publication date; new Date() would signal perpetual
+      // freshness to crawlers and waste crawl budget on every deploy.
+      lastModified: new Date('2026-05-04'),
       changeFrequency: 'monthly',
       priority: 0.9,
     },

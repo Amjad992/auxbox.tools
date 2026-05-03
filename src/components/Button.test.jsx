@@ -78,4 +78,34 @@ describe('<Button />', () => {
     await userEvent.click(screen.getByRole('button'));
     expect(onClick).not.toHaveBeenCalled();
   });
+
+  // MIN-4: polymorphic anchor support.
+  it('renders an <a> element when href is provided', () => {
+    render(
+      <Button variant="success" href="/download" download="file.jpg">
+        Download
+      </Button>
+    );
+    const link = screen.getByRole('link', {name: 'Download'});
+    expect(link.tagName).toBe('A');
+    expect(link).toHaveAttribute('href', '/download');
+    expect(link).toHaveAttribute('download', 'file.jpg');
+    expect(link).toHaveClass('btn-success');
+    // Anchors must not have a `type` attribute.
+    expect(link).not.toHaveAttribute('type');
+  });
+
+  it('renders an <a> element when as="a" is provided without href', () => {
+    render(
+      <Button as="a" variant="primary">
+        Link
+      </Button>
+    );
+    // An <a> without href has no "link" role in accessibility semantics;
+    // query by text content instead.
+    const el = screen.getByText('Link');
+    expect(el.tagName).toBe('A');
+    expect(el).not.toHaveAttribute('type');
+    expect(el).toHaveClass('btn-primary');
+  });
 });
