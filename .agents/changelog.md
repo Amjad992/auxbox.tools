@@ -20,6 +20,12 @@ Append-only log of structural or behavior changes future agents would need to kn
 **Impact:** All future work must follow the protocol in `.agents/agent-protocol-core.md`. Pre-commit blocks any commit that touches source without staging this changelog.
 **Files changed:** `.agents/**`, `CLAUDE.md`, `AGENTS.md`, `agent.md`, `playground/HANDOVER.md`, `.husky/pre-commit`, `package.json`, `.gitignore`, `vitest.config.mjs`.
 
+## 2026-05-03 - Raise section: Percentage spans full row
+**What changed:** In the salary-raise calculator's Raise section, the Percentage input now spans the full grid row. The four period inputs follow as 2 rows of 2 (Hourly + Weekly, Monthly + Annual). Implemented via a `.pay-row--full` modifier (`grid-column: 1 / -1`) applied only to the percent row.
+**Why:** Percentage is conceptually distinct from the period inputs (it's the raise driver, not a period view). Pairing it with a single period field looked arbitrary; giving it its own row makes the section's semantic structure visible.
+**Impact:** Raise section now lays out as 1 + 2 + 2 (3 rows). Pay before raise / Pay after raise unchanged (still 2 × 2). Mobile (<640px) still collapses to one column. No behavior change. Tests + lint clean.
+**Files changed:** `src/app/salary-raise-calculator/components/PaySection.js`, `src/app/salary-raise-calculator/raise-calculator.css`.
+
 ## 2026-05-03 - Salary-raise calculator uses full container width and 2-col input grid
 **What changed:**
 1. Removed the `narrow` prop on `<ToolPage>` in [src/app/salary-raise-calculator/page.js](src/app/salary-raise-calculator/page.js). The page now uses the default 1200px container, matching CGPA Calculator and QR Code Generator.

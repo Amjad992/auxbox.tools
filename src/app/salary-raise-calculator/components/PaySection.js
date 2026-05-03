@@ -32,7 +32,7 @@ export default function PaySection({
 
       <div className="pay-grid">
         {showPercent && (
-          <div className="pay-row">
+          <div className="pay-row pay-row--full">
             <label className="pay-label">Percentage</label>
             <div className="pay-input-wrap">
               <input

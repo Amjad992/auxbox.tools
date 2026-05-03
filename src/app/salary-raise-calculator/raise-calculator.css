@@ -34,6 +34,10 @@
   gap: 0.4rem;
 }
 
+.pay-row--full {
+  grid-column: 1 / -1;
+}
+
 .pay-label {
   color: var(--text-secondary);
   font-size: 0.85rem;
