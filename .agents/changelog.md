@@ -20,6 +20,18 @@ Append-only log of structural or behavior changes future agents would need to kn
 **Impact:** All future work must follow the protocol in `.agents/agent-protocol-core.md`. Pre-commit blocks any commit that touches source without staging this changelog.
 **Files changed:** `.agents/**`, `CLAUDE.md`, `AGENTS.md`, `agent.md`, `playground/HANDOVER.md`, `.husky/pre-commit`, `package.json`, `.gitignore`, `vitest.config.mjs`.
 
+## 2026-05-03 - Add unit-test layer (Vitest + RTL)
+**What changed:** Added 13 test files / 175 tests covering `src/lib/{storage,createStorageContext}`, `src/hooks/useToast`, shared components (`Button`, `Card`, `Hero`, `ResultCard`, `ToastContainer`, `ErrorBoundary`), and tool-specific utils + validators for both calculators. Added `vitest.setup.js` (jest-dom matchers, RTL cleanup, localStorage clear). Configured Vite/esbuild to handle JSX in `.js` files via the automatic JSX runtime so `createStorageContext.js` and the existing tool components can be imported by tests without a rename.
+**Why:** First test pass to anchor future agent / human changes against regressions. Targets pure logic + shared primitives where ROI is highest. CSS / visual-regression deferred to a separate plan.
+**Impact:** `npm test` exits green with 175 passing tests. `@testing-library/{react,jest-dom,user-event}` added as dev deps. `vitest.config.mjs` extended with React plugin + `esbuild.jsx: 'automatic'`.
+**Files changed:** `vitest.config.mjs`, `vitest.setup.js`, `package.json`, `src/lib/*.test.{js,jsx}`, `src/hooks/useToast.test.js`, `src/components/*.test.jsx`, `src/app/cgpa-calculator/{utils,storageUtils}.test.js`, `src/app/salary-raise-calculator/{utils,storageUtils}.test.js`.
+
+## 2026-05-03 - Fix Button defaults under React 19
+**What changed:** Replaced deprecated `Button.defaultProps` (no longer applied to function components in React 19) with ES6 default parameters. Behavior preserved: `variant='primary'`, `block=false`, `type='button'`.
+**Why:** First test surfaced that buttons were silently rendering without a `type` attribute, which could submit enclosing forms unintentionally.
+**Impact:** Buttons now reliably default to `type="button"` and `variant="primary"`. No call-site changes needed.
+**Files changed:** `src/components/Button.js`.
+
 ## 2026-05-03 - Fix lint script for Next 16
 **What changed:** Replaced `next lint` (removed in Next 16) with `eslint .` and added flat-config `ignores` for `.next/`, `out/`, `build/`, `coverage/`, `node_modules/`, `playground/` so the pre-commit lint step doesn't traverse build output.
 **Why:** Bootstrap's pre-commit hook needs a working lint command; `next lint` errored with "Invalid project directory provided".

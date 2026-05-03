@@ -14,11 +14,11 @@ import PropTypes from 'prop-types';
  *   - neutral  (grey)        — Clear saved
  */
 export default function Button({
-  variant,
-  block,
+  variant = 'primary',
+  block = false,
   className,
   children,
-  type,
+  type = 'button',
   ...rest
 }) {
   const classes = [
@@ -50,10 +50,4 @@ Button.propTypes = {
   className: PropTypes.string,
   children: PropTypes.node,
   type: PropTypes.string,
-};
-
-Button.defaultProps = {
-  variant: 'primary',
-  block: false,
-  type: 'button',
 };
