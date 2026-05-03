@@ -15,6 +15,13 @@
   --background-alt: #2d2d2d;
   --border-color: #404040;
 
+  /* Surface tokens.
+     Calculator pages render with transparent surfaces so the body's gradient
+     shows through. Tools that want a solid surface (home cards, QR panels)
+     override with a hardcoded color in their own CSS. */
+  --bg-primary: transparent;
+  --bg-secondary: transparent;
+  --accent-color: var(--text-primary);
 }
 
 /* Dark mode support */

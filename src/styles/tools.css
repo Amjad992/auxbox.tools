@@ -73,16 +73,19 @@
   z-index: 2;
 }
 
-/* ═══ Card surface ═════════════════════════════ */
+/* ═══ Card surface ═════════════════════════════
+   Default = transparent (matches the airy CGPA look). Tools that want a
+   solid card (home tool tiles, QR panels) override `background-color`
+   themselves, e.g. `.qr-form-panel { background-color: #2d2d2d }`. */
 .tool-card {
-  background-color: #2d2d2d;
+  background-color: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 2rem;
 }
 
 .tool-card--inset {
-  background-color: #1f1f1f;
+  background-color: var(--bg-primary);
 }
 
 /* ═══ Buttons ══════════════════════════════════ */
@@ -175,43 +178,45 @@
   width: 100%;
 }
 
-/* ═══ Result cards ═════════════════════════════ */
+/* ═══ Result cards ═════════════════════════════
+   Match the original live look: transparent surface, white h3,
+   2rem padding, 2.5rem result value. */
 .tool-results-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 2rem;
 }
 
 .tool-result-card {
-  background-color: #1f1f1f;
+  background-color: var(--bg-primary);
   border: 1px solid var(--border-color);
   border-radius: 12px;
-  padding: 1.5rem;
+  padding: 2rem;
   text-align: center;
   transition: transform 0.3s ease;
 }
 
 .tool-result-card:hover {
-  transform: translateY(-3px);
+  transform: translateY(-5px);
 }
 
 .tool-result-card h3 {
-  color: var(--primary-color);
-  margin: 0 0 0.5rem;
-  font-size: 1rem;
+  color: var(--accent-color);
+  margin: 0 0 1rem;
+  font-size: 1.2rem;
   font-weight: 600;
 }
 
 .tool-result-value {
   color: var(--text-primary);
-  font-size: 2rem;
+  font-size: 2.5rem;
   font-weight: 700;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.5rem;
 }
 
 .tool-result-card p {
   color: var(--text-secondary);
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   margin: 0;
 }
 
@@ -299,7 +304,7 @@
 
 /* ═══ Error boundary ═══════════════════════════ */
 .error-boundary {
-  background-color: #2d2d2d;
+  background-color: var(--bg-secondary);
   border-radius: 12px;
   padding: 3rem 2rem;
   margin: 2rem auto;

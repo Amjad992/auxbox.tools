@@ -9,6 +9,13 @@
   margin-bottom: 2rem;
 }
 
+/* QR panels render as solid dark cards (matches the original live look —
+   this tool intentionally diverges from the airy CGPA surface treatment). */
+.qr-form-panel,
+.qr-preview-panel {
+  background-color: #2d2d2d;
+}
+
 .qr-field {
   margin-bottom: 1.5rem;
 }
