@@ -6,7 +6,10 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint .",
+    "test": "vitest",
+    "test:watch": "vitest",
+    "prepare": "husky"
   },
   "dependencies": {
     "next": "^16.1.4",
@@ -18,8 +21,12 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@vitejs/plugin-react": "^6.0.1",
     "eslint": "^9",
     "eslint-config-next": "15.3.5",
-    "tailwindcss": "^4"
+    "husky": "^9.1.7",
+    "jsdom": "^25.0.1",
+    "tailwindcss": "^4",
+    "vitest": "^2.1.9"
   }
 }

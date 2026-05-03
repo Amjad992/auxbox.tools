@@ -43,3 +43,9 @@ next-env.d.ts
 
 # local playground / scratch
 /playground
+
+# per-developer tool runtime / config
+/.claude/settings.local.json
+/.claude/worktrees/
+/.cursor/
+/.codex/cache/
