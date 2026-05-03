@@ -39,7 +39,7 @@ export default function Home() {
   return (
     <ToolPage
       title="Auxbox Tools"
-      tagline="Free, simple tools that work — no sign-up, no tracking, no nonsense."
+      tagline="Free, simple tools that work — no sign-up, no nonsense."
     >
       <div className="home-tools-grid">
         {TOOLS.map((tool) => (
