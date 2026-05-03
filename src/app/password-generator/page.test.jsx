@@ -50,28 +50,47 @@ describe('<PasswordGenerator /> (page)', () => {
     expect(out.value.length).toBe(16);
   });
 
-  it('Copy invokes navigator.clipboard.writeText with the current password', async () => {
+  it('Copy invokes copyToClipboard with the current password', async () => {
     const user = userEvent.setup();
     render(<PasswordGenerator />);
     await user.click(screen.getByRole('button', {name: /^generate/i}));
     const pw = screen.getByLabelText(/generated password/i).value;
-    await user.click(screen.getByRole('button', {name: /copy password/i}));
+    await user.click(screen.getByRole('button', {name: /^copy$/i}));
     expect(copyToClipboard).toHaveBeenCalledWith(pw);
   });
 
   it('Copy is disabled before any password has been generated', () => {
     render(<PasswordGenerator />);
-    expect(screen.getByRole('button', {name: /copy password/i})).toBeDisabled();
+    expect(screen.getByRole('button', {name: /^copy$/i})).toBeDisabled();
   });
 
-  it('shows a warning when every class is unchecked', async () => {
+  it('does not allow unchecking the last enabled class (MAJ-3 prevention)', async () => {
+    // The UI prevents reaching the all-off state: the last enabled class
+    // checkbox is disabled, so the warning/alert is unreachable through
+    // normal interaction.
     const user = userEvent.setup();
     render(<PasswordGenerator />);
+    // Uncheck upper and lower — digits is now the only enabled class.
     await user.click(screen.getByLabelText(/uppercase/i));
     await user.click(screen.getByLabelText(/lowercase/i));
-    await user.click(screen.getByLabelText(/digits/i));
-    expect(screen.getByRole('alert')).toHaveTextContent(
-      /select at least one character class/i
-    );
+    // Digits is now the last enabled class — its checkbox must be disabled.
+    expect(screen.getByLabelText(/digits/i)).toBeDisabled();
+    // Generate stays enabled because hasAnyClass is still true.
+    expect(screen.getByRole('button', {name: /^generate/i})).not.toBeDisabled();
+    // No warning alert — the all-off state was never reached.
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('last enabled class checkbox is disabled to prevent all-off state', async () => {
+    const user = userEvent.setup();
+    render(<PasswordGenerator />);
+    // Default has upper, lower, digits enabled. Uncheck two.
+    await user.click(screen.getByLabelText(/uppercase/i));
+    await user.click(screen.getByLabelText(/lowercase/i));
+    // Only digits remains — its checkbox should be disabled.
+    expect(screen.getByLabelText(/digits/i)).toBeDisabled();
+    // Unchecking it is blocked, so re-checking upper is fine.
+    await user.click(screen.getByLabelText(/uppercase/i));
+    expect(screen.getByLabelText(/digits/i)).not.toBeDisabled();
   });
 });

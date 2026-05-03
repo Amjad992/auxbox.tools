@@ -31,3 +31,7 @@ export const STRENGTH_BUCKETS = [
   {label: 'Strong', minBits: 80, className: 'pw-strength--strong'},
   {label: 'Very strong', minBits: 112, className: 'pw-strength--very-strong'},
 ];
+
+// The bit count at which the strength bar is fully filled visually.
+// Sits next to STRENGTH_BUCKETS so the relationship (headroom above 112) is explicit.
+export const MAX_BITS_SCALE = 128;

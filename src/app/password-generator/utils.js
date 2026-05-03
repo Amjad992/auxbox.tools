@@ -70,7 +70,7 @@ export function buildAlphabets(settings) {
   if (settings.symbols) classes.push(CHARS.symbols);
 
   const filtered = settings.excludeAmbiguous
-    ? classes.map(stripAmbiguous).filter((c) => c.length > 0)
+    ? classes.map(stripAmbiguous)
     : classes;
 
   return {
@@ -142,12 +142,23 @@ export function generatePassword(settings) {
 }
 
 /**
- * Shannon entropy in bits for a password drawn uniformly from `poolSize`
- * characters at the given `length`. Returns 0 if either input is invalid.
- * @param {number} length
- * @param {number} poolSize
+ * Entropy in bits for the actual generation algorithm, which forces one
+ * character from each selected class before filling the remainder from the
+ * combined pool.
+ *
+ * Formula: sum_i(log2(classSize_i))  +  (length - numClasses) * log2(poolSize)
+ *   - The forced positions each contribute log2 of their class size.
+ *   - The free positions each contribute log2 of the full pool size.
+ *
+ * Falls back to 0 for invalid inputs or when length < numClasses.
+ *
+ * @param {number} length     - Password length.
+ * @param {number} poolSize   - Combined pool character count.
+ * @param {number[]} [classSizes] - Per-class character counts. Defaults to
+ *   treating the whole password as IID (backwards-compatible for callers that
+ *   only pass the first two arguments).
  */
-export function estimateEntropyBits(length, poolSize) {
+export function estimateEntropyBits(length, poolSize, classSizes = []) {
   if (
     !Number.isFinite(length) ||
     !Number.isFinite(poolSize) ||
@@ -156,7 +167,25 @@ export function estimateEntropyBits(length, poolSize) {
   ) {
     return 0;
   }
-  return length * (Math.log(poolSize) / Math.log(2));
+
+  const numForced = classSizes.length;
+  const freePositions = length - numForced;
+
+  if (freePositions < 0) {
+    // More forced slots than available positions — degenerate case.
+    return 0;
+  }
+
+  // Sum of entropy from the forced (one-per-class) positions.
+  const forcedBits = classSizes.reduce(
+    (sum, size) => sum + (size > 1 ? Math.log2(size) : 0),
+    0
+  );
+
+  // Entropy from the freely-chosen remaining positions.
+  const freeBits = freePositions * Math.log2(poolSize);
+
+  return forcedBits + freeBits;
 }
 
 /**

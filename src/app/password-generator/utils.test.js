@@ -90,9 +90,9 @@ describe('buildAlphabets', () => {
     }
   });
 
-  it('drops a class that is fully eliminated by excludeAmbiguous', () => {
-    // No real class is fully eliminated, but we can still verify the filter
-    // path produces a non-empty pool.
+  it('reduces the class pool when excludeAmbiguous removes characters', () => {
+    // With only uppercase enabled and excludeAmbiguous=true, O and I are
+    // stripped. No full class is eliminated by the current AMBIGUOUS set.
     const {classes, pool} = buildAlphabets({
       upper: true,
       lower: false,
@@ -121,6 +121,14 @@ describe('generatePassword', () => {
   it('returns a string of the requested length', () => {
     const pw = generatePassword({...DEFAULT_SETTINGS, length: 24});
     expect(pw).toHaveLength(24);
+  });
+
+  it('accepts the minimum boundary length of 6', () => {
+    expect(generatePassword({...DEFAULT_SETTINGS, length: 6})).toHaveLength(6);
+  });
+
+  it('accepts the maximum boundary length of 64', () => {
+    expect(generatePassword({...DEFAULT_SETTINGS, length: 64})).toHaveLength(64);
   });
 
   it('throws when no classes are selected', () => {
@@ -214,9 +222,29 @@ describe('estimateEntropyBits', () => {
     expect(estimateEntropyBits(NaN, 26)).toBe(0);
   });
 
-  it('matches the Shannon formula L * log2(N)', () => {
+  it('is 0 when length < number of forced classes', () => {
+    // 5 forced classes but length 3 — degenerate.
+    expect(estimateEntropyBits(3, 94, [26, 26, 10, 10, 32])).toBe(0);
+  });
+
+  it('with no class sizes, falls back to IID formula L * log2(N)', () => {
     expect(estimateEntropyBits(10, 2)).toBeCloseTo(10, 5);
     expect(estimateEntropyBits(8, 26)).toBeCloseTo(8 * Math.log2(26), 5);
+  });
+
+  it('when length === numClasses, entropy is sum of log2(classSize)', () => {
+    // No free positions — all entropy comes from the forced slots.
+    const classSizes = [26, 26, 10]; // upper + lower + digits
+    const expected = Math.log2(26) + Math.log2(26) + Math.log2(10);
+    expect(estimateEntropyBits(3, 62, classSizes)).toBeCloseTo(expected, 5);
+  });
+
+  it('when length > numClasses, free positions add pool-size entropy', () => {
+    // length=10, 2 classes (26+26=52 pool), 8 free positions.
+    const classSizes = [26, 26];
+    const poolSize = 52;
+    const expected = Math.log2(26) + Math.log2(26) + 8 * Math.log2(poolSize);
+    expect(estimateEntropyBits(10, poolSize, classSizes)).toBeCloseTo(expected, 5);
   });
 
   it('grows with both length and pool', () => {

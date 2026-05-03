@@ -11,36 +11,43 @@ import {useStorageData} from './StorageContext';
 /**
  * Drive the password generator: settings state, persistence, and generation.
  *
- * Persists settings to localStorage on change (debounced via useEffect).
- * NEVER persists the generated password.
+ * Persists settings to localStorage only on explicit user actions (updateSetting,
+ * reset). Never writes on mount. NEVER persists the generated password.
  */
 export function usePasswordGenerator() {
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const {loadSettings, saveSettings} = useStorageData();
-  const loadedRef = useRef(false);
+  // pendingSaveRef holds the next settings value to persist. It is set by
+  // updateSetting and reset to null after the effect commits. This avoids
+  // calling saveSettings (which triggers StorageContext setState) inside
+  // React's render or state-updater phase.
+  const pendingSaveRef = useRef(null);
 
-  // Load saved settings on mount.
+  // Load saved settings on mount — does not trigger a save.
   useEffect(() => {
     try {
       const loaded = loadSettings();
       if (loaded) setSettings(loaded);
     } catch (e) {
       console.error('Error loading password settings:', e);
-    } finally {
-      loadedRef.current = true;
     }
   }, [loadSettings]);
 
-  // Persist settings whenever they change (after the initial load).
+  // Flush any pending save that was queued by updateSetting or reset.
   useEffect(() => {
-    if (!loadedRef.current) return;
-    saveSettings(settings);
-  }, [settings, saveSettings]);
+    if (pendingSaveRef.current === null) return;
+    saveSettings(pendingSaveRef.current);
+    pendingSaveRef.current = null;
+  });
 
   const updateSetting = useCallback((key, value) => {
-    setSettings((prev) => ({...prev, [key]: value}));
+    setSettings((prev) => {
+      const next = {...prev, [key]: value};
+      pendingSaveRef.current = next;
+      return next;
+    });
   }, []);
 
   const generate = useCallback(() => {
@@ -55,6 +62,7 @@ export function usePasswordGenerator() {
 
   const reset = useCallback(() => {
     setSettings(DEFAULT_SETTINGS);
+    pendingSaveRef.current = DEFAULT_SETTINGS;
     setPassword('');
     setError(null);
   }, []);
@@ -62,8 +70,9 @@ export function usePasswordGenerator() {
   // Derived: pool size, entropy, strength tier — based on current settings,
   // not the generated password (so the meter updates as the user toggles).
   const meter = useMemo(() => {
-    const {pool} = buildAlphabets(settings);
-    const bits = estimateEntropyBits(settings.length, pool.length);
+    const {classes, pool} = buildAlphabets(settings);
+    const classSizes = classes.map((c) => c.length);
+    const bits = estimateEntropyBits(settings.length, pool.length, classSizes);
     return {
       poolSize: pool.length,
       bits,

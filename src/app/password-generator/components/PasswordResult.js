@@ -4,7 +4,12 @@ import Button from '../../../components/Button';
 /**
  * Read-only password display + copy button. Tool-local.
  */
-export default function PasswordResult({password, onCopy, onRegenerate}) {
+export default function PasswordResult({
+  password,
+  onCopy,
+  onRegenerate,
+  generateDisabled,
+}) {
   return (
     <div className="pw-result">
       <label htmlFor="pw-output" className="pw-label">
@@ -27,16 +32,11 @@ export default function PasswordResult({password, onCopy, onRegenerate}) {
         <Button
           variant="primary"
           onClick={onRegenerate}
-          aria-label="Generate password"
+          disabled={generateDisabled}
         >
           Generate
         </Button>
-        <Button
-          variant="success"
-          onClick={onCopy}
-          disabled={!password}
-          aria-label="Copy password to clipboard"
-        >
+        <Button variant="success" onClick={onCopy} disabled={!password}>
           Copy
         </Button>
       </div>
@@ -48,4 +48,9 @@ PasswordResult.propTypes = {
   password: PropTypes.string.isRequired,
   onCopy: PropTypes.func.isRequired,
   onRegenerate: PropTypes.func.isRequired,
+  generateDisabled: PropTypes.bool,
+};
+
+PasswordResult.defaultProps = {
+  generateDisabled: false,
 };

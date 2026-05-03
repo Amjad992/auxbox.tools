@@ -1,5 +1,5 @@
 'use client';
-import {useEffect} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import ToolPage from '../../components/ToolPage';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
@@ -39,6 +39,13 @@ function PasswordGeneratorContent() {
     reset,
   } = usePasswordGenerator();
 
+  // Track the ID of the most recent "Password copied" toast so we can
+  // dismiss it when the user generates a new password (MIN-8).
+  const copyToastIdRef = useRef(null);
+
+  // Screen-reader announcement for the Generate action (MAJ-2).
+  const [srAnnouncement, setSrAnnouncement] = useState('');
+
   useEffect(() => {
     if (storageErrors?.settings) {
       showToast(`${storageErrors.settings}. Using defaults.`, 'error');
@@ -49,10 +56,29 @@ function PasswordGeneratorContent() {
     if (error) showToast(error, 'error');
   }, [error, showToast]);
 
+  const handleGenerate = () => {
+    // Dismiss the previous "Password copied" toast before generating so users
+    // aren't misled that the new password is on the clipboard (MIN-8).
+    if (copyToastIdRef.current !== null) {
+      dismissToast(copyToastIdRef.current);
+      copyToastIdRef.current = null;
+    }
+    generate();
+    // Announce to screen readers after generate. Password length comes from
+    // the settings since the new value isn't in state yet at this point.
+    setSrAnnouncement(`New password generated, ${settings.length} characters`);
+  };
+
   const handleCopy = async () => {
     const ok = await copyToClipboard(password);
-    if (ok) showToast('Password copied', 'success');
-    else showToast('Could not copy to clipboard', 'error');
+    if (ok) {
+      // Capture the ID synchronously: useToast uses Date.now() for the id.
+      copyToastIdRef.current = Date.now();
+      showToast('Password copied', 'success');
+      setSrAnnouncement('Password copied');
+    } else {
+      showToast('Could not copy to clipboard', 'error');
+    }
   };
 
   return (
@@ -66,12 +92,23 @@ function PasswordGeneratorContent() {
     >
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
+      {/* Polite live region for screen-reader announcements (MAJ-2). */}
+      <p
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="pw-sr-only"
+      >
+        {srAnnouncement}
+      </p>
+
       <div className="pw-stack">
         <Card>
           <PasswordResult
             password={password}
             onCopy={handleCopy}
-            onRegenerate={generate}
+            onRegenerate={handleGenerate}
+            generateDisabled={!hasAnyClass}
           />
         </Card>
 

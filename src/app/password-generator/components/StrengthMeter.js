@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
-
-const MAX_BITS_SCALE = 128; // bits at which the bar is fully filled
+import {MAX_BITS_SCALE} from '../constants';
 
 /**
  * Visual strength bar + label + bit count. Tool-local.
@@ -19,8 +18,8 @@ export default function StrengthMeter({bits, strength, poolSize}) {
         className="pw-strength-bar"
         role="progressbar"
         aria-valuemin={0}
-        aria-valuemax={MAX_BITS_SCALE}
-        aria-valuenow={Math.round(bits)}
+        aria-valuemax={100}
+        aria-valuenow={Math.round(pct)}
         aria-label="Password strength"
       >
         <div
