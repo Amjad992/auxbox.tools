@@ -11,25 +11,24 @@ export const PRESETS = {
 
 export const PRESET_VALUES = [PRESETS.DEFAULT, PRESETS.ACADEMIC, PRESETS.MINIMAL];
 
+// Options passed to <ModeToggle> — {value, label} only so the component
+// contract stays generic (no tool-specific fields leak into the shared UI).
 export const PRESET_OPTIONS = [
-  {
-    value: PRESETS.DEFAULT,
-    label: 'Modern',
-    description: 'Sans-serif, 11 pt, 2 cm margins. Clean, general-purpose look.',
-  },
-  {
-    value: PRESETS.ACADEMIC,
-    label: 'Academic',
-    description:
-      'Serif (Georgia), 12 pt, 2.5 cm margins, justified text. Research-paper style.',
-  },
-  {
-    value: PRESETS.MINIMAL,
-    label: 'Compact',
-    description:
-      'Sans-serif, 10 pt, 1.5 cm margins, lighter headings. Tight one-pager.',
-  },
+  {value: PRESETS.DEFAULT, label: 'Modern'},
+  {value: PRESETS.ACADEMIC, label: 'Academic'},
+  {value: PRESETS.MINIMAL, label: 'Compact'},
 ];
+
+// Description text shown below the preset picker. Keyed by preset id so the
+// page can look up the active description without touching the options array.
+export const PRESET_DESCRIPTIONS = {
+  [PRESETS.DEFAULT]:
+    'Sans-serif, 11 pt, 2 cm margins. Clean, general-purpose look.',
+  [PRESETS.ACADEMIC]:
+    'Serif (Georgia), 12 pt, 2.5 cm margins, justified text. Research-paper style.',
+  [PRESETS.MINIMAL]:
+    'Sans-serif, 10 pt, 1.5 cm margins, lighter headings. Tight one-pager.',
+};
 
 // Maps a preset to the CSS class applied to the print container. Pure
 // function-style table so the page test can assert the wiring without

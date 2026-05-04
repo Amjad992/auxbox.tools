@@ -7,6 +7,7 @@ import ToastContainer from '../../components/ToastContainer';
 import {useToast} from '../../hooks/useToast';
 import {renderMarkdown} from '../../lib/markdown';
 import {copyToClipboard} from '../../lib/clipboard';
+import {HAS_FIELD_SIZING} from '../../lib/featureDetect';
 import {StorageProvider, useStorageData} from './StorageContext';
 import {
   MAX_PERSISTED_CHARS,
@@ -48,14 +49,12 @@ function MarkdownPreviewContent() {
   // (which would otherwise leave the textarea slightly short and
   // re-introduce a scrollbar). Older browsers fall through and get the
   // scrollHeight-driven autosize on mount and on every input.
+  // HAS_FIELD_SIZING is cached at module load (src/lib/featureDetect.js)
+  // so the check runs once, not on every keystroke.
   useEffect(() => {
     const el = editorRef.current;
     if (!el) return;
-    const hasFieldSizing =
-      typeof CSS !== 'undefined' &&
-      typeof CSS.supports === 'function' &&
-      CSS.supports('field-sizing', 'content');
-    if (hasFieldSizing) return;
+    if (HAS_FIELD_SIZING) return;
     el.style.height = 'auto';
     el.style.height = `${el.scrollHeight}px`;
   }, [source]);

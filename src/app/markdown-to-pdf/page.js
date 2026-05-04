@@ -7,11 +7,13 @@ import ModeToggle from '../../components/ModeToggle';
 import ToastContainer from '../../components/ToastContainer';
 import {useToast} from '../../hooks/useToast';
 import {renderMarkdown} from '../../lib/markdown';
+import {HAS_FIELD_SIZING} from '../../lib/featureDetect';
 import {StorageProvider, useStorageData} from './StorageContext';
 import {
   DEFAULT_STATE,
   MAX_PERSISTED_CHARS,
   PRESETS,
+  PRESET_DESCRIPTIONS,
   PRESET_OPTIONS,
   PRESET_VALUES,
   SAMPLE_DOCUMENT,
@@ -54,14 +56,12 @@ function MarkdownToPdfContent() {
   // (which would otherwise leave the textarea slightly short and
   // re-introduce a scrollbar). Older browsers fall through and get the
   // scrollHeight-driven autosize on mount and on every input.
+  // HAS_FIELD_SIZING is cached at module load (src/lib/featureDetect.js)
+  // so the check runs once, not on every keystroke.
   useEffect(() => {
     const el = editorRef.current;
     if (!el) return;
-    const hasFieldSizing =
-      typeof CSS !== 'undefined' &&
-      typeof CSS.supports === 'function' &&
-      CSS.supports('field-sizing', 'content');
-    if (hasFieldSizing) return;
+    if (HAS_FIELD_SIZING) return;
     el.style.height = 'auto';
     el.style.height = `${el.scrollHeight}px`;
   }, [source]);
@@ -140,7 +140,7 @@ function MarkdownToPdfContent() {
   const canDownload = source.length > 0;
   const canClear = source.length > 0 || preset !== DEFAULT_STATE.preset;
   const previewClass = `mtp-preview ${presetClass(preset)}`;
-  const activePresetOption = PRESET_OPTIONS.find((o) => o.value === preset);
+  const presetDescription = PRESET_DESCRIPTIONS[preset];
 
   return (
     <ToolPage
@@ -173,13 +173,14 @@ function MarkdownToPdfContent() {
               <div className="mtp-preset-picker">
                 <ModeToggle
                   ariaLabel="Print preset"
+                  ariaDescribedBy="mtp-preset-description"
                   options={PRESET_OPTIONS}
                   value={preset}
                   onChange={handlePresetChange}
                 />
-                {activePresetOption && (
-                  <p className="mtp-preset-description">
-                    {activePresetOption.description}
+                {presetDescription && (
+                  <p id="mtp-preset-description" className="mtp-preset-description">
+                    {presetDescription}
                   </p>
                 )}
               </div>

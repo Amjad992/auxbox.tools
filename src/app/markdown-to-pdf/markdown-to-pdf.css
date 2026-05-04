@@ -253,7 +253,15 @@
 @media print {
   @page {
     size: A4;
-    margin: 0; /* per-preset margins control the inner page */
+    /* margin: 0 here so that per-preset body padding controls the inner page
+       margins (see the .mtp-preview-body padding rules in each preset block
+       below). Trade-off: with browser-default "Headers and Footers" enabled
+       in the print dialog, the page URL / date / page-number decorations
+       overprint the body content because there is no physical margin band.
+       Users who want clean output should disable Headers and Footers in the
+       print dialog before saving as PDF. Switching to CSS named @page blocks
+       with explicit margins would fix this but is a larger refactor. */
+    margin: 0;
   }
 
   html, body {
@@ -261,6 +269,11 @@
     color: #000000 !important;
   }
 
+  /* Hide everything in the DOM except the print container and its children.
+     Assumption: anything outside #mtp-print-root (page shell, toolbar, editor
+     pane, surrounding Card) must NOT appear in the printed output. If you add
+     new printable content (page footer, watermark, page numbers), place it
+     INSIDE #mtp-print-root, or extend this selector to include its container. */
   body *:not(#mtp-print-root):not(#mtp-print-root *) {
     visibility: hidden !important;
   }
