@@ -14,6 +14,20 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-05 - Fix: address stopwatch general review (1 major, 7 minor)
+**What changed:** Applied all 8 findings from the 2026-05-05 general review round on `feat/stopwatch`.
+MAJ-1: Added two keyboard tests in `page.test.jsx` — `'l'` while running records a new lap row; `'l'` while paused/idle does not. Pins the conditional `status === STATUS.RUNNING` guard in the keyboard handler.
+MIN-1: Updated `useTicker.js` JSDoc to use neutral Luxon-aware phrasing (`DateTime.now().toMillis()`) instead of nudging consumers toward `Date.now()`.
+MIN-2: Fixed two stale comments in `hooks.js:14` and `page.js:38` that said `Date.now()` — actual implementation uses `DateTime.now().toMillis()`.
+MIN-3: Removed `aria-hidden="true"` from the keyboard-shortcut hint `<p>` in `page.js`; wrapped shortcut keys in `<kbd>` for semantic clarity.
+MIN-4: Simplified timer element a11y — dropped per-frame `aria-label` interpolation and redundant `aria-live="off"`; now uses stable `aria-label="Elapsed time"`.
+MIN-5: Added regression test for "Start → Reset within the auto-save debounce window" — verifies the `dirtyRef` gate blocks the phantom write (same fix shape as markdown-preview MAJ-2).
+MIN-6: Added focus-guard tests for `'l'` and `'r'` keys inside a textarea, mirroring the existing Space-in-textarea test.
+MIN-7: Broadened the focus-guard selector from `[contenteditable=true]` to `[contenteditable]:not([contenteditable="false"])` so bare `contenteditable` and `contenteditable=""` attributes (common in rich-text editors) are also guarded. Added a test pinning the bare-`contenteditable` case.
+**Why:** Closes the 2026-05-05 general review round — zero MAJ items outstanding.
+**Impact:** Test count: 579 → 585 (+6 new keyboard/focus-guard/regression tests). Lint: 0 errors. Build: `/stopwatch` static. No new dependencies.
+**Files changed:** `src/app/stopwatch/{page.js, hooks.js, page.test.jsx}`, `src/hooks/useTicker.js`.
+
 ## 2026-05-04 - Add Stopwatch (/stopwatch); lift useTicker + useDocumentTitle to src/hooks/
 **What changed:** New `/stopwatch` route — big monospaced display, Start/Stop/Lap/Reset buttons, lap list (most-recent first), `Space`/`L`/`R` keyboard shortcuts (ignored when focus is in form fields), tab-title timer while running, persists across reload via `createStorageContext` (`stopwatch_state`, 300 ms debounced auto-save, dirty-ref gated, synchronous Reset wipe — markdown-preview MAJ-2 fix shape). State machine: `{status: 'idle'|'running'|'paused', startedAt, accumulatedMs, laps[]}`. Wall-clock reads via `DateTime.now().toMillis()` (Luxon, codebase-consistent with Date Calculator). Two shared hooks lifted from day one for the upcoming Pomodoro Timer to consume off the shelf:
 - `src/hooks/useDocumentTitle.js` — `useDocumentTitle(title: string | null)`. Captures the original title once on mount; sets it while a non-empty string is passed; restores the original on unmount or when value becomes null/empty. Co-located test (7 cases).

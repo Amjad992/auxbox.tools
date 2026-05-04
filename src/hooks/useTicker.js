@@ -7,8 +7,9 @@ import {useEffect, useRef} from 'react';
  *
  * The hook is intentionally state-free: consumers decide whether to trigger
  * a re-render (e.g. `setTick(t => t + 1)`) inside the callback. Storing
- * `now` in state per frame is wasteful — read it from `Date.now()` (or the
- * `now` argument here) at render time instead.
+ * `now` in state per frame is wasteful — read the current time from your
+ * usual wall-clock source at render time (e.g. `DateTime.now().toMillis()`
+ * in this codebase) instead of storing it in state per frame.
  *
  * @param {(now: number) => void} callback - Invoked on every frame while
  *   `active` is true. Receives `performance.now()` for the current frame.

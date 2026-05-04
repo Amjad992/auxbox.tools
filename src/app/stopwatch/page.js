@@ -35,8 +35,8 @@ function StopwatchContent() {
 
   const [hydrated, setHydrated] = useState(false);
   // forceTick exists purely to trigger a re-render every frame while running.
-  // The displayed elapsed value is computed from state + Date.now() at render
-  // time; we don't store `now` here.
+  // The displayed elapsed value is computed from state + DateTime.now().toMillis()
+  // at render time; we don't store `now` here.
   const [, setTick] = useState(0);
   const dirtyRef = useRef(false);
 
@@ -127,7 +127,7 @@ function StopwatchContent() {
   useEffect(() => {
     function isFormFieldTarget(el) {
       if (!el || typeof el.matches !== 'function') return false;
-      return el.matches('input, textarea, [contenteditable=true]');
+      return el.matches('input, textarea, [contenteditable]:not([contenteditable="false"])');
     }
 
     function onKeyDown(e) {
@@ -179,8 +179,7 @@ function StopwatchContent() {
             className="sw-display"
             data-status={status}
             role="timer"
-            aria-live="off"
-            aria-label={`Elapsed time ${formatHMSms(liveElapsedMs)}`}
+            aria-label="Elapsed time"
           >
             {formatHMSms(liveElapsedMs)}
           </div>
@@ -213,11 +212,11 @@ function StopwatchContent() {
             </Button>
           </div>
 
-          <p className="sw-shortcuts" aria-hidden="true">
+          <p className="sw-shortcuts">
             Shortcuts:
-            <span className="sw-shortcut-key">Space</span> start/stop ·
-            <span className="sw-shortcut-key">L</span> lap ·
-            <span className="sw-shortcut-key">R</span> reset
+            <kbd className="sw-shortcut-key">Space</kbd> start/stop ·
+            <kbd className="sw-shortcut-key">L</kbd> lap ·
+            <kbd className="sw-shortcut-key">R</kbd> reset
           </p>
         </Card>
 

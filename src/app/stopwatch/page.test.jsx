@@ -132,6 +132,29 @@ describe('<Stopwatch /> — start / stop / lap / reset', () => {
     expect(window.localStorage.getItem(STORAGE_KEY)).toBeNull();
     vi.useRealTimers();
   });
+
+  it('does not write a phantom record when Reset fires within the auto-save debounce window after Start', async () => {
+    vi.useFakeTimers({shouldAdvanceTime: true});
+    const user = userEvent.setup({advanceTimers: vi.advanceTimersByTime});
+
+    render(<Stopwatch />);
+    await user.click(screen.getByRole('button', {name: /start/i}));
+
+    // Advance less than STATE_AUTOSAVE_DEBOUNCE_MS (300 ms) — debounce not fired yet.
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
+
+    await user.click(screen.getByRole('button', {name: /reset/i}));
+
+    // Advance past the original Start's debounce window — dirtyRef gate must block it.
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(500);
+    });
+
+    expect(window.localStorage.getItem(STORAGE_KEY)).toBeNull();
+    vi.useRealTimers();
+  });
 });
 
 describe('<Stopwatch /> — persistence', () => {
@@ -254,5 +277,106 @@ describe('<Stopwatch /> — keyboard shortcuts', () => {
     });
     // Still on Start — Space inside textarea was ignored.
     expect(screen.getByRole('button', {name: /^start$/i})).toBeInTheDocument();
+  });
+
+  it('L inside a textarea is ignored (typing not hijacked)', async () => {
+    render(
+      <div>
+        <Stopwatch />
+        <textarea aria-label="scratch-l" />
+      </div>
+    );
+    // Start so a Lap would otherwise be possible.
+    act(() => {
+      fireEvent.keyDown(window, {key: ' ', code: 'Space'});
+    });
+    expect(screen.getByRole('button', {name: /stop/i})).toBeInTheDocument();
+
+    const ta = screen.getByLabelText('scratch-l');
+    ta.focus();
+    act(() => {
+      fireEvent.keyDown(ta, {key: 'l', code: 'KeyL'});
+    });
+    // No lap rows — L inside textarea was ignored.
+    expect(screen.queryByText(/^#1$/)).not.toBeInTheDocument();
+  });
+
+  it('R inside a textarea is ignored (typing not hijacked)', async () => {
+    window.localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        version: '1.0.0',
+        data: {
+          status: 'paused',
+          startedAt: null,
+          accumulatedMs: 3_000,
+          laps: [],
+        },
+      })
+    );
+    render(
+      <div>
+        <Stopwatch />
+        <textarea aria-label="scratch-r" />
+      </div>
+    );
+    // Timer should read 00:03.000 from storage.
+    expect(screen.getByRole('timer')).toHaveTextContent('00:03.000');
+
+    const ta = screen.getByLabelText('scratch-r');
+    ta.focus();
+    act(() => {
+      fireEvent.keyDown(ta, {key: 'r', code: 'KeyR'});
+    });
+    // R inside textarea was ignored — timer unchanged.
+    expect(screen.getByRole('timer')).toHaveTextContent('00:03.000');
+  });
+
+  it('bare contenteditable element is treated as a form-field target (L ignored)', async () => {
+    render(
+      <div>
+        <Stopwatch />
+        <div contentEditable aria-label="rich-editor" role="textbox" />
+      </div>
+    );
+    // Start so L would otherwise record a lap.
+    act(() => {
+      fireEvent.keyDown(window, {key: ' ', code: 'Space'});
+    });
+    expect(screen.getByRole('button', {name: /stop/i})).toBeInTheDocument();
+
+    const editor = screen.getByRole('textbox', {name: 'rich-editor'});
+    editor.focus();
+    act(() => {
+      fireEvent.keyDown(editor, {key: 'l', code: 'KeyL'});
+    });
+    // No lap rows — L inside bare contenteditable was ignored.
+    expect(screen.queryByText(/^#1$/)).not.toBeInTheDocument();
+  });
+
+  it('L key while running records a new lap row', async () => {
+    render(<Stopwatch />);
+    // Start via Space.
+    act(() => {
+      fireEvent.keyDown(window, {key: ' ', code: 'Space'});
+    });
+    expect(screen.getByRole('button', {name: /stop/i})).toBeInTheDocument();
+
+    act(() => {
+      fireEvent.keyDown(window, {key: 'l', code: 'KeyL'});
+    });
+    // A lap row should now appear.
+    expect(screen.getByText('#1')).toBeInTheDocument();
+  });
+
+  it('L key while paused/idle does not record a lap row', async () => {
+    render(<Stopwatch />);
+    // Stopwatch is idle — do NOT start.
+    act(() => {
+      fireEvent.keyDown(window, {key: 'l', code: 'KeyL'});
+    });
+    // No laps created.
+    expect(screen.queryByText(/^#1$/)).not.toBeInTheDocument();
+    expect(screen.getByText(/no laps yet/i)).toBeInTheDocument();
   });
 });

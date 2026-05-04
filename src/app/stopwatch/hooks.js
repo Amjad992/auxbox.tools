@@ -11,7 +11,7 @@ function defaultNow() {
 /**
  * Stopwatch state machine. Owns:
  *   - status: 'idle' | 'running' | 'paused'
- *   - startedAt: wall-clock ms (Date.now()) for the current run, or null
+ *   - startedAt: wall-clock ms (DateTime.now().toMillis()) for the current run, or null
  *   - accumulatedMs: ms accrued in previous run/pause cycles
  *   - laps: [{index, totalElapsedMs, deltaMs}, ...]
  *
