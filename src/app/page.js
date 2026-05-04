@@ -73,6 +73,14 @@ const TOOLS = [
       'Find the difference between two dates, or your age from a date — in years, months, days, weeks, hours, and working days. Calculated locally.',
     cta: 'Open tool',
   },
+  {
+    href: '/stopwatch',
+    icon: '⏱️',
+    name: 'Stopwatch',
+    description:
+      'Big-display stopwatch with laps, keyboard shortcuts, and a tab-title timer. Survives reload and runs entirely in your browser.',
+    cta: 'Open tool',
+  },
 ];
 
 export default function Home() {

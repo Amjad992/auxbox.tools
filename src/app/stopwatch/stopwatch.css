@@ -1,0 +1,103 @@
+/* Stopwatch — tool-specific layout only.
+   Page shell, hero, cards, buttons, and toasts come from src/styles/tools.css. */
+
+.sw-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding-bottom: 2rem;
+}
+
+.sw-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-size: clamp(2.5rem, 9vw, 5.5rem);
+  line-height: 1.05;
+  letter-spacing: 0.02em;
+  padding: 1rem 0.5rem;
+  text-align: center;
+  word-break: keep-all;
+}
+
+.sw-display[data-status='running'] {
+  color: var(--primary-color, #ff6b6b);
+}
+
+.sw-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  justify-content: center;
+}
+
+.sw-actions .btn {
+  min-width: 5.5rem;
+}
+
+.sw-shortcuts {
+  margin: 0.5rem 0 0;
+  color: var(--text-light);
+  font-size: 0.78rem;
+  text-align: center;
+}
+
+.sw-shortcut-key {
+  display: inline-block;
+  padding: 1px 6px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  font-family: var(--font-mono, monospace);
+  font-size: 0.72rem;
+  margin: 0 0.15rem;
+}
+
+.sw-laps-empty {
+  margin: 0;
+  color: var(--text-light);
+  font-style: italic;
+  text-align: center;
+}
+
+.sw-laps-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+}
+
+.sw-laps-table th,
+.sw-laps-table td {
+  padding: 0.5rem 0.75rem;
+  text-align: right;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.sw-laps-table th {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+}
+
+.sw-laps-table th:first-child,
+.sw-laps-table td:first-child {
+  text-align: left;
+}
+
+.sw-laps-table tr:last-child td {
+  border-bottom: none;
+}
+
+.sw-laps-scroll {
+  max-height: 320px;
+  overflow-y: auto;
+}

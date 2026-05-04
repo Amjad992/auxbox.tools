@@ -14,6 +14,15 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-04 - Add Stopwatch (/stopwatch); lift useTicker + useDocumentTitle to src/hooks/
+**What changed:** New `/stopwatch` route — big monospaced display, Start/Stop/Lap/Reset buttons, lap list (most-recent first), `Space`/`L`/`R` keyboard shortcuts (ignored when focus is in form fields), tab-title timer while running, persists across reload via `createStorageContext` (`stopwatch_state`, 300 ms debounced auto-save, dirty-ref gated, synchronous Reset wipe — markdown-preview MAJ-2 fix shape). State machine: `{status: 'idle'|'running'|'paused', startedAt, accumulatedMs, laps[]}`. Wall-clock reads via `DateTime.now().toMillis()` (Luxon, codebase-consistent with Date Calculator). Two shared hooks lifted from day one for the upcoming Pomodoro Timer to consume off the shelf:
+- `src/hooks/useDocumentTitle.js` — `useDocumentTitle(title: string | null)`. Captures the original title once on mount; sets it while a non-empty string is passed; restores the original on unmount or when value becomes null/empty. Co-located test (7 cases).
+- `src/hooks/useTicker.js` — `useTicker(callback, {active})`. rAF loop firing `callback(performance.now())` on every frame while `active` is true; cancels on unmount or active flip. Generic, state-free — does not encode "stopwatch state". Co-located test (6 cases).
+`useStopwatch` stays tool-local in `src/app/stopwatch/hooks.js` (state machine is shaped for laps; promotion deferred until a second consumer asks for the same shape — Pomodoro will use phases, not laps).
+**Why:** Adds the next tool in the batch; Pomodoro Timer (next) reuses both shared hooks.
+**Impact:** Test count: 579 → 639 (+60: 7 useDocumentTitle + 6 useTicker + 21 utils + 8 hooks + 12 page + 6 useToast unchanged). Lint: 0 errors. Build: `/stopwatch` route generated as static. No new dependencies.
+**Files changed:** `src/hooks/{useDocumentTitle,useDocumentTitle.test,useTicker,useTicker.test}.js` (new shared); `src/app/stopwatch/{page,layout,constants,utils,utils.test,storageUtils,StorageContext,hooks,hooks.test,stopwatch.css,page.test}.{js,jsx,css}` (new tool); `src/app/page.js`, `src/app/sitemap.js` (route registration).
+
 ## 2026-05-04 - Fix: address Date Calculator general review (2 major, 6 minor)
 **What changed:** Applied all 8 findings from the 2026-05-05 Opus general review round on `feat/age-date-difference`.
 MAJ-1: Replaced both `<ul className="dc-units-row">` blocks with `<div className="tool-results-grid">` + `<ResultCard>` children. Deleted `.dc-units-row`, `.dc-units-row li`, `.dc-unit-label`, `.dc-unit-value` from `date-calculator.css`. Total Weeks value string now composes the remainder suffix (e.g. `"21 + 1 day"`) directly.
