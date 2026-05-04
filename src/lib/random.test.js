@@ -50,6 +50,19 @@ describe('secureRandomInt', () => {
     }
   });
 
+  it('throws RangeError when max exceeds 2^32 (rejection-sampling would loop forever)', () => {
+    expect(() => secureRandomInt(0x1_0000_0001)).toThrow(RangeError);
+    expect(() => secureRandomInt(0x1_0000_0000 + 1)).toThrow(RangeError);
+    expect(() => secureRandomInt(2 ** 33)).toThrow(RangeError);
+  });
+
+  it('accepts max === 2^32 (the boundary value)', () => {
+    // 0x1_0000_0000 itself should not throw; the loop body can still
+    // execute because limit = floor(2^32 / 2^32) * 2^32 = 1 * 2^32 = 2^32,
+    // which is > any Uint32 value (Uint32 max is 2^32-1).
+    expect(() => secureRandomInt(0x1_0000_0000)).not.toThrow();
+  });
+
   it('distribution is roughly uniform (chi-square smoke)', () => {
     // Not a strict statistical test — just catches gross modulo bias.
     const buckets = new Array(7).fill(0);

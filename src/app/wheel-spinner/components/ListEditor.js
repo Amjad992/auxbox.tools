@@ -33,10 +33,10 @@ export default function ListEditor({text, onChange, parsedCount}) {
         aria-describedby="ws-entries-hint"
       />
       <p id="ws-entries-hint" className="ws-hint">
-        {tooFew
-          ? `Add at least ${MIN_ENTRIES} entries to pick a winner.`
-          : tooMany
-            ? `Lists over ${MAX_ENTRIES_SOFT_CAP} entries may render without labels on the wheel.`
+        {tooMany
+          ? `Maximum ${MAX_ENTRIES_SOFT_CAP} entries — remove some to save.`
+          : tooFew
+            ? `Add at least ${MIN_ENTRIES} entries to save and pick a winner.`
             : 'Lines are trimmed; duplicates and empty lines are ignored.'}
       </p>
     </div>

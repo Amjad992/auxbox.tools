@@ -71,14 +71,6 @@ export function usePicker() {
       );
 
       const runStep = (k) => {
-        if (k >= schedule.length) {
-          // Final state already set by the previous step.
-          setIsRunning(false);
-          setWinnerIndex(winner);
-          setWinnerLabel(entries[winner]);
-          timerRef.current = null;
-          return;
-        }
         const step = schedule[k];
         timerRef.current = setTimeout(() => {
           setHighlightIndex(step.index);
@@ -143,6 +135,8 @@ export function usePicker() {
 
       const winner = pickWinnerIndex(entries.length);
       cancel();
+      // Reset to null so the page-level announcement effect re-fires even
+      // when the next pick yields the same label (null → value transition).
       setWinnerIndex(null);
       setWinnerLabel(null);
       setHighlightIndex(null);

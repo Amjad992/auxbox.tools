@@ -32,7 +32,10 @@ export function parseEntries(text) {
 /**
  * Pick a uniformly-random index in [0, n). Wraps `secureRandomInt` so the
  * caller doesn't need to import it directly.
- * @param {number} n
+ *
+ * Contract: n >= 1. Returns 0 when n === 1 (single-entry degenerate case).
+ * @param {number} n - Entry count. Must be a positive integer.
+ * @returns {number} An integer in [0, n).
  */
 export function pickWinnerIndex(n) {
   return secureRandomInt(n);
@@ -64,10 +67,11 @@ export function removeEntryAt(entries, index) {
  *  - sum of `delay` values === totalMs (within rounding)
  *  - delays are monotonically non-decreasing (deceleration)
  *
- * @param {number} n         entry count (>= 2)
+ * @param {number} n           entry count. Must be >= 2; callers handle n === 1
+ *                             outside the schedule (see `usePicker` in hooks.js).
  * @param {number} winnerIndex precomputed winner
- * @param {number} totalMs    target duration (~1500)
- * @param {number} steps      number of highlights (default tuned in constants)
+ * @param {number} totalMs     target duration (~1500)
+ * @param {number} steps       number of highlights (default tuned in constants)
  */
 export function quickPickSchedule(n, winnerIndex, totalMs, steps) {
   if (!Number.isInteger(n) || n < 2) {

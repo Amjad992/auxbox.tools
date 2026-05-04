@@ -87,7 +87,7 @@ export default function SpinWheel({
             // Rotate the text along the radial line so it reads outward.
             const textRotate = labelAngle;
             return (
-              <g key={`${i}:${entry}`}>
+              <g key={entry}>
                 <path
                   d={d}
                   fill={palette[i]}

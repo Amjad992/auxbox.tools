@@ -23,7 +23,7 @@ export default function QuickPick({
           const active = i === highlightIndex;
           return (
             <li
-              key={`${i}:${entry}`}
+              key={entry}
               className={`ws-quickpick-chip${active ? ' ws-quickpick-chip--active' : ''}`}
               aria-current={active ? 'true' : undefined}
             >

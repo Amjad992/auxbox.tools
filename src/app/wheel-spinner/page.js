@@ -18,6 +18,7 @@ import {usePicker} from './hooks';
 import {parseEntries} from './utils';
 import {
   DEFAULT_STATE,
+  MAX_ENTRIES_SOFT_CAP,
   MIN_ENTRIES,
   PRESENTATIONS,
   SESSION_MODES,
@@ -46,7 +47,7 @@ function arraysEqual(a, b) {
 
 function WheelSpinnerContent() {
   const {toasts, showToast, dismissToast} = useToast();
-  const {loadState, saveState, storageErrors} = useStorageData();
+  const {loadState, saveState, clearState, storageErrors} = useStorageData();
 
   const [text, setText] = useState('');
   const [presentation, setPresentation] = useState(DEFAULT_STATE.presentation);
@@ -64,6 +65,11 @@ function WheelSpinnerContent() {
   // restarts with the new roster.
   const picksSourceRef = useRef([]);
 
+  // Tracks whether the user has taken any persisted action (Save, Clear, or
+  // a pref change). The autosave effect is gated on this flag so a fresh
+  // mount with no interaction does NOT write defaults to localStorage.
+  const dirtyRef = useRef(false);
+
   const {
     winnerIndex,
     winnerLabel,
@@ -77,6 +83,9 @@ function WheelSpinnerContent() {
   } = usePicker();
 
   const inFlightRef = useRef(null);
+  // Pinned to the spin-time roster until the next pick so the wheel doesn't
+  // visually snap to the shrunken working list when the winner is announced.
+  const pinnedEntriesRef = useRef(null);
 
   const options = useMemo(() => parseEntries(text), [text]);
 
@@ -122,9 +131,11 @@ function WheelSpinnerContent() {
 
   // Auto-save debounced (~300ms) for UX preferences only. `options` are
   // persisted explicitly via the Save button, not on every keystroke.
-  // Picks are NEVER included.
+  // Picks are NEVER included. Skipped until the user takes their first
+  // persisted action (dirtyRef) so a fresh-mount no-interaction visit does
+  // not write default values to localStorage.
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || !dirtyRef.current) return;
     const handle = setTimeout(() => {
       saveState({options: savedOptions, presentation, sessionMode});
     }, STATE_AUTOSAVE_DEBOUNCE_MS);
@@ -158,13 +169,18 @@ function WheelSpinnerContent() {
     if (!canPickEffective) return;
     setAnnouncement('');
     // Picker operates on the *currently displayed* working list.
-    const winner = pick(presentation, workingList);
+    const snapshot = workingList.slice();
+    const winner = pick(presentation, snapshot);
     if (winner == null) return;
-    inFlightRef.current = {entries: workingList.slice(), winner};
+    inFlightRef.current = {entries: snapshot, winner};
+    // Pin the wheel to this roster until the next pick so the SVG does not
+    // snap to the shrunken working list the instant the winner banner appears.
+    pinnedEntriesRef.current = snapshot;
   };
 
   const handleSetPresentation = (next) => {
     if (isRunning) return;
+    dirtyRef.current = true;
     setPresentation(next);
     // Picks survive a presentation switch by spec.
     reset();
@@ -173,6 +189,7 @@ function WheelSpinnerContent() {
 
   const handleSetSessionMode = (next) => {
     if (isRunning) return;
+    dirtyRef.current = true;
     setSessionMode(next);
     reset();
     setAnnouncement('');
@@ -183,9 +200,11 @@ function WheelSpinnerContent() {
     setPicks([]);
     reset();
     setAnnouncement('');
+    pinnedEntriesRef.current = null;
   };
 
   const handleSave = () => {
+    dirtyRef.current = true;
     setSavedOptions(options.slice());
     saveState({options, presentation, sessionMode});
     showToast('Entries saved', 'success');
@@ -193,23 +212,29 @@ function WheelSpinnerContent() {
 
   const handleClear = () => {
     if (isRunning) return;
+    dirtyRef.current = true;
     setText('');
     setSavedOptions([]);
     setPicks([]);
+    // Synchronously wipe storage so a refresh immediately after Clear does
+    // not restore the old list (cannot rely on the 300ms autosave debounce).
+    clearState();
     reset();
     setAnnouncement('');
+    pinnedEntriesRef.current = null;
   };
 
   // Action button label adapts in Pick-multiple mode.
   const actionLabel = (() => {
     if (isRunning) return 'Picking…';
-    if (sessionMode !== SESSION_MODES.MULTIPLE) return 'Pick one';
+    if (sessionMode !== SESSION_MODES.MULTIPLE) return 'Pick';
     if (workingList.length === 0) return 'All picked';
     if (workingList.length === 1) return 'Pick last';
     return 'Pick next';
   })();
 
-  const canSave = options.length > 0;
+  const canSave =
+    options.length >= MIN_ENTRIES && options.length <= MAX_ENTRIES_SOFT_CAP;
   const canClear = text.length > 0 || savedOptions.length > 0;
 
   const showResetPicks =
@@ -310,7 +335,7 @@ function WheelSpinnerContent() {
         <Card>
           {presentation === PRESENTATIONS.WHEEL ? (
             <SpinWheel
-              entries={workingList}
+              entries={pinnedEntriesRef.current ?? workingList}
               rotation={rotation}
               isSpinning={isSpinning}
               onTransitionEnd={() => {

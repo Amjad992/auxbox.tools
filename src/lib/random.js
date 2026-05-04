@@ -15,6 +15,14 @@ export function secureRandomInt(max) {
   if (!Number.isInteger(max) || max <= 0) {
     throw new RangeError('secureRandomInt: max must be a positive integer');
   }
+  // The rejection-sampling math requires max <= 2^32; above that,
+  // Math.floor(0x1_0000_0000 / max) === 0, limit === 0, and the loop
+  // never exits. Uint32Array values top out at 2^32 - 1 anyway.
+  if (max > 0x1_0000_0000) {
+    throw new RangeError(
+      'secureRandomInt: max must not exceed 2^32 (0x1_0000_0000)'
+    );
+  }
   const cryptoObj =
     typeof globalThis !== 'undefined' && globalThis.crypto
       ? globalThis.crypto

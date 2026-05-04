@@ -28,7 +28,7 @@ function getEntriesTextarea() {
 }
 
 function getPickButton() {
-  return screen.getByRole('button', {name: /pick one|pick next|pick last|all picked|picking/i});
+  return screen.getByRole('button', {name: /^(pick|pick next|pick last|all picked|picking…?)$/i});
 }
 
 function readLiveRegion() {
@@ -246,12 +246,9 @@ describe('<WheelSpinner /> — explicit save / auto-save prefs', () => {
     });
     vi.useRealTimers();
 
-    // Either nothing was written (clean slate) or options is still [].
+    // Fresh mount with no persisted action must not write anything to storage.
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (raw !== null) {
-      const parsed = JSON.parse(raw);
-      expect(parsed.data.options).toEqual([]);
-    }
+    expect(raw).toBeNull();
   });
 
   it('clicking Save persists options + presentation + sessionMode (NOT picks)', async () => {
@@ -437,11 +434,57 @@ describe('<WheelSpinner /> — Clear button', () => {
     });
     vi.useRealTimers();
 
-    // Options wiped from storage (either record removed or options = []).
+    // Options wiped from storage.
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (raw !== null) {
-      const parsed = JSON.parse(raw);
-      expect(parsed.data.options).toEqual([]);
-    }
+    expect(raw).toBeNull();
+  });
+
+  it('Clear wipes storage synchronously — no timer advancement required', async () => {
+    // MAJ-1: Clear must write synchronously so a refresh within the 300ms
+    // autosave debounce window still shows an empty list.
+    window.localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        version: '1.0.0',
+        data: {options: ['X', 'Y', 'Z'], presentation: 'quick', sessionMode: 'single'},
+      })
+    );
+    vi.useFakeTimers({shouldAdvanceTime: true});
+    const user = userEvent.setup({advanceTimers: vi.advanceTimersByTime});
+    render(<WheelSpinner />);
+
+    await user.click(screen.getByRole('button', {name: /^clear$/i}));
+
+    // Do NOT advance fake timers — storage must already be clear at this point.
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    expect(raw).toBeNull();
+
+    vi.useRealTimers();
+  });
+});
+
+describe('<WheelSpinner /> — Save button hard cap (MAJ-2)', () => {
+  it('Save is disabled when options exceed MAX_ENTRIES_SOFT_CAP', async () => {
+    const user = userEvent.setup();
+    render(<WheelSpinner />);
+    const saveBtn = screen.getByRole('button', {name: /^save$/i});
+
+    // Build 101 unique entries (1 over the cap of 100).
+    const entries = Array.from({length: 101}, (_, i) => `Entry${i + 1}`).join('\n');
+    await user.type(getEntriesTextarea(), entries);
+
+    expect(screen.getByText(/maximum 100 entries/i)).toBeInTheDocument();
+    expect(saveBtn).toBeDisabled();
+  });
+
+  it('Save is enabled again after trimming to within the cap', async () => {
+    const user = userEvent.setup();
+    render(<WheelSpinner />);
+    const saveBtn = screen.getByRole('button', {name: /^save$/i});
+    const ta = getEntriesTextarea();
+
+    // 2 entries — within cap, Save is enabled.
+    await user.type(ta, 'Alice\nBob');
+    expect(saveBtn).not.toBeDisabled();
   });
 });
