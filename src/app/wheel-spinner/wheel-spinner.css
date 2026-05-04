@@ -117,43 +117,6 @@
   font-weight: 600;
 }
 
-.ws-mode-toggle {
-  display: inline-flex;
-  background: #1f1f1f;
-  border: 1px solid var(--border-color);
-  border-radius: 999px;
-  padding: 4px;
-  gap: 4px;
-}
-
-.ws-mode-option {
-  border: none;
-  background: transparent;
-  color: var(--text-secondary);
-  font-family: inherit;
-  font-size: 0.9rem;
-  font-weight: 600;
-  padding: 6px 16px;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease;
-}
-
-.ws-mode-option:hover:not(:disabled) {
-  color: var(--text-primary);
-}
-
-.ws-mode-option--active {
-  background: linear-gradient(135deg, #ff6b6b, #ff5252);
-  color: #ffffff;
-  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.35);
-}
-
-.ws-mode-option:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 .ws-action-row {
   margin-top: 0.25rem;
   display: flex;
@@ -323,7 +286,7 @@
     flex-direction: column;
     align-items: stretch;
   }
-  .ws-mode-toggle {
+  .mode-toggle {
     align-self: center;
   }
 }

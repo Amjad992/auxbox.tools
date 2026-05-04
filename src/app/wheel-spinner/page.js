@@ -7,10 +7,7 @@ import ToastContainer from '../../components/ToastContainer';
 import {useToast} from '../../hooks/useToast';
 import {StorageProvider, useStorageData} from './StorageContext';
 import ListEditor from './components/ListEditor';
-import ModeToggle, {
-  PRESENTATION_OPTIONS,
-  SESSION_OPTIONS,
-} from './components/ModeToggle';
+import ModeToggle from '../../components/ModeToggle';
 import QuickPick from './components/QuickPick';
 import SpinWheel from './components/SpinWheel';
 import PicksList from './components/PicksList';
@@ -21,7 +18,9 @@ import {
   MAX_ENTRIES_SOFT_CAP,
   MIN_ENTRIES,
   PRESENTATIONS,
+  PRESENTATION_OPTIONS,
   SESSION_MODES,
+  SESSION_OPTIONS,
   STATE_AUTOSAVE_DEBOUNCE_MS,
 } from './constants';
 import './wheel-spinner.css';

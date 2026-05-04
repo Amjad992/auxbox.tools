@@ -1,0 +1,441 @@
+/* Markdown to PDF — tool-specific layout + print stylesheet only.
+   Page shell, hero, cards, buttons, toasts, error boundaries, and the
+   <ModeToggle /> segmented control come from src/styles/tools.css. */
+
+/* ── Screen styles ──────────────────────────────────────── */
+
+.mtp-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding-bottom: 2rem;
+}
+
+.mtp-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.mtp-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mtp-toolbar-left {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.mtp-toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.mtp-meta {
+  color: var(--text-light);
+  font-size: 0.8rem;
+}
+
+.mtp-split {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .mtp-split {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.mtp-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.mtp-pane-label {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+}
+
+.mtp-editor {
+  width: 100%;
+  min-height: 420px;
+  background: #1f1f1f;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  padding: 12px 14px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mtp-editor:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.15);
+}
+
+.mtp-preview {
+  min-height: 420px;
+  background: #1a1a1a;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 16px 18px;
+  color: var(--text-primary);
+  overflow: auto;
+  line-height: 1.6;
+}
+
+.mtp-preview-body {
+  min-height: 0;
+}
+
+.mtp-preview--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-light);
+  font-style: italic;
+  min-height: 380px;
+}
+
+/* On-screen rendered markdown — scoped to the preview container. */
+.mtp-preview h1,
+.mtp-preview h2,
+.mtp-preview h3,
+.mtp-preview h4,
+.mtp-preview h5,
+.mtp-preview h6 {
+  margin: 1.25em 0 0.5em;
+  line-height: 1.25;
+  color: var(--text-primary);
+}
+
+.mtp-preview h1 { font-size: 1.8rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.25em; }
+.mtp-preview h2 { font-size: 1.45rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.2em; }
+.mtp-preview h3 { font-size: 1.2rem; }
+.mtp-preview h4 { font-size: 1.05rem; }
+
+.mtp-preview > .mtp-preview-body > :first-child {
+  margin-top: 0;
+}
+
+.mtp-preview p { margin: 0.5em 0 1em; }
+
+.mtp-preview a {
+  color: var(--primary-color);
+  text-decoration: underline;
+}
+.mtp-preview a:hover { color: #ff8585; }
+
+.mtp-preview ul,
+.mtp-preview ol {
+  margin: 0.5em 0 1em;
+  padding-left: 1.6em;
+}
+.mtp-preview li { margin: 0.2em 0; }
+.mtp-preview li input[type="checkbox"] {
+  margin-right: 0.4em;
+  transform: translateY(1px);
+}
+
+.mtp-preview blockquote {
+  margin: 1em 0;
+  padding: 0.5em 1em;
+  border-left: 4px solid var(--primary-color);
+  background: rgba(255, 107, 107, 0.06);
+  color: var(--text-secondary);
+  border-radius: 0 6px 6px 0;
+}
+
+.mtp-preview code {
+  background: rgba(255, 255, 255, 0.07);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.9em;
+}
+
+.mtp-preview pre {
+  background: #111;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px 14px;
+  overflow-x: auto;
+  margin: 1em 0;
+}
+.mtp-preview pre code {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.mtp-preview img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+}
+
+.mtp-preview hr {
+  border: none;
+  border-top: 1px solid var(--border-color);
+  margin: 1.5em 0;
+}
+
+.mtp-preview table {
+  border-collapse: collapse;
+  margin: 1em 0;
+  width: 100%;
+}
+.mtp-preview th,
+.mtp-preview td {
+  border: 1px solid var(--border-color);
+  padding: 6px 10px;
+  text-align: left;
+}
+.mtp-preview th {
+  background: rgba(255, 255, 255, 0.04);
+  font-weight: 600;
+}
+
+/* ── Print stylesheet ───────────────────────────────────── */
+/* The print view shows ONLY the preview container.
+   Everything else in the DOM (page shell, hero, toolbar, the editor pane,
+   even the surrounding Card around the preview) is hidden.
+   The :not(#mtp-print-root, #mtp-print-root *) pattern hides every node
+   that is NOT the print root or one of its descendants — works regardless
+   of nesting depth. */
+
+@media print {
+  @page {
+    size: A4;
+    margin: 0; /* per-preset margins control the inner page */
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  body *:not(#mtp-print-root):not(#mtp-print-root *) {
+    visibility: hidden !important;
+  }
+
+  #mtp-print-root,
+  #mtp-print-root * {
+    visibility: visible !important;
+  }
+
+  #mtp-print-root {
+    position: absolute;
+    inset: 0;
+    width: auto;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    border: none !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+  }
+
+  /* Common print typography — overridden per preset below. */
+  #mtp-print-root .mtp-preview-body {
+    color: #000000;
+    background: #ffffff;
+    line-height: 1.55;
+    box-sizing: border-box;
+    width: 100%;
+  }
+
+  #mtp-print-root h1,
+  #mtp-print-root h2,
+  #mtp-print-root h3,
+  #mtp-print-root h4,
+  #mtp-print-root h5,
+  #mtp-print-root h6 {
+    color: #000000;
+    page-break-after: avoid;
+    break-after: avoid;
+    border: none;
+    padding: 0;
+  }
+
+  #mtp-print-root p,
+  #mtp-print-root li {
+    color: #000000;
+    orphans: 3;
+    widows: 3;
+  }
+
+  #mtp-print-root a {
+    color: #000000;
+    text-decoration: underline;
+  }
+
+  #mtp-print-root code {
+    background: #f4f4f4;
+    color: #000000;
+    border-radius: 3px;
+    padding: 0 4px;
+  }
+
+  #mtp-print-root pre {
+    background: #f4f4f4;
+    color: #000000;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 8px 10px;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    overflow: visible;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
+  #mtp-print-root pre code {
+    background: transparent;
+    padding: 0;
+  }
+
+  #mtp-print-root blockquote {
+    background: transparent;
+    border-left: 3px solid #888;
+    color: #222;
+    padding: 0.25em 0.75em;
+    margin: 1em 0;
+  }
+
+  #mtp-print-root table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1em 0;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  #mtp-print-root th,
+  #mtp-print-root td {
+    border: 1px solid #888;
+    padding: 4px 8px;
+    color: #000000;
+    background: #ffffff;
+  }
+
+  #mtp-print-root th {
+    background: #f0f0f0;
+    font-weight: 600;
+  }
+
+  #mtp-print-root img {
+    max-width: 100%;
+    height: auto;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  #mtp-print-root hr {
+    border: none;
+    border-top: 1px solid #888;
+    margin: 1em 0;
+  }
+
+  /* ── Per-preset print rules ─────────────────────────── */
+
+  #mtp-print-root.mtp-preset-default .mtp-preview-body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+      "Helvetica Neue", Arial, sans-serif;
+    font-size: 11pt;
+    padding: 2cm;
+  }
+
+  #mtp-print-root.mtp-preset-default h1 { font-size: 22pt; margin: 0.6em 0 0.4em; }
+  #mtp-print-root.mtp-preset-default h2 { font-size: 16pt; margin: 0.8em 0 0.3em; }
+  #mtp-print-root.mtp-preset-default h3 { font-size: 13pt; margin: 0.7em 0 0.3em; }
+
+  #mtp-print-root.mtp-preset-academic .mtp-preview-body {
+    font-family: Georgia, "Times New Roman", Charter, Cambria, serif;
+    font-size: 12pt;
+    padding: 2.5cm;
+    line-height: 1.6;
+    text-align: justify;
+    hyphens: auto;
+  }
+
+  #mtp-print-root.mtp-preset-academic h1 {
+    font-size: 22pt;
+    text-align: center;
+    margin: 0.4em 0 0.8em;
+    font-weight: 700;
+  }
+  #mtp-print-root.mtp-preset-academic h2 {
+    font-size: 16pt;
+    margin: 1em 0 0.4em;
+    font-weight: 700;
+  }
+  #mtp-print-root.mtp-preset-academic h3 {
+    font-size: 13pt;
+    margin: 0.9em 0 0.3em;
+    font-weight: 700;
+    font-style: italic;
+  }
+  #mtp-print-root.mtp-preset-academic p {
+    text-indent: 1.5em;
+    margin: 0 0 0.4em;
+  }
+  /* First paragraph of a section shouldn't be indented. */
+  #mtp-print-root.mtp-preset-academic h1 + p,
+  #mtp-print-root.mtp-preset-academic h2 + p,
+  #mtp-print-root.mtp-preset-academic h3 + p,
+  #mtp-print-root.mtp-preset-academic h4 + p {
+    text-indent: 0;
+  }
+
+  #mtp-print-root.mtp-preset-minimal .mtp-preview-body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+      "Helvetica Neue", Arial, sans-serif;
+    font-size: 10pt;
+    padding: 1.5cm;
+    line-height: 1.45;
+  }
+  #mtp-print-root.mtp-preset-minimal h1 {
+    font-size: 16pt;
+    font-weight: 500;
+    margin: 0.4em 0 0.4em;
+  }
+  #mtp-print-root.mtp-preset-minimal h2 {
+    font-size: 13pt;
+    font-weight: 500;
+    margin: 0.7em 0 0.25em;
+  }
+  #mtp-print-root.mtp-preset-minimal h3 {
+    font-size: 11pt;
+    font-weight: 600;
+    margin: 0.6em 0 0.2em;
+  }
+}

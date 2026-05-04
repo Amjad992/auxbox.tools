@@ -57,6 +57,14 @@ const TOOLS = [
       'Type GitHub-flavored markdown on the left, see safe rendered HTML on the right. Auto-saved, sanitized, and runs entirely in your browser.',
     cta: 'Open tool',
   },
+  {
+    href: '/markdown-to-pdf',
+    icon: '📄',
+    name: 'Markdown to PDF',
+    description:
+      'Type markdown, pick a print preset (default, academic, or minimal), and save as a clean paginated PDF — using your browser, no upload.',
+    cta: 'Open tool',
+  },
 ];
 
 export default function Home() {

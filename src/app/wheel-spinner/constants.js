@@ -43,3 +43,14 @@ export const STORAGE_VERSION = '1.0.0';
 export const STORAGE_KEY = 'wheel_spinner_state';
 
 export const STATE_AUTOSAVE_DEBOUNCE_MS = 300;
+
+// Option arrays for the shared <ModeToggle /> segmented control.
+export const PRESENTATION_OPTIONS = [
+  {value: PRESENTATIONS.QUICK, label: 'Quick Pick'},
+  {value: PRESENTATIONS.WHEEL, label: 'Spin Wheel'},
+];
+
+export const SESSION_OPTIONS = [
+  {value: SESSION_MODES.SINGLE, label: 'Single pick'},
+  {value: SESSION_MODES.MULTIPLE, label: 'Pick multiple'},
+];
