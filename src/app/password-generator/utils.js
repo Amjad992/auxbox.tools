@@ -5,34 +5,11 @@ import {
   MAX_LENGTH,
   STRENGTH_BUCKETS,
 } from './constants';
+import {secureRandomInt} from '../../lib/random';
 
-/**
- * Cryptographically uniform integer in [0, max). Uses rejection sampling
- * over a 32-bit range so the distribution stays uniform regardless of `max`.
- *
- * @param {number} max - Exclusive upper bound. Must be a positive integer.
- * @returns {number}
- */
-export function secureRandomInt(max) {
-  if (!Number.isInteger(max) || max <= 0) {
-    throw new RangeError('secureRandomInt: max must be a positive integer');
-  }
-  const cryptoObj =
-    typeof globalThis !== 'undefined' && globalThis.crypto
-      ? globalThis.crypto
-      : null;
-  if (!cryptoObj || typeof cryptoObj.getRandomValues !== 'function') {
-    throw new Error('secureRandomInt: crypto.getRandomValues unavailable');
-  }
-  // Largest multiple of `max` that fits in a uint32 — values >= this are
-  // rejected to avoid modulo bias.
-  const limit = Math.floor(0x1_0000_0000 / max) * max;
-  const buf = new Uint32Array(1);
-  while (true) {
-    cryptoObj.getRandomValues(buf);
-    if (buf[0] < limit) return buf[0] % max;
-  }
-}
+// Re-export so existing consumers (and existing tests) can keep importing
+// from this module unchanged. The implementation lives in src/lib/random.js.
+export {secureRandomInt};
 
 /**
  * Pick a uniformly-random character from a non-empty alphabet string.

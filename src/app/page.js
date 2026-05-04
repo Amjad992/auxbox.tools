@@ -41,6 +41,14 @@ const TOOLS = [
       'Generate strong, cryptographically random passwords entirely in your browser. Tune length and character classes, see live entropy and strength.',
     cta: 'Open tool',
   },
+  {
+    href: '/wheel-spinner',
+    icon: '🎯',
+    name: 'Wheel Spinner',
+    description:
+      'Random picker for any list. Choose Quick Pick or a colourful Spin Wheel — fair (cryptographic randomness) and fully offline.',
+    cta: 'Open tool',
+  },
 ];
 
 export default function Home() {
