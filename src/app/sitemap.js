@@ -32,13 +32,7 @@ export default function sitemap() {
       changeFrequency: 'monthly',
       priority: 0.9,
     },
-    {
-      url: `${baseUrl}/image-compressor`,
-      // MIN-8: hardcoded publication date; new Date() would signal perpetual
-      // freshness to crawlers and waste crawl budget on every deploy.
-      lastModified: new Date('2026-05-04'),
-      changeFrequency: 'monthly',
-      priority: 0.9,
-    },
+    // /image-compressor route exists but is intentionally hidden until polish
+    // is finished — not listed on the home page or in this sitemap.
   ];
 }

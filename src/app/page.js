@@ -41,14 +41,6 @@ const TOOLS = [
       'Generate strong, cryptographically random passwords entirely in your browser. Tune length and character classes, see live entropy and strength.',
     cta: 'Open tool',
   },
-  {
-    href: '/image-compressor',
-    icon: '🖼️',
-    name: 'Image Compressor',
-    description:
-      'Shrink JPEG, PNG, and WebP images entirely in your browser. Pick a quality, optionally cap dimensions, and download — no uploads, ever.',
-    cta: 'Open tool',
-  },
 ];
 
 export default function Home() {
