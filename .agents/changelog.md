@@ -20,7 +20,7 @@ Append-only log of structural or behavior changes future agents would need to kn
 - `src/hooks/useTicker.js` — `useTicker(callback, {active})`. rAF loop firing `callback(performance.now())` on every frame while `active` is true; cancels on unmount or active flip. Generic, state-free — does not encode "stopwatch state". Co-located test (6 cases).
 `useStopwatch` stays tool-local in `src/app/stopwatch/hooks.js` (state machine is shaped for laps; promotion deferred until a second consumer asks for the same shape — Pomodoro will use phases, not laps).
 **Why:** Adds the next tool in the batch; Pomodoro Timer (next) reuses both shared hooks.
-**Impact:** Test count: 579 → 639 (+60: 7 useDocumentTitle + 6 useTicker + 21 utils + 8 hooks + 12 page + 6 useToast unchanged). Lint: 0 errors. Build: `/stopwatch` route generated as static. No new dependencies.
+**Impact:** Test count: 525 → 579 (+54: 7 useDocumentTitle + 6 useTicker + 21 stopwatch/utils + 8 stopwatch/hooks + 12 stopwatch/page). Lint: 0 errors. Build: `/stopwatch` route generated as static. No new dependencies.
 **Files changed:** `src/hooks/{useDocumentTitle,useDocumentTitle.test,useTicker,useTicker.test}.js` (new shared); `src/app/stopwatch/{page,layout,constants,utils,utils.test,storageUtils,StorageContext,hooks,hooks.test,stopwatch.css,page.test}.{js,jsx,css}` (new tool); `src/app/page.js`, `src/app/sitemap.js` (route registration).
 
 ## 2026-05-04 - Fix: address Date Calculator general review (2 major, 6 minor)
