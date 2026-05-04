@@ -14,6 +14,12 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-05 - Date Calculator: clarify working-units assumptions
+**What changed:** Added a small note that renders directly below the working-row cards (only when "Working days only" is on): *"Working days are Monday–Friday. Working hours are calculated at 8 hours per day."* Sits above the existing "Calculated in your local time zone" footer.
+**Why:** The Total Working Hours / Total Working Minutes cards were unlabelled in their derivation — users couldn't tell the math was `days × 8` for hours and `days × 480` for minutes. Now the assumption is visible exactly where the cards appear.
+**Impact:** No behaviour change. New copy renders only when the working-row is visible. Tests unaffected (no assertions on the new copy needed; styling reuses `.dc-result-footnote`).
+**Files changed:** `src/app/date-calculator/page.js`.
+
 ## 2026-05-05 - Fix: address stopwatch general review (1 major, 7 minor)
 **What changed:** Applied all 8 findings from the 2026-05-05 general review round on `feat/stopwatch`.
 MAJ-1: Added two keyboard tests in `page.test.jsx` — `'l'` while running records a new lap row; `'l'` while paused/idle does not. Pins the conditional `status === STATUS.RUNNING` guard in the keyboard handler.
