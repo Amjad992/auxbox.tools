@@ -151,18 +151,47 @@ describe('<DateCalculator /> — Today buttons', () => {
 });
 
 describe('<DateCalculator /> — working-days toggle', () => {
-  it('shows Working days line only when toggle is on', async () => {
+  it('shows Total working days card only when toggle is on', async () => {
     const user = userEvent.setup();
     render(<DateCalculator />);
     await typeDate(user, getStartInput(), '2024-01-15');
     await typeDate(user, getEndInput(), '2024-01-19');
 
-    expect(screen.queryByText(/working days$/i)).not.toBeInTheDocument();
+    // Row 2 must not be present when toggle is off.
+    expect(screen.queryByText(/total working days/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/total working hours/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/total working minutes/i)).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('checkbox', {name: /working days only/i}));
-    expect(screen.getByText(/^Working days$/)).toBeInTheDocument();
+
     // 2024-01-15 (Mon) -> 2024-01-19 (Fri) = 5 weekdays.
-    expect(screen.getByText('5')).toBeInTheDocument();
+    expect(screen.getByText(/total working days/i)).toBeInTheDocument();
+    expect(screen.getByText(/total working hours/i)).toBeInTheDocument();
+    expect(screen.getByText(/total working minutes/i)).toBeInTheDocument();
+    // 5 working days × 8 = 40 working hours.
+    expect(screen.getByText('40')).toBeInTheDocument();
+  });
+
+  it('working hours and minutes are absent when toggle is off', async () => {
+    const user = userEvent.setup();
+    render(<DateCalculator />);
+    await typeDate(user, getStartInput(), '2024-01-15');
+    await typeDate(user, getEndInput(), '2024-01-19');
+
+    expect(screen.queryByText(/total working hours/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/total working minutes/i)).not.toBeInTheDocument();
+  });
+
+  it('working units card shows correct values: 5 days → 40 hours, 2400 minutes', async () => {
+    const user = userEvent.setup();
+    render(<DateCalculator />);
+    // 2024-01-15 (Mon) -> 2024-01-19 (Fri) = 5 working days.
+    await typeDate(user, getStartInput(), '2024-01-15');
+    await typeDate(user, getEndInput(), '2024-01-19');
+    await user.click(screen.getByRole('checkbox', {name: /working days only/i}));
+
+    expect(screen.getByText('40')).toBeInTheDocument();
+    expect(screen.getByText('2,400')).toBeInTheDocument();
   });
 });
 

@@ -7,6 +7,7 @@ import {
   diffYMD,
   totalDaysBetween,
   totalUnits,
+  totalWorkingUnits,
   workingDaysBetween,
 } from './utils';
 
@@ -165,6 +166,20 @@ describe('totalUnits', () => {
     expect(result.days).toBe(10);
     expect(result.weeks).toBe(1);
     expect(result.weekRemainderDays).toBe(3);
+  });
+});
+
+describe('totalWorkingUnits', () => {
+  it('returns {0, 0, 0} for 0 working days', () => {
+    expect(totalWorkingUnits(0)).toEqual({workingDays: 0, workingHours: 0, workingMinutes: 0});
+  });
+
+  it('returns {1, 8, 480} for 1 working day', () => {
+    expect(totalWorkingUnits(1)).toEqual({workingDays: 1, workingHours: 8, workingMinutes: 480});
+  });
+
+  it('returns {5, 40, 2400} for 5 working days', () => {
+    expect(totalWorkingUnits(5)).toEqual({workingDays: 5, workingHours: 40, workingMinutes: 2400});
   });
 });
 

@@ -21,6 +21,7 @@ import {
   diffYMD,
   swapIfReversed,
   totalUnits,
+  totalWorkingUnits,
   workingDaysBetween,
 } from './utils';
 import './date-calculator.css';
@@ -128,10 +129,10 @@ function DateCalculatorContent() {
     const ordered = swapIfReversed(startDate, effectiveEndDate);
     const ymd = diffYMD(ordered.start, ordered.end);
     const units = totalUnits(ordered.start, ordered.end);
-    const working = includeWorkingDays
-      ? workingDaysBetween(ordered.start, ordered.end)
+    const workingUnits = includeWorkingDays
+      ? totalWorkingUnits(workingDaysBetween(ordered.start, ordered.end))
       : null;
-    return {ymd, units, working, swapped: ordered.swapped};
+    return {ymd, units, workingUnits, swapped: ordered.swapped};
   }, [startDate, effectiveEndDate, includeWorkingDays]);
 
   const handleStartChange = useCallback((dt) => {
@@ -275,7 +276,7 @@ function DateCalculatorContent() {
                   </p>
                 )}
 
-                <ul className="dc-units-list">
+                <ul className="dc-units-row">
                   <li>
                     <span className="dc-unit-label">Total days</span>
                     <span className="dc-unit-value">
@@ -305,15 +306,30 @@ function DateCalculatorContent() {
                       {computed.units.minutes.toLocaleString()}
                     </span>
                   </li>
-                  {computed.working !== null && (
+                </ul>
+
+                {computed.workingUnits !== null && (
+                  <ul className="dc-units-row">
                     <li>
-                      <span className="dc-unit-label">Working days</span>
+                      <span className="dc-unit-label">Total working days</span>
                       <span className="dc-unit-value">
-                        {computed.working.toLocaleString()}
+                        {computed.workingUnits.workingDays.toLocaleString()}
                       </span>
                     </li>
-                  )}
-                </ul>
+                    <li>
+                      <span className="dc-unit-label">Total working hours</span>
+                      <span className="dc-unit-value">
+                        {computed.workingUnits.workingHours.toLocaleString()}
+                      </span>
+                    </li>
+                    <li>
+                      <span className="dc-unit-label">Total working minutes</span>
+                      <span className="dc-unit-value">
+                        {computed.workingUnits.workingMinutes.toLocaleString()}
+                      </span>
+                    </li>
+                  </ul>
+                )}
 
                 <p className="dc-result-footnote">
                   Calculated in your local time zone.

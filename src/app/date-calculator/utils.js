@@ -91,6 +91,18 @@ export function totalUnits(start, end) {
 }
 
 /**
+ * Working-time units derived from a working-day count.
+ * Assumes an 8-hour workday: hours = days × 8, minutes = days × 480.
+ */
+export function totalWorkingUnits(workingDays) {
+  return {
+    workingDays,
+    workingHours: workingDays * 8,
+    workingMinutes: workingDays * 480,
+  };
+}
+
+/**
  * Mon–Fri count between start and end inclusive.
  * Luxon weekday: 1 = Monday … 7 = Sunday.
  */

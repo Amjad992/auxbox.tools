@@ -14,6 +14,12 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-04 - Date Calculator: split units row + add working hours/minutes
+**What changed:** Result area now renders two separate `.dc-units-row` containers. Row 1 (always visible): Total Days, Total Weeks, Total Hours, Total Minutes. Row 2 (only when the working-days toggle is ON): Total Working Days, Total Working Hours, Total Working Minutes. New pure helper `totalWorkingUnits(workingDays)` in `utils.js` computes working hours (days × 8) and working minutes (days × 480). CSS class renamed from `.dc-units-list` to `.dc-units-row`.
+**Why:** UX change — previously the single Working Days card was crammed into the same row as the four calendar-time cards; now it leads its own dedicated working-time row with hours and minutes.
+**Impact:** Date Calculator result layout. `utils.js` gains `totalWorkingUnits`. `page.js` uses `workingUnits` (object) instead of `working` (scalar). CSS renames `.dc-units-list` → `.dc-units-row`. Test count: 515 → 520 (+5 new, -0 removed).
+**Files changed:** `src/app/date-calculator/utils.js`, `src/app/date-calculator/utils.test.js`, `src/app/date-calculator/page.js`, `src/app/date-calculator/page.test.jsx`, `src/app/date-calculator/date-calculator.css`
+
 ## 2026-05-04 - DatePicker: brand the popup (override blue accent → primary-color)
 **What changed:** The previous DatePicker commit set `--rdp-accent-color` on `.tool-datepicker-popup`, but react-day-picker declares `--rdp-accent-color: blue` on `.rdp-root` itself — a closer scope — so the override never reached the calendar. Selected day, today indicator, dropdown chevrons, and nav arrows all stayed blue. Override now targets `.tool-datepicker-popup .rdp-root` so it wins the cascade. Also fixed a wrong variable name (`--rdp-background-color` → `--rdp-accent-background-color`, the actual v9 token), and added `--rdp-today-color: var(--primary-color)` so the today indicator matches the brand instead of the library default.
 **Why:** User screenshot showed the picker still rendering blue accents despite the previous override. Root cause was CSS-variable cascade scoping inside react-day-picker.
