@@ -1,0 +1,225 @@
+/* Markdown Preview — tool-specific layout only. Page shell, hero, cards,
+   buttons, toasts, and error boundaries come from src/styles/tools.css. */
+
+.mp-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding-bottom: 2rem;
+}
+
+.mp-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Toolbar (Copy / Clear) ───────────────────── */
+.mp-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mp-toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.mp-meta {
+  color: var(--text-light);
+  font-size: 0.8rem;
+}
+
+/* ── Split-pane editor + preview ──────────────── */
+.mp-split {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .mp-split {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.mp-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.mp-pane-label {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+}
+
+/* ── Editor textarea ──────────────────────────── */
+.mp-editor {
+  width: 100%;
+  min-height: 420px;
+  background: #1f1f1f;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  padding: 12px 14px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mp-editor:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.15);
+}
+
+/* ── Preview pane ─────────────────────────────── */
+.mp-preview {
+  min-height: 420px;
+  background: #1a1a1a;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 16px 18px;
+  color: var(--text-primary);
+  overflow: auto;
+  line-height: 1.6;
+}
+
+.mp-preview--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-light);
+  font-style: italic;
+}
+
+/* Rendered markdown styling — scoped to the preview pane so we don't
+   leak heading/list/code styles into the rest of the app. */
+.mp-preview h1,
+.mp-preview h2,
+.mp-preview h3,
+.mp-preview h4,
+.mp-preview h5,
+.mp-preview h6 {
+  margin: 1.25em 0 0.5em;
+  line-height: 1.25;
+  color: var(--text-primary);
+}
+
+.mp-preview h1 { font-size: 1.8rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.25em; }
+.mp-preview h2 { font-size: 1.45rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.2em; }
+.mp-preview h3 { font-size: 1.2rem; }
+.mp-preview h4 { font-size: 1.05rem; }
+
+.mp-preview > :first-child {
+  margin-top: 0;
+}
+
+.mp-preview p {
+  margin: 0.5em 0 1em;
+}
+
+.mp-preview a {
+  color: var(--primary-color);
+  text-decoration: underline;
+}
+
+.mp-preview a:hover {
+  color: #ff8585;
+}
+
+.mp-preview ul,
+.mp-preview ol {
+  margin: 0.5em 0 1em;
+  padding-left: 1.6em;
+}
+
+.mp-preview li {
+  margin: 0.2em 0;
+}
+
+.mp-preview li input[type="checkbox"] {
+  margin-right: 0.4em;
+  transform: translateY(1px);
+}
+
+.mp-preview blockquote {
+  margin: 1em 0;
+  padding: 0.5em 1em;
+  border-left: 4px solid var(--primary-color);
+  background: rgba(255, 107, 107, 0.06);
+  color: var(--text-secondary);
+  border-radius: 0 6px 6px 0;
+}
+
+.mp-preview code {
+  background: rgba(255, 255, 255, 0.07);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.9em;
+}
+
+.mp-preview pre {
+  background: #111;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px 14px;
+  overflow-x: auto;
+  margin: 1em 0;
+}
+
+.mp-preview pre code {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.mp-preview img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+}
+
+.mp-preview hr {
+  border: none;
+  border-top: 1px solid var(--border-color);
+  margin: 1.5em 0;
+}
+
+.mp-preview table {
+  border-collapse: collapse;
+  margin: 1em 0;
+  width: 100%;
+}
+
+.mp-preview th,
+.mp-preview td {
+  border: 1px solid var(--border-color);
+  padding: 6px 10px;
+  text-align: left;
+}
+
+.mp-preview th {
+  background: rgba(255, 255, 255, 0.04);
+  font-weight: 600;
+}

@@ -49,6 +49,14 @@ const TOOLS = [
       'Random picker for any list. Choose Quick Pick or a colourful Spin Wheel — fair (cryptographic randomness) and fully offline.',
     cta: 'Open tool',
   },
+  {
+    href: '/markdown-preview',
+    icon: '📝',
+    name: 'Markdown Preview',
+    description:
+      'Type GitHub-flavored markdown on the left, see safe rendered HTML on the right. Auto-saved, sanitized, and runs entirely in your browser.',
+    cta: 'Open tool',
+  },
 ];
 
 export default function Home() {

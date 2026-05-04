@@ -12,6 +12,8 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "dompurify": "^3.4.2",
+    "marked": "^18.0.3",
     "next": "^16.1.4",
     "posthog-js": "^1.359.1",
     "qrcode": "^1.5.4",
