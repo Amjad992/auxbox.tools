@@ -251,7 +251,7 @@ function DateCalculatorContent() {
                 checked={includeWorkingDays}
                 onChange={handleWorkingToggle}
               />
-              Working days only (Mon–Fri)
+              Working days only (Mon–Fri · 8 hrs/day)
             </label>
             <div className="dc-actions">
               <Button
@@ -304,25 +304,20 @@ function DateCalculatorContent() {
                 </div>
 
                 {computed.workingUnits !== null && (
-                  <>
-                    <div className="tool-results-grid">
-                      <ResultCard
-                        label="Total working days"
-                        value={computed.workingUnits.workingDays.toLocaleString()}
-                      />
-                      <ResultCard
-                        label="Total working hours"
-                        value={computed.workingUnits.workingHours.toLocaleString()}
-                      />
-                      <ResultCard
-                        label="Total working minutes"
-                        value={computed.workingUnits.workingMinutes.toLocaleString()}
-                      />
-                    </div>
-                    <p className="dc-result-footnote">
-                      Working days are Monday–Friday. Working hours are calculated at 8 hours per day.
-                    </p>
-                  </>
+                  <div className="tool-results-grid">
+                    <ResultCard
+                      label="Total working days"
+                      value={computed.workingUnits.workingDays.toLocaleString()}
+                    />
+                    <ResultCard
+                      label="Total working hours"
+                      value={computed.workingUnits.workingHours.toLocaleString()}
+                    />
+                    <ResultCard
+                      label="Total working minutes"
+                      value={computed.workingUnits.workingMinutes.toLocaleString()}
+                    />
+                  </div>
                 )}
 
                 <p className="dc-result-footnote">

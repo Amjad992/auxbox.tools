@@ -14,10 +14,10 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
-## 2026-05-05 - Date Calculator: clarify working-units assumptions
-**What changed:** Added a small note that renders directly below the working-row cards (only when "Working days only" is on): *"Working days are Monday–Friday. Working hours are calculated at 8 hours per day."* Sits above the existing "Calculated in your local time zone" footer.
-**Why:** The Total Working Hours / Total Working Minutes cards were unlabelled in their derivation — users couldn't tell the math was `days × 8` for hours and `days × 480` for minutes. Now the assumption is visible exactly where the cards appear.
-**Impact:** No behaviour change. New copy renders only when the working-row is visible. Tests unaffected (no assertions on the new copy needed; styling reuses `.dc-result-footnote`).
+## 2026-05-05 - Date Calculator: inline 8-hr/day clarification on the toggle label
+**What changed:** Working-days toggle label updated from "Working days only (Mon–Fri)" to "Working days only (Mon–Fri · 8 hrs/day)". The previous bottom-note paragraph below the working-row cards was removed — keeping the assumption inline with the toggle is shorter and the natural place to see it before flipping the switch.
+**Why:** First pass added a separate footnote under the cards; user feedback was that it read long and looked misplaced. The toggle label is the right home — both pieces of info travel together (Mon–Fri AND 8 hrs/day) so the user knows what they're enabling.
+**Impact:** No behaviour change. Toggle label is slightly longer; bottom note is gone. Tests unaffected.
 **Files changed:** `src/app/date-calculator/page.js`.
 
 ## 2026-05-05 - Fix: address stopwatch general review (1 major, 7 minor)
