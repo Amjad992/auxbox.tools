@@ -1,6 +1,7 @@
 import {describe, it, expect, vi, beforeEach, afterEach} from 'vitest';
-import {act, render, screen} from '@testing-library/react';
+import {act, render, screen, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import {DateTime} from 'luxon';
 
 // Stub next/script — App Router runtime isn't available in jsdom.
 vi.mock('next/script', () => ({
@@ -9,6 +10,9 @@ vi.mock('next/script', () => ({
       ? <script dangerouslySetInnerHTML={dangerouslySetInnerHTML} />
       : <script>{children}</script>,
 }));
+
+// react-day-picker loads style.css; jsdom can't parse it.
+vi.mock('react-day-picker/style.css', () => ({}));
 
 // eslint-disable-next-line import/first
 import DateCalculator from './page';
@@ -23,12 +27,25 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
+// Helpers: the DatePicker renders a text input associated with its label.
 function getStartInput() {
   return screen.getByLabelText(/start date/i);
 }
 
 function getEndInput() {
   return screen.getByLabelText(/end date/i);
+}
+
+// Type a date string and tab away to commit it (onChange fires on blur).
+async function typeDate(user, input, isoStr) {
+  await user.clear(input);
+  await user.type(input, isoStr);
+  await user.tab();
+}
+
+// Compute today's ISO date string (same formula as the component).
+function todayISO() {
+  return DateTime.now().startOf('day').toISODate();
 }
 
 describe('<DateCalculator /> — page render', () => {
@@ -54,11 +71,17 @@ describe('<DateCalculator /> — page render', () => {
     ).toBeInTheDocument();
   });
 
-  it('shows the empty placeholder when no dates are picked', () => {
+  it('shows the empty placeholder when start is not picked', () => {
     render(<DateCalculator />);
+    // Start is empty; end defaults to today. Only start missing → no results.
     expect(
       screen.getByText(/pick two dates to see the breakdown/i)
     ).toBeInTheDocument();
+  });
+
+  it('end date defaults to today on mount', () => {
+    render(<DateCalculator />);
+    expect(getEndInput().value).toBe(todayISO());
   });
 });
 
@@ -66,20 +89,19 @@ describe('<DateCalculator /> — difference computation', () => {
   it('shows years/months/days breakdown for a one-year span', async () => {
     const user = userEvent.setup();
     render(<DateCalculator />);
-    await user.type(getStartInput(), '2024-01-15');
-    await user.type(getEndInput(), '2025-01-15');
+    await typeDate(user, getStartInput(), '2024-01-15');
+    await typeDate(user, getEndInput(), '2025-01-15');
     expect(screen.getByText(/^1 year$/)).toBeInTheDocument();
   });
 
   it('surfaces the swap note when end < start', async () => {
     const user = userEvent.setup();
     render(<DateCalculator />);
-    await user.type(getStartInput(), '2024-06-01');
-    await user.type(getEndInput(), '2024-01-01');
+    await typeDate(user, getStartInput(), '2024-06-01');
+    await typeDate(user, getEndInput(), '2024-01-01');
     expect(
       screen.getByText(/end date was before start; showing absolute difference/i)
     ).toBeInTheDocument();
-    // Still shows the breakdown.
     expect(screen.getByText(/5 months/)).toBeInTheDocument();
   });
 });
@@ -102,10 +124,29 @@ describe('<DateCalculator /> — mode switching', () => {
     render(<DateCalculator />);
     await user.click(screen.getByRole('radio', {name: /age from date/i}));
     const endInput = screen.getByLabelText(/on date \(defaults to today\)/i);
-    // The displayed value should be today in yyyy-mm-dd form.
-    const d = new Date();
-    const expected = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    expect(endInput.value).toBe(expected);
+    expect(endInput.value).toBe(todayISO());
+  });
+});
+
+describe('<DateCalculator /> — Today buttons', () => {
+  it('Start "Today" button sets start date to today', async () => {
+    const user = userEvent.setup();
+    render(<DateCalculator />);
+    // Click the first "Today" button (next to start).
+    const todayBtns = screen.getAllByRole('button', {name: /^today$/i});
+    await user.click(todayBtns[0]);
+    expect(getStartInput().value).toBe(todayISO());
+  });
+
+  it('End "Today" button sets end date to today', async () => {
+    const user = userEvent.setup();
+    render(<DateCalculator />);
+    // Set end to something else first.
+    await typeDate(user, getEndInput(), '2020-01-01');
+    expect(getEndInput().value).toBe('2020-01-01');
+    const todayBtns = screen.getAllByRole('button', {name: /^today$/i});
+    await user.click(todayBtns[1]);
+    expect(getEndInput().value).toBe(todayISO());
   });
 });
 
@@ -113,10 +154,9 @@ describe('<DateCalculator /> — working-days toggle', () => {
   it('shows Working days line only when toggle is on', async () => {
     const user = userEvent.setup();
     render(<DateCalculator />);
-    await user.type(getStartInput(), '2024-01-15');
-    await user.type(getEndInput(), '2024-01-19');
+    await typeDate(user, getStartInput(), '2024-01-15');
+    await typeDate(user, getEndInput(), '2024-01-19');
 
-    // Off by default — no Working days label.
     expect(screen.queryByText(/working days$/i)).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('checkbox', {name: /working days only/i}));
@@ -132,8 +172,8 @@ describe('<DateCalculator /> — auto-save round-trip', () => {
     const user = userEvent.setup({advanceTimers: vi.advanceTimersByTime});
     render(<DateCalculator />);
 
-    await user.type(getStartInput(), '2024-01-15');
-    await user.type(getEndInput(), '2025-01-15');
+    await typeDate(user, getStartInput(), '2024-01-15');
+    await typeDate(user, getEndInput(), '2025-01-15');
     await user.click(screen.getByRole('checkbox', {name: /working days only/i}));
 
     await act(async () => {
@@ -181,10 +221,27 @@ describe('<DateCalculator /> — auto-save round-trip', () => {
       screen.getByRole('checkbox', {name: /working days only/i})
     ).toBeChecked();
   });
+
+  it('restores null startDate from storage (shows empty start input)', () => {
+    window.localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        version: '1.0.0',
+        data: {
+          startDate: null,
+          endDate: '2025-03-01',
+          mode: 'difference',
+          includeWorkingDays: false,
+        },
+      })
+    );
+    render(<DateCalculator />);
+    expect(getStartInput().value).toBe('');
+  });
 });
 
 describe('<DateCalculator /> — Clear synchronous wipe', () => {
-  it('Clear empties inputs, resets mode/toggle, and wipes storage synchronously', async () => {
+  it('Clear empties start, resets end to today, resets mode/toggle, and wipes storage synchronously', async () => {
     window.localStorage.setItem(
       STORAGE_KEY,
       JSON.stringify({
@@ -206,8 +263,9 @@ describe('<DateCalculator /> — Clear synchronous wipe', () => {
 
     await user.click(screen.getByRole('button', {name: /^clear$/i}));
 
-    // After Clear the mode is back to 'difference', so the label is "Start date".
+    // After Clear: mode resets to 'difference', start is empty, end is today.
     expect(getStartInput().value).toBe('');
+    expect(getEndInput().value).toBe(todayISO());
     expect(
       screen.getByRole('checkbox', {name: /working days only/i})
     ).not.toBeChecked();
@@ -242,8 +300,9 @@ describe('<DateCalculator /> — Clear synchronous wipe', () => {
     expect(window.localStorage.getItem(STORAGE_KEY)).toBeNull();
   });
 
-  it('Clear is disabled when there is nothing to clear', () => {
+  it('Clear is disabled on a fresh mount (end=today, start=null = default state)', () => {
     render(<DateCalculator />);
+    // Fresh mount: start=null, end=today, mode=difference, workingDays=false — nothing to clear.
     expect(screen.getByRole('button', {name: /^clear$/i})).toBeDisabled();
   });
 });

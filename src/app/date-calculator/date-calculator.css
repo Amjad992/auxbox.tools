@@ -48,23 +48,11 @@
   font-weight: 600;
 }
 
-.dc-date-input {
-  background: #1f1f1f;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  color: var(--text-primary);
-  padding: 10px 12px;
-  font-size: 0.95rem;
-  font-family: inherit;
-  outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  /* Make the picker indicator visible on the dark background. */
-  color-scheme: dark;
-}
-
-.dc-date-input:focus {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.15);
+.dc-today-btn {
+  margin-top: 0.35rem;
+  align-self: flex-start;
+  padding: 6px 14px;
+  font-size: 0.8rem;
 }
 
 .dc-options-row {

@@ -1,9 +1,11 @@
 'use client';
-import {useEffect, useMemo, useRef, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {DateTime} from 'luxon';
 import ToolPage from '../../components/ToolPage';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
 import ModeToggle from '../../components/ModeToggle';
+import DatePicker from '../../components/DatePicker';
 import ToastContainer from '../../components/ToastContainer';
 import {useToast} from '../../hooks/useToast';
 import {StorageProvider, useStorageData} from './StorageContext';
@@ -17,7 +19,6 @@ import {
 } from './constants';
 import {
   diffYMD,
-  parseISODate,
   swapIfReversed,
   totalUnits,
   workingDaysBetween,
@@ -36,12 +37,20 @@ const SCHEMA = {
   offers: {'@type': 'Offer', price: '0', priceCurrency: 'USD'},
 };
 
-function todayISO() {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
+function todayDT() {
+  return DateTime.now().startOf('day');
+}
+
+// Serialise a nullable DateTime to ISO date string for storage.
+function serializeDate(dt) {
+  return dt?.isValid ? dt.toISODate() : null;
+}
+
+// Deserialise a nullable ISO string from storage to DateTime or null.
+function deserializeDate(str) {
+  if (typeof str !== 'string' || str === '') return null;
+  const dt = DateTime.fromISO(str).startOf('day');
+  return dt.isValid ? dt : null;
 }
 
 function formatYMD({years, months, days}) {
@@ -59,21 +68,26 @@ function DateCalculatorContent() {
   const {toasts, showToast, dismissToast} = useToast();
   const {loadState, saveState, clearState, storageErrors} = useStorageData();
 
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  // DateTime | null for each date.
+  const [startDate, setStartDate] = useState(null);
+  // End date defaults to today on mount (overridden by persisted state if available).
+  const [endDate, setEndDate] = useState(() => todayDT());
   const [mode, setMode] = useState(MODES.DIFFERENCE);
   const [includeWorkingDays, setIncludeWorkingDays] = useState(false);
   const [hydrated, setHydrated] = useState(false);
 
   const dirtyRef = useRef(false);
-  const [today, setToday] = useState(todayISO);
 
   // Hydrate once on mount.
   useEffect(() => {
     const saved = loadState();
     if (saved && typeof saved === 'object') {
-      if (typeof saved.startDate === 'string') setStartDate(saved.startDate);
-      if (typeof saved.endDate === 'string') setEndDate(saved.endDate);
+      // startDate: null when not saved or empty string.
+      const savedStart = deserializeDate(saved.startDate);
+      const savedEnd = deserializeDate(saved.endDate);
+      setStartDate(savedStart);
+      // If storage had a non-null endDate, restore it. Otherwise keep today default.
+      if (savedEnd !== null) setEndDate(savedEnd);
       if (typeof saved.mode === 'string' && MODE_VALUES.includes(saved.mode)) {
         setMode(saved.mode);
       }
@@ -83,11 +97,6 @@ function DateCalculatorContent() {
     }
     setHydrated(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Recompute "today" once per mount so an SSR-mismatched value isn't shown.
-  useEffect(() => {
-    setToday(todayISO());
   }, []);
 
   useEffect(() => {
@@ -100,42 +109,50 @@ function DateCalculatorContent() {
   useEffect(() => {
     if (!hydrated || !dirtyRef.current) return;
     const handle = setTimeout(() => {
-      saveState({startDate, endDate, mode, includeWorkingDays});
+      saveState({
+        startDate: serializeDate(startDate),
+        endDate: serializeDate(endDate),
+        mode,
+        includeWorkingDays,
+      });
     }, STATE_AUTOSAVE_DEBOUNCE_MS);
     return () => clearTimeout(handle);
   }, [hydrated, startDate, endDate, mode, includeWorkingDays, saveState]);
 
-  // In Age mode, the effective end date defaults to today when blank.
+  // In Age mode, end date stays as-is but defaults to today when null.
   const effectiveEndDate =
-    mode === MODES.AGE && endDate === '' ? today : endDate;
+    mode === MODES.AGE && endDate === null ? todayDT() : endDate;
 
   const computed = useMemo(() => {
-    const start = parseISODate(startDate);
-    const end = parseISODate(effectiveEndDate);
-    if (!start || !end) return null;
-    const ordered = swapIfReversed(start, end);
+    if (!startDate || !effectiveEndDate) return null;
+    const ordered = swapIfReversed(startDate, effectiveEndDate);
     const ymd = diffYMD(ordered.start, ordered.end);
     const units = totalUnits(ordered.start, ordered.end);
     const working = includeWorkingDays
       ? workingDaysBetween(ordered.start, ordered.end)
       : null;
-    return {
-      ymd,
-      units,
-      working,
-      swapped: ordered.swapped,
-    };
+    return {ymd, units, working, swapped: ordered.swapped};
   }, [startDate, effectiveEndDate, includeWorkingDays]);
 
-  const handleStartChange = (e) => {
+  const handleStartChange = useCallback((dt) => {
     dirtyRef.current = true;
-    setStartDate(e.target.value);
-  };
+    setStartDate(dt);
+  }, []);
 
-  const handleEndChange = (e) => {
+  const handleEndChange = useCallback((dt) => {
     dirtyRef.current = true;
-    setEndDate(e.target.value);
-  };
+    setEndDate(dt);
+  }, []);
+
+  const handleStartToday = useCallback(() => {
+    dirtyRef.current = true;
+    setStartDate(todayDT());
+  }, []);
+
+  const handleEndToday = useCallback(() => {
+    dirtyRef.current = true;
+    setEndDate(todayDT());
+  }, []);
 
   const handleModeChange = (next) => {
     dirtyRef.current = true;
@@ -151,17 +168,20 @@ function DateCalculatorContent() {
     // Synchronous wipe + dirty=false so the post-Clear auto-save effect tick
     // skips and no phantom record is written 300 ms later.
     clearState();
-    setStartDate('');
-    setEndDate('');
+    setStartDate(null);
+    setEndDate(todayDT());
     setMode(DEFAULT_STATE.mode);
     setIncludeWorkingDays(DEFAULT_STATE.includeWorkingDays);
     dirtyRef.current = false;
     showToast('Cleared', 'success');
   };
 
+  // canClear: true if anything differs from fresh state (start null, end today, default mode, no working days).
+  const today = todayDT();
+  const endIsToday = endDate?.isValid && endDate.toISODate() === today.toISODate();
   const canClear =
-    startDate !== '' ||
-    endDate !== '' ||
+    startDate !== null ||
+    !endIsToday ||
     mode !== DEFAULT_STATE.mode ||
     includeWorkingDays !== DEFAULT_STATE.includeWorkingDays;
 
@@ -199,28 +219,26 @@ function DateCalculatorContent() {
         <Card>
           <div className="dc-fields">
             <div className="dc-field">
-              <label className="dc-field-label" htmlFor="dc-start">
-                {startLabel}
-              </label>
-              <input
+              <DatePicker
                 id="dc-start"
-                type="date"
-                className="dc-date-input"
+                label={startLabel}
                 value={startDate}
                 onChange={handleStartChange}
               />
+              <Button variant="neutral" onClick={handleStartToday} className="dc-today-btn">
+                Today
+              </Button>
             </div>
             <div className="dc-field">
-              <label className="dc-field-label" htmlFor="dc-end">
-                {endLabel}
-              </label>
-              <input
+              <DatePicker
                 id="dc-end"
-                type="date"
-                className="dc-date-input"
+                label={endLabel}
                 value={effectiveEndDate}
                 onChange={handleEndChange}
               />
+              <Button variant="neutral" onClick={handleEndToday} className="dc-today-btn">
+                Today
+              </Button>
             </div>
           </div>
 

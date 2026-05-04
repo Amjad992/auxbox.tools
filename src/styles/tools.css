@@ -640,3 +640,105 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* ═══ Date Picker ══════════════════════════════
+   Shared calendar input widget (DatePicker.js).
+   The text input + calendar toggle share a row;
+   the DayPicker popup floats below. */
+.tool-datepicker {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.tool-datepicker-label {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+}
+
+.tool-datepicker-input-row {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.tool-datepicker-input {
+  flex: 1;
+  background: #1f1f1f;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tool-datepicker-input::placeholder {
+  color: var(--text-light);
+}
+
+.tool-datepicker-input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.15);
+}
+
+.tool-datepicker-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tool-datepicker-toggle {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  background: #1f1f1f;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+}
+
+.tool-datepicker-toggle:hover:not(:disabled) {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  background-color: rgba(255, 107, 107, 0.07);
+}
+
+.tool-datepicker-toggle:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+.tool-datepicker-toggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tool-datepicker-popup {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 200;
+  background: #1f1f1f;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  /* Let react-day-picker size the popup naturally. */
+  width: max-content;
+  max-width: 90vw;
+  padding: 0.5rem;
+  /* Scope react-day-picker colour tokens to our palette. */
+  --rdp-accent-color: var(--primary-color);
+  --rdp-background-color: rgba(255, 107, 107, 0.12);
+  color: var(--text-primary);
+}
