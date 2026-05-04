@@ -92,4 +92,14 @@ describe('renderMarkdown — sanitization (XSS)', () => {
     expect(html).not.toMatch(/<style/i);
     expect(html).toContain('hello');
   });
+
+  it('neuters SVG-borne XSS (onload attribute stripped or svg removed)', () => {
+    const html = renderMarkdown('<svg onload="window.__svg_xss=true"></svg>');
+    // Either the <svg> element is removed entirely, or the onload attribute
+    // is stripped — both satisfy the security goal.
+    const hasOnload = /onload/i.test(html);
+    expect(hasOnload).toBe(false);
+    // The side-effect must not have fired.
+    expect(window.__svg_xss).toBeUndefined();
+  });
 });

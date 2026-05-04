@@ -23,6 +23,11 @@ const MARKED_DEFAULTS = {
  * @param {string} src - Markdown source.
  * @param {object} [options] - Optional overrides forwarded to `marked.parse`.
  * @returns {string} Sanitized HTML.
+ *
+ * @remarks Browser-only. Uses `DOMPurify.sanitize` which requires a DOM.
+ * Server-side callers (RSC, route handlers, build-time) must polyfill via
+ * `jsdom` before calling this. The current consumer is a `'use client'`
+ * page, so this is fine; future consumers should check.
  */
 export function renderMarkdown(src, options) {
   if (typeof src !== 'string' || src.length === 0) return '';

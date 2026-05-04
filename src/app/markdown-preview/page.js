@@ -6,6 +6,7 @@ import Button from '../../components/Button';
 import ToastContainer from '../../components/ToastContainer';
 import {useToast} from '../../hooks/useToast';
 import {renderMarkdown} from '../../lib/markdown';
+import {copyToClipboard} from '../../lib/clipboard';
 import {StorageProvider, useStorageData} from './StorageContext';
 import {
   MAX_PERSISTED_CHARS,
@@ -25,41 +26,6 @@ const SCHEMA = {
   operatingSystem: 'Any',
   offers: {'@type': 'Offer', price: '0', priceCurrency: 'USD'},
 };
-
-/**
- * Tool-local copy-to-clipboard helper. The password-generator has its own
- * copy of this; once a third tool needs it we promote to `src/hooks/`.
- */
-async function copyToClipboard(text) {
-  if (!text) return false;
-  try {
-    if (
-      typeof navigator !== 'undefined' &&
-      navigator.clipboard &&
-      typeof navigator.clipboard.writeText === 'function'
-    ) {
-      await navigator.clipboard.writeText(text);
-      return true;
-    }
-  } catch (e) {
-    // Fall through to legacy fallback.
-  }
-  if (typeof document === 'undefined') return false;
-  try {
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    ta.setAttribute('readonly', '');
-    ta.style.position = 'absolute';
-    ta.style.left = '-9999px';
-    document.body.appendChild(ta);
-    ta.select();
-    const ok = document.execCommand && document.execCommand('copy');
-    document.body.removeChild(ta);
-    return !!ok;
-  } catch (e) {
-    return false;
-  }
-}
 
 function MarkdownPreviewContent() {
   const {toasts, showToast, dismissToast} = useToast();
@@ -128,11 +94,12 @@ function MarkdownPreviewContent() {
   };
 
   const handleClear = () => {
-    dirtyRef.current = true;
-    setSource('');
-    // Synchronously wipe storage so a refresh inside the debounce window
-    // does not restore the just-cleared draft.
+    // Synchronously wipe storage and reset dirty so the post-Clear
+    // auto-save effect skips the write — preventing a phantom
+    // {document: ''} record from being written 300 ms later.
     clearState();
+    setSource('');
+    dirtyRef.current = false;
     setAnnouncement('Document cleared');
     showToast('Document cleared', 'success');
   };

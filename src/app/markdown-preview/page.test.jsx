@@ -194,6 +194,28 @@ describe('<MarkdownPreview /> — Clear button', () => {
     // Synchronous clear — no debounce advance required.
     expect(window.localStorage.getItem(STORAGE_KEY)).toBeNull();
   });
+
+  it('Clear does NOT write a phantom record after the debounce window', async () => {
+    // Pre-seed storage so the Clear button is enabled immediately.
+    window.localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({version: '1.0.0', data: {document: '# draft'}})
+    );
+
+    vi.useFakeTimers({shouldAdvanceTime: true});
+    const user = userEvent.setup({advanceTimers: vi.advanceTimersByTime});
+    render(<MarkdownPreview />);
+
+    await user.click(screen.getByRole('button', {name: /^clear$/i}));
+
+    // Advance past the 300 ms debounce; the auto-save effect must NOT fire.
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(500);
+    });
+
+    // Storage must remain null — no phantom {document: ''} record.
+    expect(window.localStorage.getItem(STORAGE_KEY)).toBeNull();
+  });
 });
 
 describe('<MarkdownPreview /> — auto-save round-trip', () => {
