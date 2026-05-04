@@ -83,10 +83,10 @@
 }
 
 .mtp-preset-description {
-  margin: 0;
-  color: var(--text-light);
-  font-size: 0.78rem;
-  line-height: 1.4;
+  margin: 0.75rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.45;
 }
 
 .mtp-editor {
@@ -102,12 +102,14 @@
   line-height: 1.55;
   /* `field-sizing: content` makes the textarea grow with content in
      Chromium 123+ and Safari 17+. The JS autosize effect in page.js
-     covers older browsers as a fallback. */
+     covers older browsers as a fallback. `overflow-y: hidden` ensures
+     no scrollbar ever shows even mid-frame while either path catches up. */
   field-sizing: content;
   resize: none;
   outline: none;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  overflow: hidden;
+  overflow-y: hidden;
+  overflow-x: auto;
 }
 
 .mtp-editor:focus {

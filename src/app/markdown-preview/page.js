@@ -43,10 +43,19 @@ function MarkdownPreviewContent() {
   const editorRef = useRef(null);
 
   // Autosize fallback for browsers without `field-sizing: content`.
-  // CSS handles modern Chromium/Safari for free; this effect covers the rest.
+  // Modern Chromium 123+/Safari 17+ handle sizing via CSS; we skip the
+  // inline-height path there so JS doesn't fight with field-sizing
+  // (which would otherwise leave the textarea slightly short and
+  // re-introduce a scrollbar). Older browsers fall through and get the
+  // scrollHeight-driven autosize on mount and on every input.
   useEffect(() => {
     const el = editorRef.current;
     if (!el) return;
+    const hasFieldSizing =
+      typeof CSS !== 'undefined' &&
+      typeof CSS.supports === 'function' &&
+      CSS.supports('field-sizing', 'content');
+    if (hasFieldSizing) return;
     el.style.height = 'auto';
     el.style.height = `${el.scrollHeight}px`;
   }, [source]);
