@@ -737,8 +737,14 @@
   width: max-content;
   max-width: 90vw;
   padding: 0.5rem;
-  /* Scope react-day-picker colour tokens to our palette. */
-  --rdp-accent-color: var(--primary-color);
-  --rdp-background-color: rgba(255, 107, 107, 0.12);
   color: var(--text-primary);
+}
+
+/* react-day-picker sets --rdp-accent-color on .rdp-root itself (closer
+   scope than the popup wrapper), so the override has to target .rdp-root
+   directly to win the cascade. */
+.tool-datepicker-popup .rdp-root {
+  --rdp-accent-color: var(--primary-color);
+  --rdp-accent-background-color: rgba(255, 107, 107, 0.12);
+  --rdp-today-color: var(--primary-color);
 }
