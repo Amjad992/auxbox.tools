@@ -112,6 +112,35 @@ describe('<DatePicker /> — disabled state', () => {
   });
 });
 
+describe('<DatePicker /> — invalid input a11y', () => {
+  it('sets aria-invalid and shows hint when typed value is non-empty and invalid', async () => {
+    const user = userEvent.setup();
+    render(<DatePicker label="Start date" value={null} onChange={() => {}} />);
+    const input = screen.getByLabelText('Start date');
+    await user.type(input, '2024-13-01');
+    expect(input).toHaveAttribute('aria-invalid', 'true');
+    expect(screen.getByText('Use YYYY-MM-DD')).toBeInTheDocument();
+  });
+
+  it('clears aria-invalid after blur wipes the invalid input', async () => {
+    const user = userEvent.setup();
+    render(<DatePicker label="Start date" value={null} onChange={() => {}} />);
+    const input = screen.getByLabelText('Start date');
+    await user.type(input, '2024-13-01');
+    expect(input).toHaveAttribute('aria-invalid', 'true');
+    await user.tab();
+    // After blur the input is cleared, so aria-invalid should not be set.
+    expect(input).not.toHaveAttribute('aria-invalid');
+    expect(screen.queryByText('Use YYYY-MM-DD')).not.toBeInTheDocument();
+  });
+
+  it('does not set aria-invalid for empty input', () => {
+    render(<DatePicker label="Start date" value={null} onChange={() => {}} />);
+    const input = screen.getByLabelText('Start date');
+    expect(input).not.toHaveAttribute('aria-invalid');
+  });
+});
+
 describe('<DatePicker /> — value sync', () => {
   it('updates the text input when value prop changes externally', () => {
     const {rerender} = render(

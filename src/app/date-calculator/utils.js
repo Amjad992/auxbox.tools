@@ -103,19 +103,23 @@ export function totalWorkingUnits(workingDays) {
 }
 
 /**
- * Mon–Fri count between start and end inclusive.
+ * Mon–Fri count between start and end inclusive. O(1) closed-form.
  * Luxon weekday: 1 = Monday … 7 = Sunday.
+ *
+ * @remarks Callers must pass start <= end; negative spans return 0.
  */
 export function workingDaysBetween(start, end) {
-  const startDay = start.startOf('day');
-  const endDay = end.startOf('day');
-  const totalDays = Math.round(endDay.diff(startDay, 'days').days);
+  const totalDays = totalDaysBetween(start, end);
   if (totalDays < 0) return 0;
 
-  let count = 0;
-  for (let i = 0; i <= totalDays; i++) {
-    const wd = startDay.plus({days: i}).weekday; // 1-5 = Mon-Fri
-    if (wd <= 5) count += 1;
+  const fullWeeks = Math.floor(totalDays / 7);
+  const remainder = totalDays % 7;
+  const startWeekday = start.startOf('day').weekday; // 1=Mon..7=Sun
+
+  let weekdaysInRemainder = 0;
+  for (let i = 0; i <= remainder; i++) {
+    const wd = ((startWeekday - 1 + i) % 7) + 1;
+    if (wd >= 1 && wd <= 5) weekdaysInRemainder++;
   }
-  return count;
+  return fullWeeks * 5 + weekdaysInRemainder;
 }

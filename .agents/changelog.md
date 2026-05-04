@@ -14,6 +14,20 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-04 - Fix: address Date Calculator general review (2 major, 6 minor)
+**What changed:** Applied all 8 findings from the 2026-05-05 Opus general review round on `feat/age-date-difference`.
+MAJ-1: Replaced both `<ul className="dc-units-row">` blocks with `<div className="tool-results-grid">` + `<ResultCard>` children. Deleted `.dc-units-row`, `.dc-units-row li`, `.dc-unit-label`, `.dc-unit-value` from `date-calculator.css`. Total Weeks value string now composes the remainder suffix (e.g. `"21 + 1 day"`) directly.
+MAJ-2: Removed the `if (savedEnd !== null)` guard so that a persisted `endDate: null` is honoured unconditionally on rehydrate instead of silently falling back to today. Added a regression test asserting the end input is empty when `endDate: null` is in storage.
+MIN-1: `DEFAULT_STATE.startDate` and `DEFAULT_STATE.endDate` changed from `''` to `null` — consistent with the serialized shape written by autosave.
+MIN-2: `DatePicker` sync effect now depends on `valueIso` (the ISO string of the incoming value) rather than the Luxon instance reference, so a fresh `DateTime.now()` for the same date no longer clobbers in-progress typing.
+MIN-3: `workingDaysBetween` replaced with an O(1) closed-form (full-weeks×5 + fixed-size 7-iteration inner loop for remainder weekday count). Added 100-year-span test: `2000-01-01` → `2100-01-01` = 26090 working days.
+MIN-4: `DatePicker` now sets `aria-invalid="true"` and renders a `<p class="tool-datepicker-hint">Use YYYY-MM-DD</p>` when `inputText` is non-empty and fails to parse. `aria-describedby` is composed (consumer-provided id joined with the error id). Three new `DatePicker` a11y tests added.
+MIN-5: `startMonth` and `endMonth` hoisted to module scope in `DatePicker.js` (both were reallocated per render; `THIS_YEAR` was already at module scope).
+MIN-6: JSDoc on `workingDaysBetween` now states `@remarks Callers must pass start <= end; negative spans return 0.`
+**Why:** Findings from the Opus review round — see `playground/reviews/review-rounds/general/2026-05-05-date-calculator/review-findings.md`.
+**Impact:** Test count: 520 → 525 (+5: 1 `workingDaysBetween` 100-year span test, 1 MAJ-2 regression test, 3 `DatePicker` a11y tests). Lint: 0 errors. Build: green.
+**Files changed:** `src/app/date-calculator/{page.js,constants.js,utils.js,utils.test.js,page.test.jsx,date-calculator.css}`, `src/components/{DatePicker.js,DatePicker.test.jsx}`.
+
 ## 2026-05-04 - Date Calculator: split units row + add working hours/minutes
 **What changed:** Result area now renders two separate `.dc-units-row` containers. Row 1 (always visible): Total Days, Total Weeks, Total Hours, Total Minutes. Row 2 (only when the working-days toggle is ON): Total Working Days, Total Working Hours, Total Working Minutes. New pure helper `totalWorkingUnits(workingDays)` in `utils.js` computes working hours (days × 8) and working minutes (days × 480). CSS class renamed from `.dc-units-list` to `.dc-units-row`.
 **Why:** UX change — previously the single Working Days card was crammed into the same row as the four calendar-time cards; now it leads its own dedicated working-time row with hours and minutes.

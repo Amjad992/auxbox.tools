@@ -16,8 +16,8 @@ export const MODE_OPTIONS = [
 ];
 
 export const DEFAULT_STATE = {
-  startDate: '',
-  endDate: '',
+  startDate: null,
+  endDate: null,
   mode: MODES.DIFFERENCE,
   includeWorkingDays: false,
 };

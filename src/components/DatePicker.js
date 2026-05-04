@@ -6,6 +6,8 @@ import {DayPicker} from 'react-day-picker';
 import 'react-day-picker/style.css';
 
 const THIS_YEAR = new Date().getFullYear();
+const startMonth = new Date(1900, 0);
+const endMonth = new Date(THIS_YEAR + 100, 11);
 
 /**
  * Shared date picker. Renders a text input (YYYY-MM-DD) with a calendar toggle.
@@ -35,6 +37,8 @@ export default function DatePicker({
   const autoId = useId();
   const inputId = idProp ?? autoId;
 
+  const errorId = `${inputId}-error`;
+
   // Local display text — tracks what the user typed; syncs to value on external changes.
   const [inputText, setInputText] = useState(
     value?.isValid ? value.toISODate() : ''
@@ -42,10 +46,17 @@ export default function DatePicker({
   const [popupOpen, setPopupOpen] = useState(false);
   const containerRef = useRef(null);
 
+  // showError: true when the user has typed a non-empty string that fails to parse.
+  // Cleared on blur (input is wiped) or when a valid date is committed.
+  const showError = inputText.trim() !== '' && !DateTime.fromISO(inputText.trim()).isValid;
+
   // Keep the text input in sync when value changes from outside (e.g. "Today" button, Clear).
+  // Gate on the ISO string rather than reference identity so that a fresh Luxon instance
+  // representing the same date does not clobber in-progress typing.
+  const valueIso = value?.isValid ? value.toISODate() : '';
   useEffect(() => {
-    setInputText(value?.isValid ? value.toISODate() : '');
-  }, [value]);
+    setInputText(valueIso);
+  }, [valueIso]);
 
   // Close popup on click-outside.
   useEffect(() => {
@@ -111,9 +122,6 @@ export default function DatePicker({
   // react-day-picker expects a native Date.
   const selectedJsDate = value?.isValid ? value.toJSDate() : undefined;
 
-  const startMonth = new Date(1900, 0);
-  const endMonth = new Date(THIS_YEAR + 100, 11);
-
   return (
     <div className="tool-datepicker" ref={containerRef}>
       <label className="tool-datepicker-label" htmlFor={inputId}>
@@ -127,7 +135,10 @@ export default function DatePicker({
           value={inputText}
           placeholder={placeholder}
           disabled={disabled}
-          aria-describedby={ariaDescribedBy}
+          aria-invalid={showError || undefined}
+          aria-describedby={
+            [ariaDescribedBy, showError ? errorId : null].filter(Boolean).join(' ') || undefined
+          }
           onChange={handleInputChange}
           onBlur={handleInputBlur}
         />
@@ -158,6 +169,10 @@ export default function DatePicker({
           </svg>
         </button>
       </div>
+
+      {showError && (
+        <p id={errorId} className="tool-datepicker-hint">Use YYYY-MM-DD</p>
+      )}
 
       {popupOpen && (
         <div className="tool-datepicker-popup" role="dialog" aria-modal="true">

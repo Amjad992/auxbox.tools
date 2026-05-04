@@ -212,4 +212,11 @@ describe('workingDaysBetween', () => {
   it('returns 0 for a single-day weekend (start === end Sat)', () => {
     expect(workingDaysBetween(dt('2024-01-13'), dt('2024-01-13'))).toBe(0);
   });
+
+  it('100-year span: 2000-01-01 (Sat) to 2100-01-01 (Fri) = 26090 working days', () => {
+    // 36525 total days / 7 = 5217 full weeks + 6 remainder
+    // startWeekday = 6 (Sat); days Sat/Sun/Mon/Tue/Wed/Thu/Fri → 5 weekdays in remainder
+    // 5217 * 5 + 5 = 26090
+    expect(workingDaysBetween(dt('2000-01-01'), dt('2100-01-01'))).toBe(26090);
+  });
 });

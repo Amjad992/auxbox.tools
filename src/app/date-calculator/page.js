@@ -6,6 +6,7 @@ import Card from '../../components/Card';
 import Button from '../../components/Button';
 import ModeToggle from '../../components/ModeToggle';
 import DatePicker from '../../components/DatePicker';
+import ResultCard from '../../components/ResultCard';
 import ToastContainer from '../../components/ToastContainer';
 import {useToast} from '../../hooks/useToast';
 import {StorageProvider, useStorageData} from './StorageContext';
@@ -87,8 +88,8 @@ function DateCalculatorContent() {
       const savedStart = deserializeDate(saved.startDate);
       const savedEnd = deserializeDate(saved.endDate);
       setStartDate(savedStart);
-      // If storage had a non-null endDate, restore it. Otherwise keep today default.
-      if (savedEnd !== null) setEndDate(savedEnd);
+      // Honour the persisted value unconditionally; null IS a valid restored state.
+      setEndDate(savedEnd);
       if (typeof saved.mode === 'string' && MODE_VALUES.includes(saved.mode)) {
         setMode(saved.mode);
       }
@@ -276,59 +277,47 @@ function DateCalculatorContent() {
                   </p>
                 )}
 
-                <ul className="dc-units-row">
-                  <li>
-                    <span className="dc-unit-label">Total days</span>
-                    <span className="dc-unit-value">
-                      {computed.units.days.toLocaleString()}
-                    </span>
-                  </li>
-                  <li>
-                    <span className="dc-unit-label">Total weeks</span>
-                    <span className="dc-unit-value">
-                      {computed.units.weeks.toLocaleString()}
-                      {computed.units.weekRemainderDays > 0
+                <div className="tool-results-grid">
+                  <ResultCard
+                    label="Total days"
+                    value={computed.units.days.toLocaleString()}
+                  />
+                  <ResultCard
+                    label="Total weeks"
+                    value={
+                      computed.units.weeks.toLocaleString() +
+                      (computed.units.weekRemainderDays > 0
                         ? ` + ${computed.units.weekRemainderDays} day${
                             computed.units.weekRemainderDays === 1 ? '' : 's'
                           }`
-                        : ''}
-                    </span>
-                  </li>
-                  <li>
-                    <span className="dc-unit-label">Total hours</span>
-                    <span className="dc-unit-value">
-                      {computed.units.hours.toLocaleString()}
-                    </span>
-                  </li>
-                  <li>
-                    <span className="dc-unit-label">Total minutes</span>
-                    <span className="dc-unit-value">
-                      {computed.units.minutes.toLocaleString()}
-                    </span>
-                  </li>
-                </ul>
+                        : '')
+                    }
+                  />
+                  <ResultCard
+                    label="Total hours"
+                    value={computed.units.hours.toLocaleString()}
+                  />
+                  <ResultCard
+                    label="Total minutes"
+                    value={computed.units.minutes.toLocaleString()}
+                  />
+                </div>
 
                 {computed.workingUnits !== null && (
-                  <ul className="dc-units-row">
-                    <li>
-                      <span className="dc-unit-label">Total working days</span>
-                      <span className="dc-unit-value">
-                        {computed.workingUnits.workingDays.toLocaleString()}
-                      </span>
-                    </li>
-                    <li>
-                      <span className="dc-unit-label">Total working hours</span>
-                      <span className="dc-unit-value">
-                        {computed.workingUnits.workingHours.toLocaleString()}
-                      </span>
-                    </li>
-                    <li>
-                      <span className="dc-unit-label">Total working minutes</span>
-                      <span className="dc-unit-value">
-                        {computed.workingUnits.workingMinutes.toLocaleString()}
-                      </span>
-                    </li>
-                  </ul>
+                  <div className="tool-results-grid">
+                    <ResultCard
+                      label="Total working days"
+                      value={computed.workingUnits.workingDays.toLocaleString()}
+                    />
+                    <ResultCard
+                      label="Total working hours"
+                      value={computed.workingUnits.workingHours.toLocaleString()}
+                    />
+                    <ResultCard
+                      label="Total working minutes"
+                      value={computed.workingUnits.workingMinutes.toLocaleString()}
+                    />
+                  </div>
                 )}
 
                 <p className="dc-result-footnote">

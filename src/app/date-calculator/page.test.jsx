@@ -267,6 +267,23 @@ describe('<DateCalculator /> — auto-save round-trip', () => {
     render(<DateCalculator />);
     expect(getStartInput().value).toBe('');
   });
+
+  it('restores null endDate from storage (shows empty end input, not today)', () => {
+    window.localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        version: '1.0.0',
+        data: {
+          startDate: null,
+          endDate: null,
+          mode: 'difference',
+          includeWorkingDays: false,
+        },
+      })
+    );
+    render(<DateCalculator />);
+    expect(getEndInput().value).toBe('');
+  });
 });
 
 describe('<DateCalculator /> — Clear synchronous wipe', () => {
