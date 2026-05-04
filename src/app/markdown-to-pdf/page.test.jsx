@@ -67,9 +67,9 @@ describe('<MarkdownToPdf /> — page render', () => {
     expect(
       screen.getByRole('radiogroup', {name: /print preset/i})
     ).toBeInTheDocument();
-    expect(screen.getByRole('radio', {name: 'Default'})).toBeInTheDocument();
+    expect(screen.getByRole('radio', {name: 'Modern'})).toBeInTheDocument();
     expect(screen.getByRole('radio', {name: 'Academic'})).toBeInTheDocument();
-    expect(screen.getByRole('radio', {name: 'Minimal'})).toBeInTheDocument();
+    expect(screen.getByRole('radio', {name: 'Compact'})).toBeInTheDocument();
     expect(
       screen.getByRole('button', {name: /download as pdf/i})
     ).toBeInTheDocument();
@@ -103,12 +103,39 @@ describe('<MarkdownToPdf /> — preset picker class wiring', () => {
     expect(root.className).not.toMatch(/mtp-preset-default/);
   });
 
-  it('switching to Minimal applies the minimal class', async () => {
+  it('switching to Compact applies the minimal class', async () => {
     const user = userEvent.setup();
     render(<MarkdownToPdf />);
-    await user.click(screen.getByRole('radio', {name: 'Minimal'}));
+    await user.click(screen.getByRole('radio', {name: 'Compact'}));
     const root = getPrintRoot();
     expect(root.className).toMatch(/mtp-preset-minimal/);
+  });
+});
+
+describe('<MarkdownToPdf /> — preset description', () => {
+  it('shows the Modern description by default', () => {
+    render(<MarkdownToPdf />);
+    expect(
+      screen.getByText(/Sans-serif, 11 pt, 2 cm margins/i)
+    ).toBeInTheDocument();
+  });
+
+  it('shows the Academic description after selecting Academic', async () => {
+    const user = userEvent.setup();
+    render(<MarkdownToPdf />);
+    await user.click(screen.getByRole('radio', {name: 'Academic'}));
+    expect(
+      screen.getByText(/Serif \(Georgia\), 12 pt, 2\.5 cm margins/i)
+    ).toBeInTheDocument();
+  });
+
+  it('shows the Compact description after selecting Compact', async () => {
+    const user = userEvent.setup();
+    render(<MarkdownToPdf />);
+    await user.click(screen.getByRole('radio', {name: 'Compact'}));
+    expect(
+      screen.getByText(/Sans-serif, 10 pt, 1\.5 cm margins/i)
+    ).toBeInTheDocument();
   });
 });
 

@@ -12,9 +12,23 @@ export const PRESETS = {
 export const PRESET_VALUES = [PRESETS.DEFAULT, PRESETS.ACADEMIC, PRESETS.MINIMAL];
 
 export const PRESET_OPTIONS = [
-  {value: PRESETS.DEFAULT, label: 'Default'},
-  {value: PRESETS.ACADEMIC, label: 'Academic'},
-  {value: PRESETS.MINIMAL, label: 'Minimal'},
+  {
+    value: PRESETS.DEFAULT,
+    label: 'Modern',
+    description: 'Sans-serif, 11 pt, 2 cm margins. Clean, general-purpose look.',
+  },
+  {
+    value: PRESETS.ACADEMIC,
+    label: 'Academic',
+    description:
+      'Serif (Georgia), 12 pt, 2.5 cm margins, justified text. Research-paper style.',
+  },
+  {
+    value: PRESETS.MINIMAL,
+    label: 'Compact',
+    description:
+      'Sans-serif, 10 pt, 1.5 cm margins, lighter headings. Tight one-pager.',
+  },
 ];
 
 // Maps a preset to the CSS class applied to the print container. Pure

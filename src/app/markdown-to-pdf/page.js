@@ -45,6 +45,18 @@ function MarkdownToPdfContent() {
   // visit with no interaction does NOT write defaults to localStorage.
   const dirtyRef = useRef(false);
 
+  // Ref for the editor textarea — used by the autosize fallback effect.
+  const editorRef = useRef(null);
+
+  // Autosize fallback for browsers without `field-sizing: content`.
+  // CSS handles modern Chromium/Safari for free; this effect covers the rest.
+  useEffect(() => {
+    const el = editorRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  }, [source]);
+
   // Defer the preview render so typing latency stays on the textarea.
   const deferredSource = useDeferredValue(source);
   const html = useMemo(() => renderMarkdown(deferredSource), [deferredSource]);
@@ -119,6 +131,7 @@ function MarkdownToPdfContent() {
   const canDownload = source.length > 0;
   const canClear = source.length > 0 || preset !== DEFAULT_STATE.preset;
   const previewClass = `mtp-preview ${presetClass(preset)}`;
+  const activePresetOption = PRESET_OPTIONS.find((o) => o.value === preset);
 
   return (
     <ToolPage
@@ -148,12 +161,19 @@ function MarkdownToPdfContent() {
                 {charCount === 1 ? '' : 's'}
                 {overCap && ' — exceeds auto-save limit, draft will not persist'}
               </span>
-              <ModeToggle
-                ariaLabel="Print preset"
-                options={PRESET_OPTIONS}
-                value={preset}
-                onChange={handlePresetChange}
-              />
+              <div className="mtp-preset-picker">
+                <ModeToggle
+                  ariaLabel="Print preset"
+                  options={PRESET_OPTIONS}
+                  value={preset}
+                  onChange={handlePresetChange}
+                />
+                {activePresetOption && (
+                  <p className="mtp-preset-description">
+                    {activePresetOption.description}
+                  </p>
+                )}
+              </div>
             </div>
             <div className="mtp-toolbar-actions">
               {source.length === 0 && (
@@ -185,6 +205,7 @@ function MarkdownToPdfContent() {
               Editor
             </label>
             <textarea
+              ref={editorRef}
               id="mtp-editor"
               className="mtp-editor"
               value={source}

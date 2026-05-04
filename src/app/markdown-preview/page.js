@@ -39,6 +39,18 @@ function MarkdownPreviewContent() {
   // visit with no interaction does NOT write defaults to localStorage.
   const dirtyRef = useRef(false);
 
+  // Ref for the editor textarea — used by the autosize fallback effect.
+  const editorRef = useRef(null);
+
+  // Autosize fallback for browsers without `field-sizing: content`.
+  // CSS handles modern Chromium/Safari for free; this effect covers the rest.
+  useEffect(() => {
+    const el = editorRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  }, [source]);
+
   // Render the preview from the deferred value so typing latency stays
   // on the textarea side; the preview catches up on the next idle tick.
   const deferredSource = useDeferredValue(source);
@@ -174,6 +186,7 @@ function MarkdownPreviewContent() {
               Editor
             </label>
             <textarea
+              ref={editorRef}
               id="mp-editor"
               className="mp-editor"
               value={source}
