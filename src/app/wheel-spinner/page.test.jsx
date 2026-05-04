@@ -232,8 +232,29 @@ describe('<WheelSpinner /> — Pick multiple session mode', () => {
   });
 });
 
-describe('<WheelSpinner /> — auto-save', () => {
-  it('persists options + presentation + sessionMode (NOT picks) to localStorage', async () => {
+describe('<WheelSpinner /> — explicit save / auto-save prefs', () => {
+  it('typing alone does NOT write options to localStorage (only prefs auto-save)', async () => {
+    vi.useFakeTimers({shouldAdvanceTime: true});
+    const user = userEvent.setup({advanceTimers: vi.advanceTimersByTime});
+    render(<WheelSpinner />);
+
+    await user.type(getEntriesTextarea(), 'X\nY\nZ');
+
+    // Drain any debounced writes.
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(500);
+    });
+    vi.useRealTimers();
+
+    // Either nothing was written (clean slate) or options is still [].
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (raw !== null) {
+      const parsed = JSON.parse(raw);
+      expect(parsed.data.options).toEqual([]);
+    }
+  });
+
+  it('clicking Save persists options + presentation + sessionMode (NOT picks)', async () => {
     vi.useFakeTimers({shouldAdvanceTime: true});
     const user = userEvent.setup({advanceTimers: vi.advanceTimersByTime});
     render(<WheelSpinner />);
@@ -241,8 +262,9 @@ describe('<WheelSpinner /> — auto-save', () => {
     await user.type(getEntriesTextarea(), 'X\nY\nZ');
     await user.click(screen.getByRole('radio', {name: /spin wheel/i}));
     await user.click(screen.getByRole('radio', {name: /pick multiple/i}));
+    await user.click(screen.getByRole('button', {name: /^save$/i}));
 
-    // Drain the debounced save.
+    // Drain debounce.
     await act(async () => {
       await vi.advanceTimersByTimeAsync(500);
     });
@@ -255,11 +277,37 @@ describe('<WheelSpinner /> — auto-save', () => {
     expect(parsed.data.options).toEqual(['X', 'Y', 'Z']);
     expect(parsed.data.presentation).toBe('wheel');
     expect(parsed.data.sessionMode).toBe('multiple');
-    // Picks are not in the persisted shape under any key.
     expect(parsed.data.picks).toBeUndefined();
     expect(Object.keys(parsed.data).sort()).toEqual(
       ['options', 'presentation', 'sessionMode'].sort()
     );
+  });
+
+  it('changing presentation alone (no Save) still updates the persisted presentation field', async () => {
+    // Pre-seed storage so there's a record to update.
+    window.localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        version: '1.0.0',
+        data: {options: ['A', 'B'], presentation: 'quick', sessionMode: 'single'},
+      })
+    );
+    vi.useFakeTimers({shouldAdvanceTime: true});
+    const user = userEvent.setup({advanceTimers: vi.advanceTimersByTime});
+    render(<WheelSpinner />);
+
+    await user.click(screen.getByRole('radio', {name: /spin wheel/i}));
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(500);
+    });
+    vi.useRealTimers();
+
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const parsed = JSON.parse(raw);
+    expect(parsed.data.presentation).toBe('wheel');
+    // Options unchanged — still the seeded values (not wiped by pref change).
+    expect(parsed.data.options).toEqual(['A', 'B']);
   });
 
   it('a pick in multiple mode does not put picks into localStorage', async () => {
@@ -268,8 +316,9 @@ describe('<WheelSpinner /> — auto-save', () => {
     render(<WheelSpinner />);
     await user.type(getEntriesTextarea(), 'A\nB\nC');
     await user.click(screen.getByRole('radio', {name: /pick multiple/i}));
+    // Save first so there's a record in storage.
+    await user.click(screen.getByRole('button', {name: /^save$/i}));
 
-    // Flush the debounce from the typing phase.
     await act(async () => {
       await vi.advanceTimersByTimeAsync(500);
     });
@@ -286,7 +335,6 @@ describe('<WheelSpinner /> — auto-save', () => {
     expect(raw).not.toBeNull();
     const parsed = JSON.parse(raw);
     expect(parsed.data.picks).toBeUndefined();
-    // The textarea was unchanged, so options is still the full A,B,C list.
     expect(parsed.data.options).toEqual(['A', 'B', 'C']);
   });
 
@@ -314,5 +362,86 @@ describe('<WheelSpinner /> — auto-save', () => {
     );
     // No picks shown — session-only state always starts empty.
     expect(document.querySelector('.ws-picks-list')).toBeNull();
+  });
+});
+
+describe('<WheelSpinner /> — Save button', () => {
+  it('Save is disabled when textarea is empty, enabled after typing valid entries', async () => {
+    const user = userEvent.setup();
+    render(<WheelSpinner />);
+    const saveBtn = screen.getByRole('button', {name: /^save$/i});
+    expect(saveBtn).toBeDisabled();
+
+    await user.type(getEntriesTextarea(), 'Alice\nBob');
+    expect(saveBtn).not.toBeDisabled();
+  });
+
+  it('Save is disabled again after Clear empties the textarea', async () => {
+    const user = userEvent.setup();
+    render(<WheelSpinner />);
+    const saveBtn = screen.getByRole('button', {name: /^save$/i});
+
+    await user.type(getEntriesTextarea(), 'Alice\nBob');
+    expect(saveBtn).not.toBeDisabled();
+
+    await user.click(screen.getByRole('button', {name: /^clear$/i}));
+    expect(saveBtn).toBeDisabled();
+  });
+
+  it('Save shows a toast confirmation', async () => {
+    const user = userEvent.setup();
+    render(<WheelSpinner />);
+    await user.type(getEntriesTextarea(), 'Alice\nBob');
+    await user.click(screen.getByRole('button', {name: /^save$/i}));
+    expect(screen.getByText(/entries saved/i)).toBeInTheDocument();
+  });
+});
+
+describe('<WheelSpinner /> — Clear button', () => {
+  it('Clear is disabled when textarea is empty and no saved options exist', () => {
+    render(<WheelSpinner />);
+    expect(screen.getByRole('button', {name: /^clear$/i})).toBeDisabled();
+  });
+
+  it('Clear is enabled after typing', async () => {
+    const user = userEvent.setup();
+    render(<WheelSpinner />);
+    await user.type(getEntriesTextarea(), 'Alice');
+    expect(screen.getByRole('button', {name: /^clear$/i})).not.toBeDisabled();
+  });
+
+  it('Clear wipes the textarea and removes options from localStorage', async () => {
+    // Pre-seed storage with saved options.
+    window.localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        version: '1.0.0',
+        data: {options: ['A', 'B'], presentation: 'quick', sessionMode: 'single'},
+      })
+    );
+    vi.useFakeTimers({shouldAdvanceTime: true});
+    const user = userEvent.setup({advanceTimers: vi.advanceTimersByTime});
+    render(<WheelSpinner />);
+
+    // Textarea pre-filled from storage.
+    expect(getEntriesTextarea()).toHaveValue('A\nB');
+
+    await user.click(screen.getByRole('button', {name: /^clear$/i}));
+
+    // Textarea cleared.
+    expect(getEntriesTextarea()).toHaveValue('');
+
+    // Drain debounce so the storage write fires.
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(500);
+    });
+    vi.useRealTimers();
+
+    // Options wiped from storage (either record removed or options = []).
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (raw !== null) {
+      const parsed = JSON.parse(raw);
+      expect(parsed.data.options).toEqual([]);
+    }
   });
 });

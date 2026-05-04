@@ -85,6 +85,14 @@
   margin: 0;
 }
 
+/* ── Save / Clear row ─────────────────────────── */
+.ws-save-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.75rem;
+}
+
 /* ── Mode toggle (segmented control) ──────────── */
 .ws-controls {
   display: flex;

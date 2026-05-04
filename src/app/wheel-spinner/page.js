@@ -55,6 +55,9 @@ function WheelSpinnerContent() {
   const [picks, setPicks] = useState([]);
   const [hydrated, setHydrated] = useState(false);
   const [announcement, setAnnouncement] = useState('');
+  // The last explicitly saved options snapshot. Persisted options only update
+  // when the user clicks Save — not on every keystroke.
+  const [savedOptions, setSavedOptions] = useState([]);
 
   // The roster the picks list was derived from. If the parsed options
   // change (user edits the textarea), we clear picks so the session
@@ -101,6 +104,7 @@ function WheelSpinnerContent() {
     if (saved) {
       if (Array.isArray(saved.options) && saved.options.length > 0) {
         setText(saved.options.join('\n'));
+        setSavedOptions(saved.options.slice());
         picksSourceRef.current = saved.options.slice();
       }
       if (saved.presentation) setPresentation(saved.presentation);
@@ -116,15 +120,16 @@ function WheelSpinnerContent() {
     }
   }, [storageErrors?.state, showToast]);
 
-  // Auto-save debounced (~300ms). Re-derive the persisted shape from
-  // current state. Picks are NEVER included.
+  // Auto-save debounced (~300ms) for UX preferences only. `options` are
+  // persisted explicitly via the Save button, not on every keystroke.
+  // Picks are NEVER included.
   useEffect(() => {
     if (!hydrated) return;
     const handle = setTimeout(() => {
-      saveState({options, presentation, sessionMode});
+      saveState({options: savedOptions, presentation, sessionMode});
     }, STATE_AUTOSAVE_DEBOUNCE_MS);
     return () => clearTimeout(handle);
-  }, [hydrated, options, presentation, sessionMode, saveState]);
+  }, [hydrated, savedOptions, presentation, sessionMode, saveState]);
 
   // Editing the textarea: if the parsed roster differs from the picks-source
   // roster, clear the picks (the session is invalid for the new list).
@@ -180,9 +185,16 @@ function WheelSpinnerContent() {
     setAnnouncement('');
   };
 
+  const handleSave = () => {
+    setSavedOptions(options.slice());
+    saveState({options, presentation, sessionMode});
+    showToast('Entries saved', 'success');
+  };
+
   const handleClear = () => {
     if (isRunning) return;
     setText('');
+    setSavedOptions([]);
     setPicks([]);
     reset();
     setAnnouncement('');
@@ -196,6 +208,9 @@ function WheelSpinnerContent() {
     if (workingList.length === 1) return 'Pick last';
     return 'Pick next';
   })();
+
+  const canSave = options.length > 0;
+  const canClear = text.length > 0 || savedOptions.length > 0;
 
   const showResetPicks =
     sessionMode === SESSION_MODES.MULTIPLE && picks.length > 0;
@@ -232,6 +247,22 @@ function WheelSpinnerContent() {
             onChange={setText}
             parsedCount={options.length}
           />
+          <div className="ws-save-row">
+            <Button
+              variant="primary"
+              onClick={handleSave}
+              disabled={!canSave}
+            >
+              Save
+            </Button>
+            <Button
+              variant="neutral"
+              onClick={handleClear}
+              disabled={!canClear || isRunning}
+            >
+              Clear
+            </Button>
+          </div>
         </Card>
 
         <Card>
@@ -320,8 +351,8 @@ function WheelSpinnerContent() {
           )}
         </Card>
 
-        <div className="ws-actions">
-          {showResetPicks && (
+        {showResetPicks && (
+          <div className="ws-actions">
             <Button
               variant="info"
               onClick={handleResetPicks}
@@ -329,11 +360,8 @@ function WheelSpinnerContent() {
             >
               Reset picks
             </Button>
-          )}
-          <Button variant="warning" onClick={handleClear} disabled={isRunning}>
-            Clear list
-          </Button>
-        </div>
+          </div>
+        )}
       </div>
     </ToolPage>
   );
