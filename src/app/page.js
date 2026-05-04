@@ -65,6 +65,14 @@ const TOOLS = [
       'Type markdown, pick a print preset (default, academic, or minimal), and save as a clean paginated PDF — using your browser, no upload.',
     cta: 'Open tool',
   },
+  {
+    href: '/date-calculator',
+    icon: '📅',
+    name: 'Date Calculator',
+    description:
+      'Find the difference between two dates, or your age from a date — in years, months, days, weeks, hours, and working days. Calculated locally.',
+    cta: 'Open tool',
+  },
 ];
 
 export default function Home() {
