@@ -1,0 +1,459 @@
+'use client';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {DateTime} from 'luxon';
+import ToolPage from '../../components/ToolPage';
+import Card from '../../components/Card';
+import Button from '../../components/Button';
+import Slider from '../../components/Slider';
+import ToastContainer from '../../components/ToastContainer';
+import {useToast} from '../../hooks/useToast';
+import {useTicker} from '../../hooks/useTicker';
+import {useDocumentTitle} from '../../hooks/useDocumentTitle';
+import {useNotificationPermission} from '../../hooks/useNotificationPermission';
+import {StorageProvider, useStorageData} from './StorageContext';
+import {usePomodoro} from './hooks';
+import {
+  CHIME_URL,
+  HISTORY_WINDOW_DAYS,
+  LONG_BREAK_EVERY_MAX,
+  LONG_BREAK_EVERY_MIN,
+  LONG_BREAK_MAX,
+  LONG_BREAK_MIN,
+  PHASE,
+  PHASE_LABELS,
+  SHORT_BREAK_MAX,
+  SHORT_BREAK_MIN,
+  STATE_AUTOSAVE_DEBOUNCE_MS,
+  STATUS,
+  STORAGE_KEY,
+  WORK_MAX,
+  WORK_MIN,
+} from './constants';
+import {computeRemaining, formatRemaining, last7Days, todayCount} from './utils';
+import './pomodoro-timer.css';
+
+const SCHEMA = {
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
+  name: 'Pomodoro Timer',
+  description:
+    'Free online Pomodoro Timer with configurable durations, daily history, sound cue, and optional desktop notifications. Runs entirely in your browser.',
+  url: 'https://auxbox.tools/pomodoro-timer',
+  applicationCategory: 'UtilitiesApplication',
+  operatingSystem: 'Any',
+  offers: {'@type': 'Offer', price: '0', priceCurrency: 'USD'},
+};
+
+function PomodoroContent() {
+  const {toasts, showToast, dismissToast} = useToast();
+  const {loadState, saveState, storageErrors} = useStorageData();
+  const {permission, request: requestNotification, supported: notificationsSupported} =
+    useNotificationPermission();
+
+  const pomo = usePomodoro();
+  const {
+    settings,
+    runtime,
+    history,
+    start,
+    pause,
+    skip,
+    reset,
+    completePhase,
+    updateSettings,
+    restore,
+    currentPhaseDurationMs,
+  } = pomo;
+
+  const [hydrated, setHydrated] = useState(false);
+  // Re-render trigger for the rAF loop. Display values are computed at render
+  // time from runtime + DateTime.now().toMillis().
+  const [, setTick] = useState(0);
+  const dirtyRef = useRef(false);
+
+  // Audio is constructed lazily on the first transition that needs it.
+  // Audio asset: locally generated ~9 KB 880 Hz sine WAV with cosine-bell
+  // envelope (see playground notes / changelog entry). No external CDN.
+  const audioRef = useRef(null);
+
+  const playChime = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    if (!audioRef.current) {
+      try {
+        audioRef.current = new Audio(CHIME_URL);
+      } catch {
+        return;
+      }
+    }
+    try {
+      audioRef.current.currentTime = 0;
+      const p = audioRef.current.play();
+      if (p && typeof p.catch === 'function') p.catch(() => {});
+    } catch {
+      /* swallow autoplay-policy rejections */
+    }
+  }, []);
+
+  const fireNotification = useCallback(
+    (title, body) => {
+      if (!notificationsSupported) return;
+      if (permission !== 'granted') return;
+      try {
+        const NotificationCtor = globalThis.Notification;
+        // Side-effect constructor — instance returned by `new` is intentionally
+        // unused; the OS-level notification is shown by Notification itself.
+        const _n = new NotificationCtor(title, {body});
+        void _n;
+      } catch {
+        /* swallow Notification construction errors (e.g. blocked) */
+      }
+    },
+    [notificationsSupported, permission]
+  );
+
+  // Hydrate once on mount.
+  useEffect(() => {
+    const saved = loadState();
+    if (saved && typeof saved === 'object') {
+      restore(saved);
+    }
+    setHydrated(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (storageErrors?.state) {
+      showToast(`${storageErrors.state}. Using defaults.`, 'error');
+    }
+  }, [storageErrors?.state, showToast]);
+
+  // Auto-save (debounced). Skipped until the user has taken an action.
+  useEffect(() => {
+    if (!hydrated || !dirtyRef.current) return;
+    const handle = setTimeout(() => {
+      saveState({settings, runtime, history});
+    }, STATE_AUTOSAVE_DEBOUNCE_MS);
+    return () => clearTimeout(handle);
+  }, [hydrated, settings, runtime, history, saveState]);
+
+  // ─── Live tick + auto-completion detection ──────────────────────────
+  const onTick = useCallback(() => {
+    setTick((n) => (n + 1) % 1_000_000);
+    const now = DateTime.now().toMillis();
+    const remaining = computeRemaining(runtime, now, settings);
+    if (remaining <= 0 && runtime.status === STATUS.RUNNING) {
+      const completed = completePhase();
+      const completedLabel = PHASE_LABELS[completed];
+      if (!settings.muted) playChime();
+      const nextLabel =
+        completed === PHASE.WORK
+          ? 'Time for a break.'
+          : 'Back to work.';
+      fireNotification(`${completedLabel} complete`, nextLabel);
+      showToast(`${completedLabel} complete — ${nextLabel}`, 'success');
+    }
+  }, [
+    runtime,
+    settings,
+    completePhase,
+    playChime,
+    fireNotification,
+    showToast,
+  ]);
+
+  useTicker(onTick, {active: runtime.status === STATUS.RUNNING});
+
+  // ─── Live values for render ─────────────────────────────────────────
+  const liveNow = DateTime.now().toMillis();
+  const remainingMs = computeRemaining(runtime, liveNow, settings);
+  const remainingDisplay = formatRemaining(remainingMs);
+  const progressPct =
+    currentPhaseDurationMs > 0
+      ? Math.min(
+          100,
+          Math.max(0, ((currentPhaseDurationMs - remainingMs) / currentPhaseDurationMs) * 100)
+        )
+      : 0;
+
+  // Tab title — keyed on whole-second remaining so we don't churn 60×/sec.
+  const titleSeconds = Math.ceil(remainingMs / 1000);
+  const phaseLabel = PHASE_LABELS[runtime.phase];
+  const titleStr = useMemo(() => {
+    if (runtime.status !== STATUS.RUNNING) return null;
+    return `${formatRemaining(titleSeconds * 1000)} · ${phaseLabel} · Pomodoro`;
+  }, [runtime.status, titleSeconds, phaseLabel]);
+  useDocumentTitle(titleStr);
+
+  // ─── User actions ────────────────────────────────────────────────────
+  const handleStart = useCallback(() => {
+    dirtyRef.current = true;
+    start();
+  }, [start]);
+
+  const handlePause = useCallback(() => {
+    dirtyRef.current = true;
+    pause();
+  }, [pause]);
+
+  const handleSkip = useCallback(() => {
+    dirtyRef.current = true;
+    skip();
+  }, [skip]);
+
+  const handleReset = useCallback(() => {
+    // Synchronous wipe + dirty=false so the post-Reset auto-save effect tick
+    // skips (markdown-preview MAJ-2 fix shape). We immediately persist the
+    // cleared runtime alongside the current settings/history so the saved
+    // record matches the in-memory state.
+    dirtyRef.current = false;
+    reset();
+    saveState({
+      settings,
+      runtime: {
+        phase: PHASE.WORK,
+        status: STATUS.IDLE,
+        startedAt: null,
+        accumulatedMs: 0,
+        completedWorkSessions: 0,
+      },
+      history,
+    });
+    showToast('Pomodoro reset', 'success');
+  }, [reset, saveState, settings, history, showToast]);
+
+  const handleRequestNotifications = useCallback(async () => {
+    if (!notificationsSupported) {
+      showToast('Notifications are not supported in this browser.', 'error');
+      return;
+    }
+    const result = await requestNotification();
+    if (result === 'granted') {
+      dirtyRef.current = true;
+      updateSettings({notifyEnabled: true});
+      showToast('Desktop notifications enabled.', 'success');
+    } else if (result === 'denied') {
+      showToast('Notifications blocked. Enable them in your browser settings.', 'error');
+    }
+  }, [notificationsSupported, requestNotification, updateSettings, showToast]);
+
+  const handleToggleMute = useCallback(
+    (e) => {
+      dirtyRef.current = true;
+      updateSettings({muted: e.target.checked});
+    },
+    [updateSettings]
+  );
+
+  // Settings are always dirty when changed.
+  const setMinutes = (key, value) => {
+    dirtyRef.current = true;
+    updateSettings({[key]: value});
+  };
+
+  // ─── Derived ────────────────────────────────────────────────────────
+  const isRunning = runtime.status === STATUS.RUNNING;
+  const todayIso = DateTime.local().toISODate();
+  const todays = todayCount(history, todayIso);
+  const week = useMemo(() => last7Days(history, todayIso), [history, todayIso]);
+  const maxWeekCount = week.reduce((m, d) => Math.max(m, d.count), 0);
+
+  const canReset =
+    runtime.status !== STATUS.IDLE ||
+    runtime.accumulatedMs > 0 ||
+    runtime.completedWorkSessions > 0;
+
+  return (
+    <ToolPage
+      title="Pomodoro Timer"
+      tagline="Focus in 25-minute work intervals with built-in breaks. Configurable durations, daily history, optional sound cue and desktop notifications."
+      schema={SCHEMA}
+      schemaId="pomodoro-timer-schema"
+      narrow
+      errorMessage="There was an error loading the Pomodoro Timer. Please refresh the page."
+    >
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+
+      <div className="pt-stack">
+        <Card>
+          <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+            <span
+              className="pt-phase-pill"
+              data-phase={runtime.phase}
+              aria-label={`Current phase: ${phaseLabel}`}
+            >
+              {phaseLabel}
+            </span>
+            <div
+              className="pt-display"
+              data-status={runtime.status}
+              data-phase={runtime.phase}
+              role="timer"
+              aria-label="Time remaining in current phase"
+            >
+              {remainingDisplay}
+            </div>
+          </div>
+
+          <div
+            className="pt-progress"
+            data-phase={runtime.phase}
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={Math.round(progressPct)}
+            aria-label={`${phaseLabel} progress`}
+          >
+            <div className="pt-progress-fill" style={{width: `${progressPct}%`}} />
+          </div>
+
+          <div className="pt-actions">
+            {isRunning ? (
+              <Button variant="neutral" onClick={handlePause} aria-label="Pause">
+                Pause
+              </Button>
+            ) : (
+              <Button variant="primary" onClick={handleStart} aria-label="Start">
+                Start
+              </Button>
+            )}
+            <Button variant="info" onClick={handleSkip} aria-label="Skip phase">
+              Skip
+            </Button>
+            <Button
+              variant="neutral"
+              onClick={handleReset}
+              disabled={!canReset}
+              aria-label="Reset"
+            >
+              Reset
+            </Button>
+          </div>
+        </Card>
+
+        <Card>
+          <h2 className="pt-section-title">Today</h2>
+          <p className="pt-today">
+            <span className="pt-today-count" aria-label="Pomodoros completed today">
+              {todays}
+            </span>
+            <span>pomodoro{todays === 1 ? '' : 's'} completed</span>
+          </p>
+          <div
+            className="pt-history-strip"
+            role="list"
+            aria-label={`Last ${HISTORY_WINDOW_DAYS} days`}
+          >
+            {week.map((d) => {
+              const fillPct =
+                maxWeekCount > 0 && d.count > 0
+                  ? Math.max(8, (d.count / maxWeekCount) * 100)
+                  : 0;
+              const dt = DateTime.fromISO(d.date);
+              const short = dt.isValid ? dt.toFormat('ccc') : d.date;
+              return (
+                <div
+                  key={d.date}
+                  className="pt-history-cell"
+                  role="listitem"
+                  aria-label={`${d.date}: ${d.count} pomodoros`}
+                >
+                  <span className="pt-history-count">{d.count}</span>
+                  <div
+                    className="pt-history-bar"
+                    data-empty={fillPct === 0}
+                    style={{height: fillPct === 0 ? '4px' : `${fillPct}%`}}
+                  />
+                  <span className="pt-history-label">{short}</span>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
+
+        <Card>
+          <h2 className="pt-section-title">Settings</h2>
+          <div className="pt-settings-grid">
+            <Slider
+              id="pt-work-minutes"
+              label="Work duration"
+              value={settings.workMinutes}
+              min={WORK_MIN}
+              max={WORK_MAX}
+              onChange={(v) => setMinutes('workMinutes', v)}
+              formatValue={(n) => `${n} min`}
+            />
+            <Slider
+              id="pt-short-break-minutes"
+              label="Short break"
+              value={settings.shortBreakMinutes}
+              min={SHORT_BREAK_MIN}
+              max={SHORT_BREAK_MAX}
+              onChange={(v) => setMinutes('shortBreakMinutes', v)}
+              formatValue={(n) => `${n} min`}
+            />
+            <Slider
+              id="pt-long-break-minutes"
+              label="Long break"
+              value={settings.longBreakMinutes}
+              min={LONG_BREAK_MIN}
+              max={LONG_BREAK_MAX}
+              onChange={(v) => setMinutes('longBreakMinutes', v)}
+              formatValue={(n) => `${n} min`}
+            />
+            <Slider
+              id="pt-long-break-every"
+              label="Long break every"
+              value={settings.longBreakEvery}
+              min={LONG_BREAK_EVERY_MIN}
+              max={LONG_BREAK_EVERY_MAX}
+              onChange={(v) => setMinutes('longBreakEvery', v)}
+              formatValue={(n) => `${n} pomodoros`}
+            />
+          </div>
+
+          <div className="pt-settings-row">
+            <label className="pt-mute-checkbox">
+              <input
+                type="checkbox"
+                checked={settings.muted}
+                onChange={handleToggleMute}
+                aria-label="Mute sound cue"
+              />
+              <span>Mute sound</span>
+            </label>
+
+            {permission === 'granted' ? (
+              <span className="pt-notify-status" aria-live="polite">
+                Desktop notifications enabled.
+              </span>
+            ) : (
+              <Button
+                variant="info"
+                onClick={handleRequestNotifications}
+                aria-label="Enable desktop notifications"
+              >
+                Enable notifications
+              </Button>
+            )}
+            {!notificationsSupported && (
+              <span className="pt-notify-status">
+                Notifications not supported in this browser.
+              </span>
+            )}
+          </div>
+        </Card>
+      </div>
+    </ToolPage>
+  );
+}
+
+export default function PomodoroTimer() {
+  return (
+    <StorageProvider>
+      <PomodoroContent />
+    </StorageProvider>
+  );
+}
+
+// Exported for tests.
+export {STORAGE_KEY};

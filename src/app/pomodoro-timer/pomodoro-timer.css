@@ -1,0 +1,202 @@
+/* Pomodoro Timer — tool-specific layout only.
+   Page shell, hero, cards, buttons, sliders, and toasts come from
+   src/styles/tools.css. */
+
+.pt-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding-bottom: 2rem;
+}
+
+.pt-phase-pill {
+  display: inline-block;
+  align-self: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-secondary);
+}
+
+.pt-phase-pill[data-phase='work'] {
+  border-color: rgba(255, 107, 107, 0.4);
+  color: var(--primary-color, #ff6b6b);
+  background: rgba(255, 107, 107, 0.08);
+}
+.pt-phase-pill[data-phase='shortBreak'] {
+  border-color: rgba(94, 234, 212, 0.4);
+  color: #5eead4;
+  background: rgba(94, 234, 212, 0.08);
+}
+.pt-phase-pill[data-phase='longBreak'] {
+  border-color: rgba(125, 211, 252, 0.4);
+  color: #7dd3fc;
+  background: rgba(125, 211, 252, 0.08);
+}
+
+.pt-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-size: clamp(3rem, 11vw, 6rem);
+  line-height: 1.05;
+  letter-spacing: 0.02em;
+  padding: 0.5rem 0.5rem 0.25rem;
+  text-align: center;
+  word-break: keep-all;
+}
+
+.pt-display[data-status='running'][data-phase='work'] {
+  color: var(--primary-color, #ff6b6b);
+}
+.pt-display[data-status='running'][data-phase='shortBreak'] {
+  color: #5eead4;
+}
+.pt-display[data-status='running'][data-phase='longBreak'] {
+  color: #7dd3fc;
+}
+
+.pt-progress {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+  margin: 0 0 0.75rem;
+}
+
+.pt-progress-fill {
+  height: 100%;
+  background: var(--primary-color, #ff6b6b);
+  transition: width 0.25s linear;
+}
+.pt-progress[data-phase='shortBreak'] .pt-progress-fill {
+  background: #5eead4;
+}
+.pt-progress[data-phase='longBreak'] .pt-progress-fill {
+  background: #7dd3fc;
+}
+
+.pt-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  justify-content: center;
+  margin-top: 0.25rem;
+}
+.pt-actions .btn {
+  min-width: 5.5rem;
+}
+
+.pt-section-title {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+
+.pt-settings-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 720px) {
+  .pt-settings-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.pt-settings-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.75rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.pt-mute-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.pt-mute-checkbox input {
+  width: 1rem;
+  height: 1rem;
+}
+
+.pt-notify-status {
+  font-size: 0.8rem;
+  color: var(--text-light);
+}
+
+.pt-history-strip {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.4rem;
+  align-items: end;
+  height: 80px;
+}
+
+.pt-history-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.25rem;
+  height: 100%;
+}
+
+.pt-history-bar {
+  width: 100%;
+  min-height: 4px;
+  border-radius: 4px 4px 0 0;
+  background: var(--primary-color, #ff6b6b);
+  opacity: 0.85;
+}
+
+.pt-history-bar[data-empty='true'] {
+  background: rgba(255, 255, 255, 0.06);
+  opacity: 1;
+}
+
+.pt-history-label {
+  font-size: 0.65rem;
+  color: var(--text-light);
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.pt-history-count {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.pt-today {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin: 0 0 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+.pt-today-count {
+  color: var(--primary-color, #ff6b6b);
+  font-weight: 700;
+  font-size: 1.4rem;
+  font-variant-numeric: tabular-nums;
+}

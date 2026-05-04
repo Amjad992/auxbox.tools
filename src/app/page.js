@@ -81,6 +81,14 @@ const TOOLS = [
       'Big-display stopwatch with laps, keyboard shortcuts, and a tab-title timer. Survives reload and runs entirely in your browser.',
     cta: 'Open tool',
   },
+  {
+    href: '/pomodoro-timer',
+    icon: '🍅',
+    name: 'Pomodoro Timer',
+    description:
+      'Focus timer with configurable work and break durations, daily history, sound cue, and optional desktop notifications. Runs entirely in your browser.',
+    cta: 'Open tool',
+  },
 ];
 
 export default function Home() {

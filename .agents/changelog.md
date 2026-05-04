@@ -14,6 +14,22 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-04 - Add Pomodoro Timer (/pomodoro-timer); lift useNotificationPermission to src/hooks/
+**What changed:** New `/pomodoro-timer` route — configurable Pomodoro Timer with Work / Short break / Long break phase machine, long-break cadence (default every 4 work sessions), big monospaced `MM:SS` display, phase pill, progress bar, Start / Pause / Skip / Reset controls, mute toggle, opt-in desktop notifications, audible chime on phase completion, today's count + last-7-days history strip, and tab-title timer while running. Persists `{settings, runtime, history}` under `pomodoro_timer_state` via `createStorageContext` (300 ms debounced auto-save, dirty-ref gated, synchronous Reset that wipes runtime only — settings + history preserved; markdown-preview MAJ-2 fix shape applied). Wall-clock reads via Luxon `DateTime.now().toMillis()`; today's-date key via `DateTime.local().toISODate()` so midnight rollover Just Works. Consumes the existing `useTicker`, `useDocumentTitle`, `<Slider>`, `<Card>`, `<Button>`, `<ToastContainer>` shared primitives off the shelf.
+
+Auto-transition behaviour: when remaining hits 0 mid-phase, the tool fires the chime (unless muted), fires a desktop notification (if opted in and granted), increments today's `completedPomodoros` if leaving Work, then advances to the next phase in `paused` status — user must press Start to begin the break / next work session.
+
+Audio asset: `public/sounds/pomodoro-chime.wav` — synthetically generated 0.2 s 880 Hz sine, mono 16-bit PCM @ 22 050 Hz, with a cosine-bell envelope to avoid clicks (~9 KB). Generated locally with a Node one-shot (script not committed) so the project does not depend on an external CDN or sourcing a CC0 sample. Documented at the `new Audio(...)` call site in `src/app/pomodoro-timer/page.js`.
+
+Shared lift in the same branch:
+- `src/hooks/useNotificationPermission.js` — `useNotificationPermission()` returns `{permission, request, supported}`. `permission` mirrors `Notification.permission` (`'default' | 'granted' | 'denied'`), falling back to `'denied'` when the API is missing. `request()` calls `Notification.requestPermission()` and updates state; no-op when unsupported. Co-located test (7 cases) covers both supported and unsupported branches. Future tools (any reminder / scheduled-cue tool) can consume this off the shelf.
+
+State machine kept tool-local at `src/app/pomodoro-timer/hooks.js` because its shape is phase-specific (phase + status + cadence + history) and not generally reusable.
+
+**Why:** Eighth tool in the batch; rounds out the timer/focus pair (Stopwatch + Pomodoro). Place-it-right policy required `useNotificationPermission` to be shared from day one (a second consumer is foreseeable); the rest of the tool reuses every relevant existing primitive.
+**Impact:** Test count: 585 → 653 (+68). Lint: 0 errors (pre-existing QR `<img>` warnings only). Build: `/pomodoro-timer` static. No new dependencies. New asset `public/sounds/pomodoro-chime.wav` (~9 KB).
+**Files changed:** `src/app/pomodoro-timer/{page.js, layout.js, constants.js, utils.js, utils.test.js, hooks.js, hooks.test.js, storageUtils.js, StorageContext.js, pomodoro-timer.css, page.test.jsx}`, `src/hooks/{useNotificationPermission.js, useNotificationPermission.test.js}`, `src/app/page.js`, `src/app/sitemap.js`, `public/sounds/pomodoro-chime.wav`.
+
 ## 2026-05-05 - Date Calculator: inline 8-hr/day clarification on the toggle label
 **What changed:** Working-days toggle label updated from "Working days only (Mon–Fri)" to "Working days only (Mon–Fri · 8 hrs/day)". The previous bottom-note paragraph below the working-row cards was removed — keeping the assumption inline with the toggle is shorter and the natural place to see it before flipping the switch.
 **Why:** First pass added a separate footnote under the cards; user feedback was that it read long and looked misplaced. The toggle label is the right home — both pieces of info travel together (Mon–Fri AND 8 hrs/day) so the user knows what they're enabling.
