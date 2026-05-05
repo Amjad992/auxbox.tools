@@ -55,7 +55,7 @@ export default function ImageCompressor() {
       narrow
       errorMessage="There was an error loading the image compressor. Please refresh the page."
     >
-      <div className="ic-stack">
+      <div className="tool-stack">
         <Card>
           <p className="ic-privacy">
             <strong>Files never leave your browser.</strong> Compression runs
@@ -107,13 +107,13 @@ export default function ImageCompressor() {
             Files {hasItems ? `(${items.length})` : ''}
           </h2>
           {hasItems ? (
-            <div className="ic-list">
+            <div className="tool-file-row-list">
               {items.map((item) => (
                 <FileRow key={item.id} item={item} onRemove={removeItem} />
               ))}
             </div>
           ) : (
-            <p className="ic-list-empty">
+            <p className="tool-file-row-list-empty">
               No files yet. Drop or pick some above to get started.
             </p>
           )}

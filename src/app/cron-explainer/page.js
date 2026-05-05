@@ -1,10 +1,13 @@
 'use client';
-import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import {DateTime} from 'luxon';
 import ToolPage from '../../components/ToolPage';
 import Card from '../../components/Card';
+import InputField from '../../components/InputField';
 import ToastContainer from '../../components/ToastContainer';
 import {useToast} from '../../hooks/useToast';
+import {useAutoSave} from '../../hooks/useAutoSave';
+import {useHydrateStorage} from '../../hooks/useHydrateStorage';
 import {StorageProvider, useStorageData} from './StorageContext';
 import {
   MAX_PERSISTED_CHARS,
@@ -33,22 +36,18 @@ function CronExplainerContent() {
   const {loadState, saveState, storageErrors} = useStorageData();
 
   const [expression, setExpression] = useState('');
-  const [hydrated, setHydrated] = useState(false);
   const [zoneName, setZoneName] = useState('');
   const [now, setNow] = useState(() => DateTime.now().toJSDate());
-  const dirtyRef = useRef(false);
 
   // Hydrate once from storage.
-  useEffect(() => {
+  useHydrateStorage(() => {
     const saved = loadState();
     if (saved && typeof saved === 'object' && typeof saved.expression === 'string') {
       setExpression(saved.expression);
     }
-    setHydrated(true);
     // Read the local zone after mount — this is a client-only value.
     setZoneName(DateTime.now().zoneName || '');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  });
 
   useEffect(() => {
     if (storageErrors?.state) {
@@ -64,28 +63,24 @@ function CronExplainerContent() {
   }, []);
 
   // Debounced auto-save. Skipped until the user has actually changed the
-  // input (dirtyRef pattern — guards against the markdown-preview MAJ-2
-  // phantom-write on Clear/Reset). Also skips expressions that exceed
-  // MAX_PERSISTED_CHARS to prevent phantom "Failed to load" toasts on the
-  // next mount (mirrors markdown-preview's autosave gate).
-  useEffect(() => {
-    if (!hydrated || !dirtyRef.current) return;
-    if (expression.length > MAX_PERSISTED_CHARS) return;
-    const handle = setTimeout(() => {
-      saveState({expression});
-    }, STATE_AUTOSAVE_DEBOUNCE_MS);
-    return () => clearTimeout(handle);
-  }, [hydrated, expression, saveState]);
+  // input (markdown-preview MAJ-2 phantom-write guard) and over the size
+  // cap (mirrors markdown-preview's autosave gate).
+  const {markDirty} = useAutoSave({
+    enabled: expression.length <= MAX_PERSISTED_CHARS,
+    deps: [expression],
+    onSave: () => saveState({expression}),
+    debounceMs: STATE_AUTOSAVE_DEBOUNCE_MS,
+  });
 
   const handleChange = useCallback((e) => {
-    dirtyRef.current = true;
+    markDirty();
     setExpression(e.target.value);
-  }, []);
+  }, [markDirty]);
 
   const handlePreset = useCallback((expr) => {
-    dirtyRef.current = true;
+    markDirty();
     setExpression(expr);
-  }, []);
+  }, [markDirty]);
 
   // Parse / describe / next-run derivations.
   const parseResult = useMemo(() => parseExpression(expression), [expression]);
@@ -114,32 +109,22 @@ function CronExplainerContent() {
     >
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
-      <div className="ce-stack">
+      <div className="tool-stack">
         <Card>
-          <label htmlFor="ce-expression" className="ce-input-label">
-            Cron expression
-          </label>
-          <input
+          <InputField
             id="ce-expression"
+            label="Cron expression"
             type="text"
-            className={`ce-input${showError ? ' ce-input--error' : ''}`}
             placeholder="e.g. 0 9 * * 1-5"
             value={expression}
             onChange={handleChange}
-            aria-invalid={showError ? 'true' : 'false'}
-            aria-describedby="ce-helper"
             autoComplete="off"
             spellCheck={false}
+            error={showError ? parseResult.error : undefined}
+            helper="Standard 5-field cron syntax: minute hour day-of-month month day-of-week."
+            className="ce-field"
+            inputClassName={`ce-input${showError ? ' ce-input--error' : ''}`}
           />
-          <p
-            id="ce-helper"
-            className={`ce-helper${showError ? ' ce-helper--error' : ''}`}
-            role={showError ? 'alert' : undefined}
-          >
-            {showError
-              ? parseResult.error
-              : 'Standard 5-field cron syntax: minute hour day-of-month month day-of-week.'}
-          </p>
 
           <span id="ce-presets-label" className="ce-presets-label">Presets</span>
           <div

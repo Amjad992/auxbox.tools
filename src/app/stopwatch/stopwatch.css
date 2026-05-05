@@ -1,12 +1,7 @@
 /* Stopwatch — tool-specific layout only.
    Page shell, hero, cards, buttons, and toasts come from src/styles/tools.css. */
 
-.sw-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  padding-bottom: 2rem;
-}
+/* `.tool-stack` is shared in src/styles/tools.css. */
 
 .sw-display {
   display: flex;

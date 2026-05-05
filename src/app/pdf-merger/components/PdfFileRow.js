@@ -32,6 +32,7 @@ export default function PdfFileRow({
   return (
     <div
       className={[
+        'tool-file-row',
         'pm-row',
         `pm-row--${status}`,
         isDragging && 'pm-row--dragging',
@@ -53,11 +54,11 @@ export default function PdfFileRow({
         ⠿
       </span>
 
-      <div className="pm-row-main">
-        <div className="pm-row-name" title={name}>
+      <div className="tool-file-row-main pm-row-main">
+        <div className="tool-file-row-name pm-row-name" title={name}>
           {name}
         </div>
-        <div className="pm-row-meta">
+        <div className="tool-file-row-meta pm-row-meta">
           <span className="pm-row-size">{formatBytes(size)}</span>
           <span className="pm-row-dot" aria-hidden="true">
             ·
@@ -116,7 +117,7 @@ export default function PdfFileRow({
         )}
       </div>
 
-      <div className="pm-row-actions">
+      <div className="tool-file-row-actions pm-row-actions">
         <button
           type="button"
           className="pm-row-nudge"

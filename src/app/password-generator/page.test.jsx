@@ -11,12 +11,12 @@ vi.mock('next/script', () => ({
 }));
 
 // Mock copyToClipboard so we can assert what was sent without fighting
-// jsdom over navigator.clipboard descriptor flags.
+// jsdom over navigator.clipboard descriptor flags. The shared helper lives
+// in src/lib/clipboard.js — useCopyToClipboard imports it directly.
 const copyToClipboard = vi.fn().mockResolvedValue(true);
-vi.mock('./hooks', async () => {
-  const actual = await vi.importActual('./hooks');
-  return {...actual, copyToClipboard: (...args) => copyToClipboard(...args)};
-});
+vi.mock('../../lib/clipboard', () => ({
+  copyToClipboard: (...args) => copyToClipboard(...args),
+}));
 
 // eslint-disable-next-line import/first
 import PasswordGenerator from './page';

@@ -108,5 +108,3 @@ export function usePasswordGenerator() {
     reset,
   };
 }
-
-export {copyToClipboard} from '../../lib/clipboard';

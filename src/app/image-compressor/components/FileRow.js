@@ -1,11 +1,13 @@
 import PropTypes from 'prop-types';
 import Button from '../../../components/Button';
-import {formatBytes} from '../../../lib/format';
+import {formatBytes, formatPercent} from '../../../lib/format';
 import {savingsPct} from '../utils';
 
 /**
  * Per-file row: name, original size, output size + savings, status, and
- * a per-row download button.
+ * a per-row download button. Visual shell + ellipsis come from
+ * `.tool-file-row*` (src/styles/tools.css); the status-driven border tweaks
+ * and the chip slot come from image-compressor.css.
  *
  * Issue 4 — layout stability: the Download button is kept mounted whenever
  * outputBlob/outputUrl exist, regardless of status. During re-encode the
@@ -33,18 +35,21 @@ export default function FileRow({item, onRemove}) {
   const isError = status === 'error';
 
   const pct = outputSize != null ? savingsPct(originalSize, outputSize) : 0;
-  const pctLabel = formatPct(pct);
+  const pctLabel = formatPercent(pct);
 
   // Whether we have a valid previous or current result to show.
   const hasOutput = outputBlob != null && outputUrl != null;
 
   return (
-    <div className={`ic-row ic-row--${status}`} data-row-id={id}>
-      <div className="ic-row-main">
+    <div
+      className={`tool-file-row ic-row ic-row--${status}`}
+      data-row-id={id}
+    >
+      <div className="tool-file-row-main ic-row-main">
         {/* Name line: name + status chip on the same row so the chip's
             appearance/disappearance never bumps the row's height. */}
         <div className="ic-row-name-row">
-          <div className="ic-row-name" title={name}>
+          <div className="tool-file-row-name ic-row-name" title={name}>
             {name}
           </div>
           <span
@@ -65,7 +70,7 @@ export default function FileRow({item, onRemove}) {
 
         {/* Meta line: size/savings/dims. Stable height — chip moved to the
             name line above to prevent re-encode jerk. */}
-        <div className="ic-row-meta">
+        <div className="tool-file-row-meta ic-row-meta">
           <span className="ic-row-size">{formatBytes(originalSize)}</span>
           {hasOutput && (
             <>
@@ -92,7 +97,7 @@ export default function FileRow({item, onRemove}) {
         </div>
       </div>
 
-      <div className="ic-row-actions">
+      <div className="tool-file-row-actions ic-row-actions">
         {/* Download button: kept mounted when output exists, disabled during re-encode.
             This prevents position/height jumps in the actions column (Issue 4). */}
         {hasOutput && (
@@ -112,16 +117,6 @@ export default function FileRow({item, onRemove}) {
       </div>
     </div>
   );
-}
-
-function formatPct(pct) {
-  if (!Number.isFinite(pct)) return '';
-  if (pct === 0) return '0%';
-  const sign = pct > 0 ? '−' : '+';
-  // Display absolute value with one decimal when small; integer otherwise.
-  const abs = Math.abs(pct);
-  const formatted = abs >= 10 ? abs.toFixed(0) : abs.toFixed(1);
-  return `${sign}${formatted}%`;
 }
 
 FileRow.propTypes = {

@@ -7,9 +7,11 @@ import Button from '../../components/Button';
 import Slider from '../../components/Slider';
 import ToastContainer from '../../components/ToastContainer';
 import {useToast} from '../../hooks/useToast';
-import {useTicker} from '../../hooks/useTicker';
+import {useDisplayTick} from '../../hooks/useDisplayTick';
 import {useDocumentTitle} from '../../hooks/useDocumentTitle';
 import {useNotificationPermission} from '../../hooks/useNotificationPermission';
+import {useAutoSave} from '../../hooks/useAutoSave';
+import {useHydrateStorage} from '../../hooks/useHydrateStorage';
 import {StorageProvider, useStorageData} from './StorageContext';
 import {usePomodoro} from './hooks';
 import {
@@ -65,15 +67,10 @@ function PomodoroContent() {
     currentPhaseDurationMs,
   } = pomo;
 
-  const [hydrated, setHydrated] = useState(false);
   // Tracks whether the component has mounted on the client. Used to gate
   // notification-permission UI that reads browser APIs unavailable during SSR
   // (preventing hydration mismatches on `permission` and `supported`).
   const [mounted, setMounted] = useState(false);
-  // Re-render trigger for the rAF loop. Display values are computed at render
-  // time from runtime + DateTime.now().toMillis().
-  const [, setTick] = useState(0);
-  const dirtyRef = useRef(false);
   // Holds the active completion-timeout id so we can clear it on pause/skip/reset.
   const completionTimeoutRef = useRef(null);
 
@@ -121,15 +118,14 @@ function PomodoroContent() {
     [notificationsSupported, permission, settings.notifyEnabled]
   );
 
-  // Hydrate once on mount.
-  useEffect(() => {
+  // Hydrate once on mount. Detect the cross-tab rehydrate case: the timer
+  // was running when the page was closed or hidden, and the phase has
+  // already expired. In that case we transition silently (no chime, no
+  // notification) — firing audio + OS notification now would be the "ghost
+  // notification" bug: the timer finished while the user was away.
+  const hydrated = useHydrateStorage(() => {
     const saved = loadState();
     if (saved && typeof saved === 'object') {
-      // Detect the cross-tab rehydrate case: the timer was running when the
-      // page was closed or hidden, and the phase has already expired.
-      // In this case we transition silently (no chime, no notification) —
-      // firing audio + OS notification now would be the "ghost notification"
-      // bug: the timer finished while the user was away, they're now back.
       if (
         saved.runtime?.status === STATUS.RUNNING &&
         saved.runtime?.startedAt != null &&
@@ -138,25 +134,16 @@ function PomodoroContent() {
         const now = DateTime.now().toMillis();
         const remaining = computeRemaining(saved.runtime, now, saved.settings);
         if (remaining <= 0) {
-          // Phase already expired: restore snapshot then immediately complete
-          // the phase (state transition only, no side effects).
           restore(saved);
-          // completePhase reads from stateRef.current which won't have updated
-          // yet from the restore() call above (React batches the setState).
-          // We call it inside the same synchronous effect; React will batch all
-          // the setStates and reconcile once.
           completePhase();
-          setHydrated(true);
           setMounted(true);
           return;
         }
       }
       restore(saved);
     }
-    setHydrated(true);
     setMounted(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  });
 
   useEffect(() => {
     if (storageErrors?.state) {
@@ -165,22 +152,17 @@ function PomodoroContent() {
   }, [storageErrors?.state, showToast]);
 
   // Auto-save (debounced). Skipped until the user has taken an action.
-  useEffect(() => {
-    if (!hydrated || !dirtyRef.current) return;
-    const handle = setTimeout(() => {
-      saveState({settings, runtime, history});
-    }, STATE_AUTOSAVE_DEBOUNCE_MS);
-    return () => clearTimeout(handle);
-  }, [hydrated, settings, runtime, history, saveState]);
+  const {markDirty, markClean} = useAutoSave({
+    enabled: hydrated,
+    deps: [settings, runtime, history],
+    onSave: () => saveState({settings, runtime, history}),
+    debounceMs: STATE_AUTOSAVE_DEBOUNCE_MS,
+  });
 
   // ─── Live tick (display only) ────────────────────────────────────────
   // rAF drives the visual countdown refresh only. Completion is driven by
   // a setTimeout scheduled below, which fires even when the tab is hidden.
-  const onTick = useCallback(() => {
-    setTick((n) => (n + 1) % 1_000_000);
-  }, []);
-
-  useTicker(onTick, {active: runtime.status === STATUS.RUNNING});
+  useDisplayTick(runtime.status === STATUS.RUNNING);
 
   // ─── Completion scheduling via setTimeout ────────────────────────────
   // setTimeout keeps ticking in background tabs (throttled to ~1 Hz min),
@@ -244,26 +226,26 @@ function PomodoroContent() {
 
   // ─── User actions ────────────────────────────────────────────────────
   const handleStart = useCallback(() => {
-    dirtyRef.current = true;
+    markDirty();
     start();
-  }, [start]);
+  }, [markDirty, start]);
 
   const handlePause = useCallback(() => {
-    dirtyRef.current = true;
+    markDirty();
     pause();
-  }, [pause]);
+  }, [markDirty, pause]);
 
   const handleSkip = useCallback(() => {
-    dirtyRef.current = true;
+    markDirty();
     skip();
-  }, [skip]);
+  }, [markDirty, skip]);
 
   const handleReset = useCallback(() => {
-    // Synchronous wipe + dirty=false so the post-Reset auto-save effect tick
+    // Synchronous wipe + markClean so the post-Reset auto-save effect tick
     // skips (markdown-preview MAJ-2 fix shape). We immediately persist the
     // cleared runtime alongside the current settings/history so the saved
     // record matches the in-memory state.
-    dirtyRef.current = false;
+    markClean();
     reset();
     saveState({
       settings,
@@ -277,7 +259,7 @@ function PomodoroContent() {
       history,
     });
     showToast('Pomodoro reset', 'success');
-  }, [reset, saveState, settings, history, showToast]);
+  }, [markClean, reset, saveState, settings, history, showToast]);
 
   const handleToggleNotifications = useCallback(async () => {
     if (!notificationsSupported) {
@@ -286,14 +268,14 @@ function PomodoroContent() {
     }
     // State B: granted + enabled → disable (flip off without re-requesting).
     if (permission === 'granted' && settings.notifyEnabled) {
-      dirtyRef.current = true;
+      markDirty();
       updateSettings({notifyEnabled: false});
       showToast('Desktop notifications disabled.', 'success');
       return;
     }
     // State C: granted but disabled → re-enable directly, no prompt.
     if (permission === 'granted' && !settings.notifyEnabled) {
-      dirtyRef.current = true;
+      markDirty();
       updateSettings({notifyEnabled: true});
       showToast('Desktop notifications enabled.', 'success');
       return;
@@ -301,25 +283,25 @@ function PomodoroContent() {
     // State A: default → request permission, then enable on grant.
     const result = await requestNotification();
     if (result === 'granted') {
-      dirtyRef.current = true;
+      markDirty();
       updateSettings({notifyEnabled: true});
       showToast('Desktop notifications enabled.', 'success');
     } else if (result === 'denied') {
       showToast('Notifications blocked. Enable them in your browser settings.', 'error');
     }
-  }, [notificationsSupported, permission, settings.notifyEnabled, requestNotification, updateSettings, showToast]);
+  }, [markDirty, notificationsSupported, permission, settings.notifyEnabled, requestNotification, updateSettings, showToast]);
 
   const handleToggleMute = useCallback(
     (e) => {
-      dirtyRef.current = true;
+      markDirty();
       updateSettings({muted: e.target.checked});
     },
-    [updateSettings]
+    [markDirty, updateSettings]
   );
 
   // Settings are always dirty when changed.
   const setMinutes = (key, value) => {
-    dirtyRef.current = true;
+    markDirty();
     updateSettings({[key]: value});
   };
 
@@ -346,7 +328,7 @@ function PomodoroContent() {
     >
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
-      <div className="pt-stack">
+      <div className="tool-stack">
         <Card>
           <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
             <span

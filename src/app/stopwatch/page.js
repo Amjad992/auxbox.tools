@@ -1,13 +1,16 @@
 'use client';
-import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useCallback, useEffect, useMemo} from 'react';
 import {DateTime} from 'luxon';
 import ToolPage from '../../components/ToolPage';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
 import ToastContainer from '../../components/ToastContainer';
 import {useToast} from '../../hooks/useToast';
-import {useTicker} from '../../hooks/useTicker';
+import {useDisplayTick} from '../../hooks/useDisplayTick';
 import {useDocumentTitle} from '../../hooks/useDocumentTitle';
+import {useAutoSave} from '../../hooks/useAutoSave';
+import {useHydrateStorage} from '../../hooks/useHydrateStorage';
+import {useKeyboardShortcuts} from '../../hooks/useKeyboardShortcuts';
 import {StorageProvider, useStorageData} from './StorageContext';
 import {useStopwatch} from './hooks';
 import {STATE_AUTOSAVE_DEBOUNCE_MS, STATUS, STORAGE_KEY} from './constants';
@@ -33,22 +36,10 @@ function StopwatchContent() {
   const sw = useStopwatch();
   const {status, startedAt, accumulatedMs, laps, start, stop, lap, reset, restore} = sw;
 
-  const [hydrated, setHydrated] = useState(false);
-  // forceTick exists purely to trigger a re-render every frame while running.
-  // The displayed elapsed value is computed from state + DateTime.now().toMillis()
-  // at render time; we don't store `now` here.
-  const [, setTick] = useState(0);
-  const dirtyRef = useRef(false);
-
-  // Hydrate once on mount.
-  useEffect(() => {
+  const hydrated = useHydrateStorage(() => {
     const saved = loadState();
-    if (saved && typeof saved === 'object') {
-      restore(saved);
-    }
-    setHydrated(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (saved && typeof saved === 'object') restore(saved);
+  });
 
   useEffect(() => {
     if (storageErrors?.state) {
@@ -57,21 +48,15 @@ function StopwatchContent() {
   }, [storageErrors?.state, showToast]);
 
   // Auto-save debounced. Skipped until the user has taken an action.
-  useEffect(() => {
-    if (!hydrated || !dirtyRef.current) return;
-    const handle = setTimeout(() => {
-      saveState({status, startedAt, accumulatedMs, laps});
-    }, STATE_AUTOSAVE_DEBOUNCE_MS);
-    return () => clearTimeout(handle);
-  }, [hydrated, status, startedAt, accumulatedMs, laps, saveState]);
+  const {markDirty, markClean} = useAutoSave({
+    enabled: hydrated,
+    deps: [status, startedAt, accumulatedMs, laps],
+    onSave: () => saveState({status, startedAt, accumulatedMs, laps}),
+    debounceMs: STATE_AUTOSAVE_DEBOUNCE_MS,
+  });
 
   // rAF tick while running — re-render so the display reflects the new now().
-  useTicker(
-    useCallback(() => {
-      setTick((n) => (n + 1) % 1_000_000);
-    }, []),
-    {active: status === STATUS.RUNNING}
-  );
+  useDisplayTick(status === STATUS.RUNNING);
 
   // Live elapsed for the headline display. Wall-clock via Luxon for codebase
   // consistency (Date Calculator uses Luxon throughout).
@@ -91,29 +76,29 @@ function StopwatchContent() {
 
   // ─── User actions (mark dirty so the next save runs) ─────────────────
   const handleStart = useCallback(() => {
-    dirtyRef.current = true;
+    markDirty();
     start();
-  }, [start]);
+  }, [markDirty, start]);
 
   const handleStop = useCallback(() => {
-    dirtyRef.current = true;
+    markDirty();
     stop();
-  }, [stop]);
+  }, [markDirty, stop]);
 
   const handleLap = useCallback(() => {
-    dirtyRef.current = true;
+    markDirty();
     lap();
-  }, [lap]);
+  }, [markDirty, lap]);
 
   const handleReset = useCallback(() => {
-    // Synchronous wipe + dirty=false so the post-Reset auto-save effect tick
+    // Synchronous wipe + markClean so the post-Reset auto-save effect tick
     // skips and no phantom record is written 300 ms later (markdown-preview
     // MAJ-2 fix shape).
-    dirtyRef.current = false;
+    markClean();
     clearState();
     reset();
     showToast('Stopwatch reset', 'success');
-  }, [clearState, reset, showToast]);
+  }, [markClean, clearState, reset, showToast]);
 
   const handleToggle = useCallback(() => {
     if (status === STATUS.RUNNING) {
@@ -124,38 +109,11 @@ function StopwatchContent() {
   }, [status, handleStart, handleStop]);
 
   // ─── Keyboard shortcuts ──────────────────────────────────────────────
-  useEffect(() => {
-    function isFormFieldTarget(el) {
-      if (!el || typeof el.matches !== 'function') return false;
-      return el.matches('input, textarea, [contenteditable]:not([contenteditable="false"])');
-    }
-
-    function onKeyDown(e) {
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
-      if (isFormFieldTarget(e.target)) return;
-
-      if (e.code === 'Space' || e.key === ' ') {
-        e.preventDefault();
-        handleToggle();
-        return;
-      }
-      const key = e.key?.toLowerCase();
-      if (key === 'l') {
-        if (status === STATUS.RUNNING) {
-          e.preventDefault();
-          handleLap();
-        }
-        return;
-      }
-      if (key === 'r') {
-        e.preventDefault();
-        handleReset();
-      }
-    }
-
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [status, handleToggle, handleLap, handleReset]);
+  useKeyboardShortcuts([
+    {key: 'Space', handler: handleToggle},
+    {key: 'l', handler: handleLap, when: () => status === STATUS.RUNNING},
+    {key: 'r', handler: handleReset},
+  ]);
 
   const reversedLaps = useMemo(() => laps.slice().reverse(), [laps]);
 
@@ -173,7 +131,7 @@ function StopwatchContent() {
     >
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
-      <div className="sw-stack">
+      <div className="tool-stack">
         <Card>
           <div
             className="sw-display"

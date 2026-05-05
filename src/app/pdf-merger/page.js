@@ -109,7 +109,7 @@ export default function PdfMerger() {
       narrow
       errorMessage="There was an error loading the PDF merger. Please refresh the page."
     >
-      <div className="pm-stack">
+      <div className="tool-stack">
         <Card>
           <p className="pm-privacy">
             <strong>Files never leave your browser.</strong> Merging runs
@@ -154,7 +154,7 @@ export default function PdfMerger() {
             Files {files.length > 0 ? `(${files.length}/${MAX_FILES})` : ''}
           </h2>
           {files.length === 0 ? (
-            <p className="pm-list-empty">
+            <p className="tool-file-row-list-empty">
               No files yet. Drop or pick PDFs above to get started.
             </p>
           ) : (
@@ -162,7 +162,7 @@ export default function PdfMerger() {
               <p className="pm-list-hint">
                 Drag rows to reorder, or use the ↑/↓ buttons.
               </p>
-              <div className="pm-list">
+              <div className="tool-file-row-list pm-list">
                 {files.map((item, index) => (
                   <PdfFileRow
                     key={item.id}

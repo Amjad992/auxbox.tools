@@ -2,62 +2,28 @@
    Page shell, hero, buttons, cards, toasts, etc. all come from
    src/styles/tools.css — do not redeclare them here. */
 
-.ce-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
+/* `.tool-stack`, `.tool-field`, `.tool-field-label`, `.tool-field-input`,
+   and the error/helper styles all live in src/styles/tools.css. The
+   overrides below give the cron expression input the monospace + larger
+   padding look unique to this tool. */
 
-/* ─── Expression input ───────────────────────────────────────────── */
-.ce-input-label {
-  display: block;
-  color: var(--text-secondary);
+.ce-field .tool-field-label {
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-weight: 600;
-  margin-bottom: 0.5rem;
 }
 
+/* `.ce-input` is layered on top of the shared `.tool-field-input` base. */
 .ce-input {
-  width: 100%;
-  background: #1f1f1f;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  color: var(--text-primary);
   padding: 12px 14px;
   font-size: 1rem;
   font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
-  outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.ce-input::placeholder {
-  color: var(--text-light);
-}
-
-.ce-input:focus {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.15);
 }
 
 .ce-input--error {
-  border-color: #e74c3c;
-}
-
-.ce-input--error:focus {
-  border-color: #e74c3c;
-  box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.2);
-}
-
-.ce-helper {
-  margin: 0.5rem 0 0;
-  color: var(--text-light);
-  font-size: 0.85rem;
-}
-
-.ce-helper--error {
-  color: #e74c3c;
+  /* error border is provided by `.tool-field-input--error`; this class is
+     kept for backwards-compatible class assertions. */
 }
 
 /* ─── Preset chips ───────────────────────────────────────────────── */

@@ -1,5 +1,5 @@
 'use client';
-import {useEffect, useRef, useState} from 'react';
+import {useEffect, useState} from 'react';
 import ToolPage from '../../components/ToolPage';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
@@ -8,9 +8,10 @@ import LengthControl from './components/LengthControl';
 import ClassToggles from './components/ClassToggles';
 import StrengthMeter from './components/StrengthMeter';
 import PasswordResult from './components/PasswordResult';
-import {usePasswordGenerator, copyToClipboard} from './hooks';
+import {usePasswordGenerator} from './hooks';
 import {StorageProvider, useStorageData} from './StorageContext';
 import {useToast} from '../../hooks/useToast';
+import {useCopyToClipboard} from '../../hooks/useCopyToClipboard';
 import './password-generator.css';
 
 const SCHEMA = {
@@ -39,12 +40,18 @@ function PasswordGeneratorContent() {
     reset,
   } = usePasswordGenerator();
 
-  // Track the ID of the most recent "Password copied" toast so we can
-  // dismiss it when the user generates a new password (MIN-8).
-  const copyToastIdRef = useRef(null);
-
   // Screen-reader announcement for the Generate action (MAJ-2).
   const [srAnnouncement, setSrAnnouncement] = useState('');
+
+  // Copy-with-dedup-and-toast. Passing dismissToast wires the dedup so a
+  // subsequent action (Generate) can clear the prior "Password copied"
+  // banner — addressing MIN-8.
+  const copy = useCopyToClipboard({
+    showToast,
+    dismissToast,
+    successMessage: 'Password copied',
+    errorMessage: 'Could not copy to clipboard',
+  });
 
   useEffect(() => {
     if (storageErrors?.settings) {
@@ -57,28 +64,13 @@ function PasswordGeneratorContent() {
   }, [error, showToast]);
 
   const handleGenerate = () => {
-    // Dismiss the previous "Password copied" toast before generating so users
-    // aren't misled that the new password is on the clipboard (MIN-8).
-    if (copyToastIdRef.current !== null) {
-      dismissToast(copyToastIdRef.current);
-      copyToastIdRef.current = null;
-    }
     generate();
-    // Announce to screen readers after generate. Password length comes from
-    // the settings since the new value isn't in state yet at this point.
     setSrAnnouncement(`New password generated, ${settings.length} characters`);
   };
 
   const handleCopy = async () => {
-    const ok = await copyToClipboard(password);
-    if (ok) {
-      // Capture the ID synchronously: useToast uses Date.now() for the id.
-      copyToastIdRef.current = Date.now();
-      showToast('Password copied', 'success');
-      setSrAnnouncement('Password copied');
-    } else {
-      showToast('Could not copy to clipboard', 'error');
-    }
+    const ok = await copy(password);
+    if (ok) setSrAnnouncement('Password copied');
   };
 
   return (
@@ -97,12 +89,12 @@ function PasswordGeneratorContent() {
         role="status"
         aria-live="polite"
         aria-atomic="true"
-        className="pw-sr-only"
+        className="tool-sr-only"
       >
         {srAnnouncement}
       </p>
 
-      <div className="pw-stack">
+      <div className="tool-stack">
         <Card>
           <PasswordResult
             password={password}

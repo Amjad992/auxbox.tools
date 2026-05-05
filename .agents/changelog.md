@@ -14,6 +14,33 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-06 - Shared extractions batch (refactor)
+**What changed:** Lifted six recurring patterns into the shared layer and migrated every consumer.
+
+New shared primitives:
+- `src/hooks/useAutoSave.js` — debounced dirty-gated save effect. Returns `{markDirty, markClean}`. Replaces the hand-rolled `dirtyRef + setTimeout + cleanup` block in 6 tools.
+- `src/hooks/useHydrateStorage.js` — runs a loader once on mount, returns a `hydrated` boolean. Replaces the `useState(false) + useEffect(() => { ... ; setHydrated(true) }, [])` block in 6 tools.
+- `src/hooks/useCopyToClipboard.js` — wraps `lib/clipboard.copyToClipboard` with optional toast feedback and toast dedup (tracks the most recent success-toast id and dismisses it on the next call).
+- `src/hooks/useKeyboardShortcuts.js` — keydown registration with default modifier + form-field guards.
+- `src/hooks/useDisplayTick.js` — rAF-driven re-render trigger while `active` is true (thin wrapper over `useTicker`).
+- `src/components/InputField.js` — labelled text input with inline error wiring (aria-invalid + aria-describedby + role="alert" error span). Vertical by default; supports `inline` and consumer override classes.
+- `src/lib/format.js` — `formatPercent(pct, options)` (extracted from image-compressor's local helper). Defaults to the savings-sign idiom (positive → U+2212 minus, negative → +).
+- `src/styles/tools.css` — added `.tool-stack`, `.tool-sr-only`, `.tool-file-row*` (shell, main, name, meta, actions, list, list-empty, responsive collapse), and `.tool-field*` (label / input / error / helper for `InputField`).
+- `src/hooks/useToast.js` — `showToast` now returns the new toast's id (backwards-compatible) and uses a per-instance counter so ids are unique within a single millisecond. Enables the dedup path in `useCopyToClipboard`.
+
+Migrations: stopwatch / pomodoro / markdown-preview / markdown-to-pdf / wheel-spinner / cron-explainer (autosave + hydrate + relevant copy/InputField/keyboard hooks); password-generator (copy hook with dedup, drops the `copyToastIdRef + Date.now()` hack and the unused `hooks.js` re-export of `copyToClipboard`); image-compressor + pdf-merger (`.tool-file-row*` base layered under `.ic-row*` / `.pm-row*`; redundant flex/border-radius/padding rules removed; image-compressor consumes `formatPercent` from the lib); salary-raise-calculator + date-calculator (CSS-only `.pay-stack`/`.dc-stack` → `.tool-stack`).
+
+Tests: 33 new test cases for the new hooks/component/lib helper. Updated `password-generator/page.test.jsx` to mock `../../lib/clipboard` (since the page now imports the shared helper through `useCopyToClipboard`).
+
+**Why:** Six near-identical patterns existed across the 13 tools (autosave debounce, mount-once hydrate, copy-with-toast, keyboard shortcuts, display tick, file-row CSS shell). The audit identified them as the highest-leverage extractions; doing them all in one branch keeps the migration coherent and lets `useToast.showToast → id` ride along instead of being a separate breaking change. Reuse-first per `.agents/skills/conventions/SKILL.md`.
+
+**Impact:** No behaviour change. All 797 tests pass, lint clean (only the pre-existing QR `<img>` warnings remain), `next build` succeeds. The shared layer in `src/hooks` and `src/styles/tools.css` grew; tool-local CSS files shrunk; tool page.js files dropped ~30–60 lines each of repeated state plumbing.
+
+**Files changed:**
+- New: `src/hooks/{useAutoSave,useCopyToClipboard,useHydrateStorage,useKeyboardShortcuts,useDisplayTick}.js` + `.test.js` siblings; `src/components/InputField.js` + `.test.jsx`.
+- Updated: `src/hooks/useToast.js`, `src/lib/format.js` (+ tests), `src/styles/tools.css`.
+- Migrated: `src/app/{stopwatch,pomodoro-timer,markdown-preview,markdown-to-pdf,wheel-spinner,password-generator,cron-explainer,image-compressor,pdf-merger,salary-raise-calculator,date-calculator}/...` (page.js + CSS, plus FileRow.js / PdfFileRow.js / hooks.js / page.test.jsx where touched).
+
 ## 2026-05-05 - Image Compressor: move row status chip from meta line to name line
 **What changed:** The "Queued" / "Compressing…" / error chip is now rendered next to the file name (right-aligned on the same line) instead of inside the meta row. Added a flex container `.ic-row-name-row` (`display: flex; align-items: center; gap: 0.6rem; min-height: 1.4rem`) wrapping the name + chip. The name uses `flex: 1 1 auto` with `min-width: 0` so it ellipsises when long; the chip uses `flex: 0 0 auto`. The meta row no longer carries the chip.
 **Why:** During slider movement, each row goes done → queued → encoding → done in quick succession. Even though the chip was always-mounted, its content (and chip-element padding/border) appearing inside the meta row caused the line height to grow when text appeared, which jerked the row's container vertically. Moving the chip up to the name line — where it lives in the slack to the right of the (potentially-ellipsised) name — keeps the row's overall height pinned by the name line's `min-height` and removes the jerk.

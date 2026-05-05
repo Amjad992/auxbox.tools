@@ -2,12 +2,7 @@
    Page shell, hero, card surface, buttons, toast, error-boundary,
    and result cards come from src/styles/tools.css. */
 
-.pay-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  padding-bottom: 2rem;
-}
+/* `.tool-stack` is shared in src/styles/tools.css. */
 
 .pay-section-title {
   color: var(--text-primary);

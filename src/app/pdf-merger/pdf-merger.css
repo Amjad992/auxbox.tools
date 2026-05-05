@@ -2,12 +2,7 @@
    Page shell, hero, card surface, buttons, and drop zone visuals come
    from src/styles/tools.css. */
 
-.pm-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  padding-bottom: 2rem;
-}
+/* `.tool-stack` is shared in src/styles/tools.css. */
 
 .pm-privacy {
   margin: 0;
@@ -27,19 +22,8 @@
   font-weight: 500;
 }
 
-.pm-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.pm-list-empty {
-  margin: 0;
-  color: var(--text-light);
-  font-size: 0.9rem;
-  text-align: center;
-  padding: 1rem 0;
-}
+/* `.tool-file-row-list` and `.tool-file-row-list-empty` are shared in
+   src/styles/tools.css. */
 
 .pm-rejections {
   margin: 0 0 0.75rem;
@@ -56,15 +40,12 @@
   padding-left: 1.25rem;
 }
 
+/* `.pm-row` overrides the shared `.tool-file-row` to align children to the
+   start of the row (so the drag handle and nudge buttons stay top-aligned
+   while the name + meta wrap below). */
 .pm-row {
-  display: flex;
   align-items: flex-start;
   gap: 0.6rem;
-  padding: 0.85rem 1rem;
-  background-color: #1f1f1f;
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
-  transition: border-color 0.2s ease, opacity 0.2s ease;
 }
 
 .pm-row--parsing {
@@ -97,31 +78,8 @@
   cursor: grabbing;
 }
 
-.pm-row-main {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  flex: 1;
-  min-width: 0;
-}
-
-.pm-row-name {
-  color: var(--text-primary);
-  font-weight: 600;
-  font-size: 0.95rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.pm-row-meta {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  color: var(--text-secondary);
-  font-size: 0.85rem;
-}
+/* `.pm-row-main`, `.pm-row-name`, `.pm-row-meta` inherit their layout
+   from the shared `.tool-file-row-*` base. */
 
 .pm-row-size {
   font-variant-numeric: tabular-nums;
@@ -179,10 +137,10 @@
   color: #e74c3c;
 }
 
+/* `.pm-row-actions` extends `.tool-file-row-actions` with a tighter gap
+   and explicit center alignment for the nudge buttons. */
 .pm-row-actions {
-  display: flex;
   gap: 0.4rem;
-  flex-shrink: 0;
   align-items: center;
 }
 
@@ -239,13 +197,8 @@
 }
 
 @media (max-width: 600px) {
-  .pm-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .pm-row-actions {
-    justify-content: flex-end;
-  }
+  /* `.tool-file-row` already collapses to a stacked layout; keep the
+     pdf-merger-specific tweak for the range input. */
   .pm-row-range-input {
     width: 100%;
   }

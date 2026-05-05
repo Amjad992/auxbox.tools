@@ -5,8 +5,10 @@ import Card from '../../components/Card';
 import Button from '../../components/Button';
 import ToastContainer from '../../components/ToastContainer';
 import {useToast} from '../../hooks/useToast';
+import {useAutoSave} from '../../hooks/useAutoSave';
+import {useHydrateStorage} from '../../hooks/useHydrateStorage';
+import {useCopyToClipboard} from '../../hooks/useCopyToClipboard';
 import {renderMarkdown} from '../../lib/markdown';
-import {copyToClipboard} from '../../lib/clipboard';
 import {HAS_FIELD_SIZING} from '../../lib/featureDetect';
 import {StorageProvider, useStorageData} from './StorageContext';
 import {
@@ -33,12 +35,7 @@ function MarkdownPreviewContent() {
   const {loadState, saveState, clearState, storageErrors} = useStorageData();
 
   const [source, setSource] = useState('');
-  const [hydrated, setHydrated] = useState(false);
   const [announcement, setAnnouncement] = useState('');
-
-  // Tracks whether the user has taken any persisted action so a fresh-mount
-  // visit with no interaction does NOT write defaults to localStorage.
-  const dirtyRef = useRef(false);
 
   // Ref for the editor textarea — used by the autosize fallback effect.
   const editorRef = useRef(null);
@@ -65,14 +62,12 @@ function MarkdownPreviewContent() {
   const html = useMemo(() => renderMarkdown(deferredSource), [deferredSource]);
 
   // Hydrate from storage once on mount.
-  useEffect(() => {
+  const hydrated = useHydrateStorage(() => {
     const saved = loadState();
     if (saved && typeof saved.document === 'string') {
       setSource(saved.document);
     }
-    setHydrated(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  });
 
   useEffect(() => {
     if (storageErrors?.state) {
@@ -80,19 +75,24 @@ function MarkdownPreviewContent() {
     }
   }, [storageErrors?.state, showToast]);
 
-  // Auto-save debounced. Skipped until the user types (dirtyRef) so a
-  // fresh-mount no-interaction visit doesn't write defaults.
-  useEffect(() => {
-    if (!hydrated || !dirtyRef.current) return;
-    if (source.length > MAX_PERSISTED_CHARS) return;
-    const handle = setTimeout(() => {
-      saveState({document: source});
-    }, STATE_AUTOSAVE_DEBOUNCE_MS);
-    return () => clearTimeout(handle);
-  }, [hydrated, source, saveState]);
+  // Auto-save debounced. Skipped until the user types so a fresh-mount
+  // no-interaction visit doesn't write defaults; and skipped over the
+  // size cap so we don't trigger phantom "Failed to load" toasts.
+  const {markDirty, markClean} = useAutoSave({
+    enabled: hydrated && source.length <= MAX_PERSISTED_CHARS,
+    deps: [source],
+    onSave: () => saveState({document: source}),
+    debounceMs: STATE_AUTOSAVE_DEBOUNCE_MS,
+  });
+
+  const copy = useCopyToClipboard({
+    showToast,
+    successMessage: 'HTML copied to clipboard',
+    errorMessage: 'Could not copy to clipboard',
+  });
 
   const handleChange = (e) => {
-    dirtyRef.current = true;
+    markDirty();
     setSource(e.target.value);
   };
 
@@ -104,28 +104,23 @@ function MarkdownPreviewContent() {
       showToast('Nothing to copy yet', 'error');
       return;
     }
-    const ok = await copyToClipboard(current);
-    if (ok) {
-      showToast('HTML copied to clipboard', 'success');
-      setAnnouncement('HTML copied to clipboard');
-    } else {
-      showToast('Could not copy to clipboard', 'error');
-    }
+    const ok = await copy(current);
+    if (ok) setAnnouncement('HTML copied to clipboard');
   };
 
   const handleClear = () => {
-    // Synchronously wipe storage and reset dirty so the post-Clear
-    // auto-save effect skips the write — preventing a phantom
-    // {document: ''} record from being written 300 ms later.
+    // Synchronously wipe storage and mark clean so the post-Clear auto-save
+    // effect skips the write — preventing a phantom {document: ''} record
+    // from being written 300 ms later.
     clearState();
     setSource('');
-    dirtyRef.current = false;
+    markClean();
     setAnnouncement('Document cleared');
     showToast('Document cleared', 'success');
   };
 
   const handleInsertSample = () => {
-    dirtyRef.current = true;
+    markDirty();
     setSource(SAMPLE_DOCUMENT);
   };
 
@@ -152,12 +147,12 @@ function MarkdownPreviewContent() {
         role="status"
         aria-live="polite"
         aria-atomic="true"
-        className="mp-sr-only"
+        className="tool-sr-only"
       >
         {announcement}
       </p>
 
-      <div className="mp-stack">
+      <div className="tool-stack">
         <Card>
           <div className="mp-toolbar">
             <span className="mp-meta">

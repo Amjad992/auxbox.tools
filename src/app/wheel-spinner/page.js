@@ -5,6 +5,8 @@ import Card from '../../components/Card';
 import Button from '../../components/Button';
 import ToastContainer from '../../components/ToastContainer';
 import {useToast} from '../../hooks/useToast';
+import {useAutoSave} from '../../hooks/useAutoSave';
+import {useHydrateStorage} from '../../hooks/useHydrateStorage';
 import {StorageProvider, useStorageData} from './StorageContext';
 import ListEditor from './components/ListEditor';
 import ModeToggle from '../../components/ModeToggle';
@@ -53,7 +55,6 @@ function WheelSpinnerContent() {
   const [sessionMode, setSessionMode] = useState(DEFAULT_STATE.sessionMode);
   // Picks are session-only — never persisted.
   const [picks, setPicks] = useState([]);
-  const [hydrated, setHydrated] = useState(false);
   const [announcement, setAnnouncement] = useState('');
   // The last explicitly saved options snapshot. Persisted options only update
   // when the user clicks Save — not on every keystroke.
@@ -63,11 +64,6 @@ function WheelSpinnerContent() {
   // change (user edits the textarea), we clear picks so the session
   // restarts with the new roster.
   const picksSourceRef = useRef([]);
-
-  // Tracks whether the user has taken any persisted action (Save, Clear, or
-  // a pref change). The autosave effect is gated on this flag so a fresh
-  // mount with no interaction does NOT write defaults to localStorage.
-  const dirtyRef = useRef(false);
 
   const {
     winnerIndex,
@@ -107,7 +103,7 @@ function WheelSpinnerContent() {
       : !isRunning && options.length >= MIN_ENTRIES;
 
   // Hydrate from storage once on mount.
-  useEffect(() => {
+  const hydrated = useHydrateStorage(() => {
     const saved = loadState();
     if (saved) {
       if (Array.isArray(saved.options) && saved.options.length > 0) {
@@ -118,9 +114,7 @@ function WheelSpinnerContent() {
       if (saved.presentation) setPresentation(saved.presentation);
       if (saved.sessionMode) setSessionMode(saved.sessionMode);
     }
-    setHydrated(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  });
 
   useEffect(() => {
     if (storageErrors?.state) {
@@ -129,17 +123,14 @@ function WheelSpinnerContent() {
   }, [storageErrors?.state, showToast]);
 
   // Auto-save debounced (~300ms) for UX preferences only. `options` are
-  // persisted explicitly via the Save button, not on every keystroke.
-  // Picks are NEVER included. Skipped until the user takes their first
-  // persisted action (dirtyRef) so a fresh-mount no-interaction visit does
-  // not write default values to localStorage.
-  useEffect(() => {
-    if (!hydrated || !dirtyRef.current) return;
-    const handle = setTimeout(() => {
-      saveState({options: savedOptions, presentation, sessionMode});
-    }, STATE_AUTOSAVE_DEBOUNCE_MS);
-    return () => clearTimeout(handle);
-  }, [hydrated, savedOptions, presentation, sessionMode, saveState]);
+  // persisted explicitly via the Save button, not on every keystroke. Picks
+  // are NEVER included.
+  const {markDirty} = useAutoSave({
+    enabled: hydrated,
+    deps: [savedOptions, presentation, sessionMode],
+    onSave: () => saveState({options: savedOptions, presentation, sessionMode}),
+    debounceMs: STATE_AUTOSAVE_DEBOUNCE_MS,
+  });
 
   // Editing the textarea: if the parsed roster differs from the picks-source
   // roster, clear the picks (the session is invalid for the new list).
@@ -179,7 +170,7 @@ function WheelSpinnerContent() {
 
   const handleSetPresentation = (next) => {
     if (isRunning) return;
-    dirtyRef.current = true;
+    markDirty();
     setPresentation(next);
     // Picks survive a presentation switch by spec.
     reset();
@@ -188,7 +179,7 @@ function WheelSpinnerContent() {
 
   const handleSetSessionMode = (next) => {
     if (isRunning) return;
-    dirtyRef.current = true;
+    markDirty();
     setSessionMode(next);
     reset();
     setAnnouncement('');
@@ -203,7 +194,7 @@ function WheelSpinnerContent() {
   };
 
   const handleSave = () => {
-    dirtyRef.current = true;
+    markDirty();
     setSavedOptions(options.slice());
     saveState({options, presentation, sessionMode});
     showToast('Entries saved', 'success');
@@ -211,7 +202,7 @@ function WheelSpinnerContent() {
 
   const handleClear = () => {
     if (isRunning) return;
-    dirtyRef.current = true;
+    markDirty();
     setText('');
     setSavedOptions([]);
     setPicks([]);
@@ -259,12 +250,12 @@ function WheelSpinnerContent() {
         role="status"
         aria-live="polite"
         aria-atomic="true"
-        className="ws-sr-only"
+        className="tool-sr-only"
       >
         {announcement}
       </p>
 
-      <div className="ws-stack">
+      <div className="tool-stack">
         <Card>
           <ListEditor
             text={text}

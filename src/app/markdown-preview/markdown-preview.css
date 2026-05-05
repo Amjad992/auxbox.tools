@@ -1,24 +1,7 @@
 /* Markdown Preview — tool-specific layout only. Page shell, hero, cards,
    buttons, toasts, and error boundaries come from src/styles/tools.css. */
 
-.mp-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  padding-bottom: 2rem;
-}
-
-.mp-sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
+/* `.tool-stack` and `.tool-sr-only` are shared in src/styles/tools.css. */
 
 /* ── Toolbar (Copy / Clear) ───────────────────── */
 .mp-toolbar {
