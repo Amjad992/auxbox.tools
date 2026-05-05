@@ -454,43 +454,38 @@ function PomodoroContent() {
               D  denied                  → explanatory text, no button
               When the API is not supported at all, a separate "not supported" note is shown.
 
-              Pre-mount: render a stable disabled placeholder matching the most-likely
-              client state (State A button) so SSR and the initial client render agree,
-              preventing a hydration mismatch on `permission` and `supported`.
+              Pre-mount: render null so the entire notification region is absent from
+              the SSR output. The element shape depends on `permission` and `supported`,
+              both of which are client-only values — gating on `mounted` is the only
+              way to guarantee the server and client first-render produce identical DOM.
+              The button appears one frame after hydration; no visible flicker.
             */}
-            {!mounted ? (
-              <Button
-                variant="info"
-                onClick={handleToggleNotifications}
-                aria-label="Enable desktop notifications"
-                disabled
-              >
-                Enable notifications
-              </Button>
-            ) : !notificationsSupported ? (
-              <span className="pt-notify-status">
-                Notifications not supported in this browser.
-              </span>
-            ) : permission === 'denied' ? (
-              <span className="pt-notify-status" role="status">
-                Notifications blocked in browser — update your browser settings to enable.
-              </span>
-            ) : permission === 'granted' && settings.notifyEnabled ? (
-              <Button
-                variant="neutral"
-                onClick={handleToggleNotifications}
-                aria-label="Disable desktop notifications"
-              >
-                Disable notifications
-              </Button>
-            ) : (
-              <Button
-                variant="info"
-                onClick={handleToggleNotifications}
-                aria-label="Enable desktop notifications"
-              >
-                Enable notifications
-              </Button>
+            {mounted && (
+              !notificationsSupported ? (
+                <span className="pt-notify-status">
+                  Notifications not supported in this browser.
+                </span>
+              ) : permission === 'denied' ? (
+                <span className="pt-notify-status" role="status">
+                  Notifications blocked in browser — update your browser settings to enable.
+                </span>
+              ) : permission === 'granted' && settings.notifyEnabled ? (
+                <Button
+                  variant="neutral"
+                  onClick={handleToggleNotifications}
+                  aria-label="Disable desktop notifications"
+                >
+                  Disable notifications
+                </Button>
+              ) : (
+                <Button
+                  variant="info"
+                  onClick={handleToggleNotifications}
+                  aria-label="Enable desktop notifications"
+                >
+                  Enable notifications
+                </Button>
+              )
             )}
           </div>
         </Card>

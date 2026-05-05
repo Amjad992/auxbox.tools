@@ -14,6 +14,16 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-04 - Fix: gate full pomodoro notification region on mount to clear hydration mismatch
+
+**What changed:** Replaced the pre-mount placeholder-button approach (commit `a023b3f`) with a `mounted &&` gate that renders the entire notification toggle region as `null` until client mount. Previously the placeholder `<Button>` (a `<button>` element) conflicted with what SSR actually produced when `notificationsSupported=false` (a `<span>`) — causing a server/client element-shape mismatch. Now both SSR and the initial client render produce nothing for this subtree; after `useEffect` sets `mounted=true`, the correct state-based UI appears.
+
+**Why:** Hydration error persisted after `a023b3f` because the placeholder element type (`button`) didn't match the SSR output element type (`span`). Rendering `null` pre-mount is the only safe pattern when the entire element shape depends on client-only APIs (`Notification`, `window`).
+
+**Impact:** Notification toggle button briefly absent until JS hydrates (one frame, imperceptible). All 658 tests pass unchanged (RTL flushes effects synchronously so `mounted` is `true` by assertion time). Lint: 0 errors. Build: green.
+
+**Files changed:** `src/app/pomodoro-timer/page.js`, `.agents/changelog.md`.
+
 ## 2026-05-04 - Fix: pomodoro hydration mismatch on notification settings
 
 **What changed:** Added a `mounted` boolean state (set to `true` in the same `useEffect` that sets `hydrated`) in `PomodoroContent`. The notification-toggle section of the Settings card is now gated on `mounted`. Before mount, a stable disabled "Enable notifications" placeholder button is rendered — matching the SSR output. After mount, the four real notification states (A/B/C/D based on `permission`, `notifyEnabled`, and `supported`) render as before. This eliminates the Next.js hydration mismatch caused by `useNotificationPermission` returning `supported=false`/`permission='denied'` during SSR and real browser values on first client render.
