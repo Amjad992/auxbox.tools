@@ -7,6 +7,7 @@ import ToastContainer from '../../components/ToastContainer';
 import {useToast} from '../../hooks/useToast';
 import {StorageProvider, useStorageData} from './StorageContext';
 import {
+  MAX_PERSISTED_CHARS,
   NEXT_RUNS_COUNT,
   PRESETS,
   STATE_AUTOSAVE_DEBOUNCE_MS,
@@ -34,6 +35,7 @@ function CronExplainerContent() {
   const [expression, setExpression] = useState('');
   const [hydrated, setHydrated] = useState(false);
   const [zoneName, setZoneName] = useState('');
+  const [now, setNow] = useState(() => DateTime.now().toJSDate());
   const dirtyRef = useRef(false);
 
   // Hydrate once from storage.
@@ -54,11 +56,21 @@ function CronExplainerContent() {
     }
   }, [storageErrors?.state, showToast]);
 
+  // Refresh relative time labels every 60 s so "in 2 days" stays accurate
+  // on an idle tab without requiring a page reload.
+  useEffect(() => {
+    const id = setInterval(() => setNow(DateTime.now().toJSDate()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+
   // Debounced auto-save. Skipped until the user has actually changed the
   // input (dirtyRef pattern — guards against the markdown-preview MAJ-2
-  // phantom-write on Clear/Reset).
+  // phantom-write on Clear/Reset). Also skips expressions that exceed
+  // MAX_PERSISTED_CHARS to prevent phantom "Failed to load" toasts on the
+  // next mount (mirrors markdown-preview's autosave gate).
   useEffect(() => {
     if (!hydrated || !dirtyRef.current) return;
+    if (expression.length > MAX_PERSISTED_CHARS) return;
     const handle = setTimeout(() => {
       saveState({expression});
     }, STATE_AUTOSAVE_DEBOUNCE_MS);
@@ -82,10 +94,10 @@ function CronExplainerContent() {
     [expression, parseResult.valid]
   );
   // `nextRuns` is non-deterministic by definition (it depends on "now").
-  // Recompute on every render — it's cheap and the hook deps would have to
-  // include a live clock anyway.
+  // Pass the `now` state (refreshed every 60 s) so relative time labels stay
+  // accurate on an idle tab.
   const runs = parseResult.valid
-    ? nextRuns(expression, NEXT_RUNS_COUNT)
+    ? nextRuns(expression, NEXT_RUNS_COUNT, now)
     : [];
 
   const trimmed = expression.trim();
@@ -125,7 +137,7 @@ function CronExplainerContent() {
             role={showError ? 'alert' : undefined}
           >
             {showError
-              ? `Cron expression is invalid: ${parseResult.error}`
+              ? parseResult.error
               : 'Standard 5-field cron syntax: minute hour day-of-month month day-of-week.'}
           </p>
 
@@ -150,34 +162,42 @@ function CronExplainerContent() {
           </div>
         </Card>
 
-        {description && (
-          <Card>
-            <p className="ce-description" data-testid="ce-description">
-              {description}
-            </p>
-          </Card>
-        )}
-
-        {runs.length > 0 && (
-          <Card>
-            <h2 className="ce-runs-title">Next {runs.length} runs</h2>
-            <ol className="ce-runs-list" aria-label="Upcoming fire times">
-              {runs.map((r) => (
-                <li key={r.isoString} className="ce-run">
-                  <span className="ce-run-absolute">{r.absoluteLabel}</span>
-                  {r.relativeLabel && (
-                    <span className="ce-run-relative">{r.relativeLabel}</span>
-                  )}
-                </li>
-              ))}
-            </ol>
-            {zoneName && (
-              <p className="ce-zone-note" data-testid="ce-zone-note">
-                Times shown in your local time zone ({zoneName}).
+        <div
+          role="region"
+          aria-label="Cron expression results"
+          aria-live="polite"
+          aria-atomic="false"
+          data-testid="ce-results-region"
+        >
+          {description && (
+            <Card>
+              <p className="ce-description" data-testid="ce-description">
+                {description}
               </p>
-            )}
-          </Card>
-        )}
+            </Card>
+          )}
+
+          {runs.length > 0 && (
+            <Card>
+              <h2 className="ce-runs-title">Next {runs.length} runs</h2>
+              <ol className="ce-runs-list" aria-label="Upcoming fire times">
+                {runs.map((r) => (
+                  <li key={r.isoString} className="ce-run">
+                    <span className="ce-run-absolute">{r.absoluteLabel}</span>
+                    {r.relativeLabel && (
+                      <span className="ce-run-relative">{r.relativeLabel}</span>
+                    )}
+                  </li>
+                ))}
+              </ol>
+              {zoneName && (
+                <p className="ce-zone-note" data-testid="ce-zone-note">
+                  Times shown in your local time zone ({zoneName}).
+                </p>
+              )}
+            </Card>
+          )}
+        </div>
       </div>
     </ToolPage>
   );

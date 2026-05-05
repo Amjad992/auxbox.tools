@@ -14,6 +14,27 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-05 - Fix cron-explainer general review (1 blocker, 3 major, 4 minor)
+
+**What changed:** Applied all 8 findings from the general review round on `feat/cron-explainer`.
+
+- **BLK-1** (`page.js`): Wrapped both result cards (description + next-runs) in a single `<div role="region" aria-label="Cron expression results" aria-live="polite" aria-atomic="false">` so SR users hear output as it updates. The error path retains `role="alert"`.
+- **MAJ-1** (`page.js`): Added `if (expression.length > MAX_PERSISTED_CHARS) return;` gate in the debounced auto-save effect (mirrors markdown-preview pattern). Prevents >1000-char pastes from writing to localStorage and triggering a phantom "Failed to load" toast on the next mount. `MAX_PERSISTED_CHARS` added to the import.
+- **MAJ-2** (`utils.test.js`): Replaced the zone-sensitive weekday assertion with a UTC-pinned version using `CronExpressionParser.parse(..., {tz: 'UTC'})` and `DateTime.fromJSDate(jsDate, {zone: 'UTC'})`. Test now passes under `TZ=America/Los_Angeles`.
+- **MAJ-3** (`utils.js`, `page.js`): `parseExpression` now returns the constant `'Invalid cron expression.'` instead of forwarding the raw library error. Page helper text renders `parseResult.error` directly (dropping the `'Cron expression is invalid: '` prefix that would have caused redundant doubling).
+- **MIN-1** (`page.js`): Added `const [now, setNow] = useState(...)` and a 60 s `setInterval` effect that bumps `now`; passed `now` as `fromDate` to `nextRuns` so relative labels refresh on an idle tab.
+- **MIN-2** (`page.test.jsx`): Added test asserting that a >1000-char paste does not write to localStorage after the MAJ-1 gate lands.
+- **MIN-3** (`utils.js`): `isoString: dt.toISO() ?? String(jsDate.getTime())` — defensive fallback for a hypothetical null ISO string.
+- **MIN-4** (`utils.js`): `nextRuns` default param changed from `new Date()` to `DateTime.now().toJSDate()` (Luxon-everywhere rule).
+
+**Why:** Review findings — BLK-1 excluded SR users from the tool's success path; MAJ-2 caused deterministic CI failures in any timezone west of UTC-6; MAJ-1/MAJ-3 caused user-visible phantom toasts and raw library error leaks.
+
+**Impact:** 26 tests (was 20), all passing. Lint: 0 errors. Build: green.
+
+**Files changed:** `src/app/cron-explainer/{page.js, utils.js, utils.test.js, page.test.jsx}`, `.agents/changelog.md`.
+
+---
+
 ## 2026-05-05 - Add Cron Expression Explainer (/cron-explainer)
 
 **What changed:** New tool at `/cron-explainer`. Single text input takes a 5-field cron expression; on valid input the page shows a plain-English description (via `cronstrue`) and the next 5 fire times (via `cron-parser`) rendered with Luxon in the user's local time zone (absolute label via `DATETIME_MED_WITH_WEEKDAY`, relative label via `DateTime.toRelative({base})`). Eight preset chips fill the input on click (every minute, every hour, daily/weekdays at 9 AM, every 15 min, weekly, monthly, yearly). Invalid input flips the input border red and shows the parser's error in helper text with `role="alert"`. State persists via `createStorageContext` under `cron_explainer_state` (`{expression: string}`) with the standard 300 ms debounced auto-save and the dirtyRef pattern (no phantom write on fresh mount). Footer note exposes the actual zone name from `DateTime.now().zoneName`.

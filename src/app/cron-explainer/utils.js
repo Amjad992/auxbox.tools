@@ -18,9 +18,8 @@ export function parseExpression(src) {
   try {
     CronExpressionParser.parse(trimmed);
     return {valid: true};
-  } catch (err) {
-    const msg = err && err.message ? String(err.message) : 'Invalid cron expression';
-    return {valid: false, error: msg};
+  } catch {
+    return {valid: false, error: 'Invalid cron expression.'};
   }
 }
 
@@ -61,7 +60,7 @@ export function describe(src) {
  *
  * Returns `[]` for invalid input.
  */
-export function nextRuns(src, count = 5, fromDate = new Date()) {
+export function nextRuns(src, count = 5, fromDate = DateTime.now().toJSDate()) {
   const trimmed = typeof src === 'string' ? src.trim() : '';
   if (!trimmed) return [];
   const wanted = Math.max(0, Math.min(50, Number(count) || 0));
@@ -87,7 +86,7 @@ export function nextRuns(src, count = 5, fromDate = new Date()) {
     out.push({
       jsDate,
       dt,
-      isoString: dt.toISO(),
+      isoString: dt.toISO() ?? String(jsDate.getTime()),
       absoluteLabel: dt.toLocaleString(DateTime.DATETIME_MED_WITH_WEEKDAY),
       relativeLabel: dt.toRelative({base: baseDt}) || '',
     });

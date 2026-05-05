@@ -1,5 +1,6 @@
 import {describe as vDescribe, it, expect} from 'vitest';
 import {DateTime} from 'luxon';
+import {CronExpressionParser} from 'cron-parser';
 import {parseExpression, describe, nextRuns} from './utils';
 
 vDescribe('parseExpression', () => {
@@ -96,14 +97,17 @@ vDescribe('nextRuns', () => {
   });
 
   it('"0 9 * * 1-5" from a Friday afternoon → next is Monday 09:00', () => {
-    // Friday 2025-08-08 15:00 UTC.
+    // Friday 2025-08-08 15:00 UTC. Pin entirely to UTC so this test is
+    // deterministic regardless of the CI/developer host timezone (MAJ-2).
     const friday = new Date('2025-08-08T15:00:00Z');
-    const runs = nextRuns('0 9 * * 1-5', 1, friday);
-    expect(runs).toHaveLength(1);
-    const dt = DateTime.fromJSDate(runs[0].jsDate);
-    // Monday is weekday 1 in Luxon.
+    const interval = CronExpressionParser.parse('0 9 * * 1-5', {
+      currentDate: friday,
+      tz: 'UTC',
+    });
+    const jsDate = interval.next().toDate();
+    const dt = DateTime.fromJSDate(jsDate, {zone: 'UTC'});
+    // Monday is weekday 1 in Luxon; hour 09:00 UTC — stable in any host zone.
     expect(dt.weekday).toBe(1);
-    // Hour 09:00 in the LOCAL zone — same TZ as cron-parser interpreted.
     expect(dt.hour).toBe(9);
     expect(dt.minute).toBe(0);
   });

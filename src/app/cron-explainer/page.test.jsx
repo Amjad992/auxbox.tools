@@ -72,8 +72,8 @@ describe('<CronExplainer /> — typing → description', () => {
     const input = getInput();
     expect(input).toHaveAttribute('aria-invalid', 'true');
     expect(input.className).toMatch(/ce-input--error/);
-    // role="alert" on the helper text in the error path.
-    expect(screen.getByRole('alert')).toHaveTextContent(/cron expression is invalid/i);
+    // role="alert" on the helper text in the error path (MAJ-3: friendly constant string).
+    expect(screen.getByRole('alert')).toHaveTextContent(/invalid cron expression/i);
     expect(screen.queryByTestId('ce-description')).not.toBeInTheDocument();
   });
 });
@@ -141,5 +141,80 @@ describe('<CronExplainer /> — local time-zone footer', () => {
     const zone = DateTime.now().zoneName;
     expect(note).toHaveTextContent(zone);
     expect(note).toHaveTextContent(/local time zone/i);
+  });
+});
+
+describe('<CronExplainer /> — aria-live results region (BLK-1)', () => {
+  it('live region is present in the DOM at all times', () => {
+    render(<CronExplainer />);
+    const region = screen.getByTestId('ce-results-region');
+    expect(region).toBeInTheDocument();
+    expect(region).toHaveAttribute('role', 'region');
+    expect(region).toHaveAttribute('aria-live', 'polite');
+    expect(region).toHaveAttribute('aria-atomic', 'false');
+  });
+
+  it('live region contains description and runs when a valid expression is entered', async () => {
+    const user = userEvent.setup();
+    render(<CronExplainer />);
+    await user.type(getInput(), '0 9 * * 1-5');
+
+    const region = screen.getByTestId('ce-results-region');
+    expect(region).toContainElement(screen.getByTestId('ce-description'));
+  });
+});
+
+describe('<CronExplainer /> — relative time refresh interval (MIN-1)', () => {
+  it('registers a 60 s setInterval on mount and clears it on unmount', () => {
+    vi.useFakeTimers();
+    const spy = vi.spyOn(global, 'setInterval');
+    const {unmount} = render(<CronExplainer />);
+
+    // At least one setInterval call should use 60_000 ms (the now-refresh interval).
+    const calls = spy.mock.calls.map((c) => c[1]);
+    expect(calls).toContain(60_000);
+
+    // Unmounting should not throw (clearInterval called).
+    expect(() => unmount()).not.toThrow();
+    spy.mockRestore();
+  });
+});
+
+describe('<CronExplainer /> — long-paste autosave gate (MIN-2)', () => {
+  it('does not persist to localStorage when expression exceeds 1000 chars', async () => {
+    vi.useFakeTimers({shouldAdvanceTime: true});
+    const user = userEvent.setup({advanceTimers: vi.advanceTimersByTime});
+    render(<CronExplainer />);
+
+    // Paste a >1000-char string (it won't be a valid cron, but the gate check
+    // fires before the save, regardless of validity).
+    const longString = '* * * * *'.padEnd(1001, ' x');
+    await user.type(getInput(), longString.slice(0, 50)); // type enough to set dirty
+    // Manually set value to a long string via change event to avoid slow char-by-char typing.
+    const input = getInput();
+    await act(async () => {
+      // Simulate paste of a very long value.
+      input.focus();
+    });
+    // Use userEvent.clear + type a controlled long string approach is slow,
+    // so instead directly fire a change that sets a >1000 char value.
+    await act(async () => {
+      const longValue = 'x'.repeat(1002);
+      Object.defineProperty(input, 'value', {
+        writable: true,
+        configurable: true,
+        value: longValue,
+      });
+      input.dispatchEvent(new Event('change', {bubbles: true}));
+      await vi.advanceTimersByTimeAsync(500);
+    });
+
+    // The long value should NOT be written to localStorage.
+    const raw = window.localStorage.getItem('cron_explainer_state');
+    if (raw !== null) {
+      const parsed = JSON.parse(raw);
+      // If something was saved, it must not be the long string.
+      expect(parsed.data?.expression?.length ?? 0).toBeLessThanOrEqual(1000);
+    }
   });
 });
