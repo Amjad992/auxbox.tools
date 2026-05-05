@@ -1,0 +1,166 @@
+/* Tool-specific layout for /cron-explainer.
+   Page shell, hero, buttons, cards, toasts, etc. all come from
+   src/styles/tools.css — do not redeclare them here. */
+
+.ce-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ─── Expression input ───────────────────────────────────────────── */
+.ce-input-label {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.ce-input {
+  width: 100%;
+  background: #1f1f1f;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  padding: 12px 14px;
+  font-size: 1rem;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ce-input::placeholder {
+  color: var(--text-light);
+}
+
+.ce-input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.15);
+}
+
+.ce-input--error {
+  border-color: #e74c3c;
+}
+
+.ce-input--error:focus {
+  border-color: #e74c3c;
+  box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.2);
+}
+
+.ce-helper {
+  margin: 0.5rem 0 0;
+  color: var(--text-light);
+  font-size: 0.85rem;
+}
+
+.ce-helper--error {
+  color: #e74c3c;
+}
+
+/* ─── Preset chips ───────────────────────────────────────────────── */
+.ce-presets-label {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  margin: 1rem 0 0.5rem;
+}
+
+.ce-preset-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.ce-preset {
+  border: 1px solid var(--border-color);
+  background: #1f1f1f;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+}
+
+.ce-preset:hover,
+.ce-preset:focus-visible {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  background-color: rgba(255, 107, 107, 0.07);
+  outline: none;
+}
+
+.ce-preset-expr {
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  color: var(--text-secondary);
+  margin-right: 0.4rem;
+}
+
+/* ─── Description card ───────────────────────────────────────────── */
+.ce-description {
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ─── Next-runs list ─────────────────────────────────────────────── */
+.ce-runs-title {
+  margin: 0 0 1rem;
+  color: var(--text-primary);
+  font-size: 1.1rem;
+}
+
+.ce-runs-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ce-run {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 0.75rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  flex-wrap: wrap;
+}
+
+.ce-run-absolute {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.ce-run-relative {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.ce-zone-note {
+  margin: 1rem 0 0;
+  color: var(--text-light);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+/* ─── Mobile ─────────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .ce-run {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+}

@@ -89,6 +89,14 @@ const TOOLS = [
       'Focus timer with configurable work and break durations, daily history, sound cue, and optional desktop notifications. Runs entirely in your browser.',
     cta: 'Open tool',
   },
+  {
+    href: '/cron-explainer',
+    icon: '⏰',
+    name: 'Cron Expression Explainer',
+    description:
+      'Decode any cron expression into plain English and see the next 5 fire times in your local time zone. One-click presets for common patterns.',
+    cta: 'Open tool',
+  },
 ];
 
 export default function Home() {

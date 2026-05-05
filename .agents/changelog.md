@@ -14,6 +14,20 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-05 - Add Cron Expression Explainer (/cron-explainer)
+
+**What changed:** New tool at `/cron-explainer`. Single text input takes a 5-field cron expression; on valid input the page shows a plain-English description (via `cronstrue`) and the next 5 fire times (via `cron-parser`) rendered with Luxon in the user's local time zone (absolute label via `DATETIME_MED_WITH_WEEKDAY`, relative label via `DateTime.toRelative({base})`). Eight preset chips fill the input on click (every minute, every hour, daily/weekdays at 9 AM, every 15 min, weekly, monthly, yearly). Invalid input flips the input border red and shows the parser's error in helper text with `role="alert"`. State persists via `createStorageContext` under `cron_explainer_state` (`{expression: string}`) with the standard 300 ms debounced auto-save and the dirtyRef pattern (no phantom write on fresh mount). Footer note exposes the actual zone name from `DateTime.now().zoneName`.
+
+`utils.js` exposes three pure helpers: `parseExpression`, `describe`, `nextRuns(src, count, fromDate)` — `nextRuns` accepts an injectable `fromDate` so tests are deterministic. All wall-clock formatting goes through Luxon; `cron-parser`'s native Date is converted at the boundary via `DateTime.fromJSDate()`. `describe` gates on `cron-parser` first because cronstrue's lenient parser would otherwise accept some inputs that cron-parser rejects.
+
+New deps: `cronstrue@^3.14.0` (default export, ~10 KB gzipped) and `cron-parser@^5.5.0` (named export `CronExpressionParser`, ~30 KB gzipped). Both MIT, browser-friendly, well-maintained. No shared lifts: the preset row is tool-local (different visual pattern from `<ModeToggle>`), and a `useDebouncedValue` hook was considered but rejected — the input → parse pipeline is cheap enough to recompute on every render and there is no second consumer.
+
+**Why:** Decoding a cron expression is a routine task for developers (CI configs, ops infrastructure) and helps non-technical teammates understand a cadence. Existing online tools either require sign-up or send the expression to a server; this one runs entirely in-browser like the rest of auxbox.tools.
+
+**Impact:** New route `/cron-explainer` registered in `src/app/page.js` `TOOLS` and `src/app/sitemap.js`. New tests: `utils.test.js` (15 cases across `parseExpression` / `describe` / `nextRuns`, with deterministic `fromDate` injection) and `page.test.jsx` (10 render + interaction cases including invalid-input error path, preset click, autosave round-trip, restore on mount, and the local-zone footer). Lint: 0 errors. Build: green (route present in the manifest). Tests: must pass via the pre-commit hook (sandbox blocks ad-hoc test runs in the agent harness).
+
+**Files changed:** `src/app/cron-explainer/{page.js, layout.js, constants.js, utils.js, utils.test.js, storageUtils.js, StorageContext.js, cron-explainer.css, page.test.jsx}` (new), `src/app/page.js` (TOOLS entry), `src/app/sitemap.js` (route), `package.json`, `package-lock.json` (deps), `.agents/changelog.md`.
+
 ## 2026-05-04 - Fix: pomodoro completion fires from setTimeout to work cross-tab; suppress ghost notifications on rehydrate
 
 **What changed:** Phase auto-completion in the Pomodoro Timer was driven by the rAF ticker (`useTicker`). Browsers freeze `requestAnimationFrame` when the tab is hidden, so the completion callback (chime + OS notification + state transition) only fired when the user returned to the tab — producing a "ghost notification" exactly at the moment they came back, not at the actual completion time. Fixed by driving completion via `setTimeout` instead (which keeps firing in background tabs, throttled to ~1 Hz minimum by browsers — more than sufficient for multi-minute intervals). The rAF ticker continues to run for the visual countdown display only; the `onTick` callback now only calls `setTick`.
