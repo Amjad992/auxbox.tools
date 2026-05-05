@@ -240,7 +240,7 @@
 
 .frc-costs-quick-row {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 0.75rem;
   align-items: end;
 }
@@ -270,14 +270,14 @@
 
 .frc-costs-line {
   display: grid;
-  grid-template-columns: 1fr 1fr auto auto;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto auto;
   gap: 0.5rem;
   align-items: end;
 }
 
 @media (max-width: 720px) {
   .frc-costs-line {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
 }
 

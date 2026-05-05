@@ -128,12 +128,25 @@
   background-color: #1f1f1f;
   border: 1px solid var(--border-color);
   border-radius: 8px;
-  padding: 10px 12px;
+  padding: 12px 14px;
   color: var(--text-primary);
   font-family: inherit;
-  font-size: 0.95rem;
+  font-size: 1rem;
   outline: none;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  -webkit-appearance: none;
+  -moz-appearance: textfield;
+  appearance: none;
+}
+
+.tool-field-input::-webkit-outer-spin-button,
+.tool-field-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.tool-field-input::placeholder {
+  color: var(--text-light);
 }
 
 .tool-field-input:focus {
@@ -199,25 +212,28 @@
 .tool-currency-symbol {
   color: var(--primary-color);
   font-weight: 600;
-  font-size: 0.95rem;
-  padding: 0 0 0 12px;
+  font-size: 1rem;
+  padding: 0 4px 0 14px;
   flex-shrink: 0;
   min-width: 1ch;
   text-align: center;
+  user-select: none;
 }
 
 .tool-currency-input {
   flex: 1;
-  background: transparent;
+  min-width: 0;
+  background-color: transparent;
   border: none;
   outline: none;
   color: var(--text-primary);
   font-family: inherit;
   font-size: 1rem;
-  padding: 10px 12px;
+  padding: 12px 14px;
   width: 100%;
+  -webkit-appearance: none;
   -moz-appearance: textfield;
-  appearance: textfield;
+  appearance: none;
 }
 
 .tool-currency-input::-webkit-outer-spin-button,

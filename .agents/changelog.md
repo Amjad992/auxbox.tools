@@ -14,6 +14,20 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-06 - Fix input rendering: kill `appearance: textfield`, bump padding, replace cost-line label hack
+**What changed:**
+- `.tool-currency-input` and `.tool-field-input`: switched from `appearance: textfield` to `appearance: none` (with `-moz-appearance: textfield` retained for Firefox spinner suppression). On Safari/macOS, `appearance: textfield` was reapplying native widget styling — including a white background that won over `background: transparent` — so the freelance-rate-calculator's currency inputs rendered as a small white pill instead of the dark themed look.
+- Both inputs bumped to `padding: 12px 14px` and `font-size: 1rem` to match the meatier feel of the salary-raise pay-input the user is used to.
+- `.tool-field-input` now hides webkit number-spinners and styles its placeholder, matching `.tool-currency-input` so a number `<InputField>` (e.g. the Quote-mode "Hours" field) sits visually beside a `<CurrencyInput>` without mismatch.
+- `.tool-currency-input` adds `min-width: 0` so it flex-shrinks correctly inside narrow columns; `.tool-currency-symbol` gets a small right padding (4px) for breathing room.
+- `.frc-costs-quick-row` and `.frc-costs-line` switched from `1fr` to `minmax(0, 1fr)` — `1fr`'s default min size of `auto` was letting the input's intrinsic size push the track open and looked off in narrow viewports.
+- CostsCard's detailed-mode line *label* input no longer uses a raw `<input>` with inline styles slapped on `tool-currency-input` (which had `border: none` and `flex: 1` — wrong for a top-level field). It's now a clean `<input className="tool-field-input">` with a proper aria-label.
+**Why:** User flagged "the input feed for the text or numbers is so bad and unlike anything else." Triaged the screenshot to two root causes (Safari's `textfield` appearance defeat + cost-line label hack) and brought the visual feel in line with the rest of the site.
+**Impact:** Affects every consumer of `.tool-field-input` (InputField) and `.tool-currency-input` (CurrencyInput) — that means the CGPA/salary-raise/etc. existing tools also gain the bumped padding and font-size. Visually this is consistent with the salary-raise pre-migration pay-input look, so it's a convergence rather than a divergence. All 110 tests across the affected components stay green.
+**Files changed:** `src/styles/tools.css`, `src/app/freelance-rate-calculator/freelance-rate-calculator.css`, `src/app/freelance-rate-calculator/components/CostsCard.js`.
+
+---
+
 ## 2026-05-06 - Freelance Rate Calculator: register on home + sitemap, archive plan
 **What changed:** Added the Freelance Rate Calculator tile to the home page tools grid (briefcase emoji 💼) and a sitemap entry at the standard 0.9 priority. Archived the build plan from `playground/roadmap/2026-05-06_00-30_freelance-rate-calculator/` to `playground/roadmap/1-completed/`. HANDOVER updated to reflect that the 7-commit branch is shipped locally and waiting on the user's browser-test pass before the review round.
 **Why:** Final wrap-up after the 7-commit feature branch. Tool is now discoverable from the home page once this branch merges.

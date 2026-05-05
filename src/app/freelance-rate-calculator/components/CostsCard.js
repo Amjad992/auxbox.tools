@@ -158,16 +158,11 @@ function CostLine({item, currency, onChange, onRemove}) {
     <div className="frc-costs-line">
       <input
         type="text"
-        className="tool-currency-input"
-        style={{
-          background: '#1f1f1f',
-          border: '1px solid var(--border-color)',
-          borderRadius: 8,
-          padding: '10px 12px',
-        }}
+        className="tool-field-input"
         value={item.label}
         placeholder="Label (e.g. Software)"
         onChange={(e) => onChange({label: e.target.value})}
+        aria-label="Cost line label"
       />
       <CurrencyInput
         id={`frc-cost-${item.id}`}
