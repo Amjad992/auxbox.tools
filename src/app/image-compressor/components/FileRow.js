@@ -41,13 +41,30 @@ export default function FileRow({item, onRemove}) {
   return (
     <div className={`ic-row ic-row--${status}`} data-row-id={id}>
       <div className="ic-row-main">
-        <div className="ic-row-name" title={name}>
-          {name}
+        {/* Name line: name + status chip on the same row so the chip's
+            appearance/disappearance never bumps the row's height. */}
+        <div className="ic-row-name-row">
+          <div className="ic-row-name" title={name}>
+            {name}
+          </div>
+          <span
+            className="ic-row-status-chip"
+            role="status"
+            aria-live="polite"
+          >
+            {isEncoding && (
+              <span className="ic-row-chip ic-row-chip--encoding">
+                {status === 'queued' ? 'Queued' : 'Compressing…'}
+              </span>
+            )}
+            {isError && (
+              <span className="ic-row-chip ic-row-chip--error">{error}</span>
+            )}
+          </span>
         </div>
 
-        {/* Meta line: always rendered so the row height is stable.
-            Shows size/savings when we have output (even stale during re-encode);
-            falls back to original size alone until first encode. */}
+        {/* Meta line: size/savings/dims. Stable height — chip moved to the
+            name line above to prevent re-encode jerk. */}
         <div className="ic-row-meta">
           <span className="ic-row-size">{formatBytes(originalSize)}</span>
           {hasOutput && (
@@ -72,17 +89,6 @@ export default function FileRow({item, onRemove}) {
               )}
             </>
           )}
-          {/* Inline status chip — always occupies this slot so layout doesn't shift */}
-          <span className="ic-row-status-chip" role="status" aria-live="polite">
-            {isEncoding && (
-              <span className="ic-row-chip ic-row-chip--encoding">
-                {status === 'queued' ? 'Queued' : 'Compressing…'}
-              </span>
-            )}
-            {isError && (
-              <span className="ic-row-chip ic-row-chip--error">{error}</span>
-            )}
-          </span>
         </div>
       </div>
 

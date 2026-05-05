@@ -148,7 +148,20 @@
   min-width: 0;
 }
 
+/* Name + status chip on the same line. Chip is right-aligned so it sits
+   in the slack to the right of the (potentially-ellipsised) name. */
+.ic-row-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 1.4rem;        /* reserves the chip's vertical slot even
+                                when no chip is shown */
+  min-width: 0;              /* allow the inner ellipsis to engage */
+}
+
 .ic-row-name {
+  flex: 1 1 auto;
+  min-width: 0;              /* let ellipsis kick in if name is long */
   color: var(--text-primary);
   font-weight: 600;
   font-size: 0.95rem;
@@ -198,11 +211,15 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* ic-row-status-chip: always rendered inline in the meta row so the row
-   height never changes between status transitions (Issue 4). */
+/* Status chip lives next to the name. Always rendered (even empty) so the
+   row's name line height stays constant across status transitions. */
 .ic-row-status-chip {
   display: inline-flex;
   align-items: center;
+  flex: 0 0 auto;
+  /* min-width reserves the slot even when no chip text is showing,
+     so the name-line height is identical between done/queued/encoding. */
+  min-width: 0;
 }
 
 .ic-row-chip {

@@ -14,6 +14,12 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-05 - Image Compressor: move row status chip from meta line to name line
+**What changed:** The "Queued" / "Compressing…" / error chip is now rendered next to the file name (right-aligned on the same line) instead of inside the meta row. Added a flex container `.ic-row-name-row` (`display: flex; align-items: center; gap: 0.6rem; min-height: 1.4rem`) wrapping the name + chip. The name uses `flex: 1 1 auto` with `min-width: 0` so it ellipsises when long; the chip uses `flex: 0 0 auto`. The meta row no longer carries the chip.
+**Why:** During slider movement, each row goes done → queued → encoding → done in quick succession. Even though the chip was always-mounted, its content (and chip-element padding/border) appearing inside the meta row caused the line height to grow when text appeared, which jerked the row's container vertically. Moving the chip up to the name line — where it lives in the slack to the right of the (potentially-ellipsised) name — keeps the row's overall height pinned by the name line's `min-height` and removes the jerk.
+**Impact:** Visual only. No behaviour change. Status text moved up; meta row now only carries size/savings/dimensions. Tests still green (no test referenced the chip's DOM location).
+**Files changed:** `src/app/image-compressor/components/FileRow.js`, `src/app/image-compressor/image-compressor.css`.
+
 ## 2026-05-05 - Unhide Image Compressor on home + sitemap (polish branch)
 **What changed:** Re-added the `/image-compressor` entry to `src/app/page.js` `TOOLS` and to `src/app/sitemap.js` (`lastModified: 2026-05-05`). Restores what `77cbb95` removed when the tool was parked. Sits on `feat/image-compressor-polish` — NOT merged to `main`, so the user can reassess in dev before any UX iteration lands.
 **Why:** User opened the polish branch to reassess the tool. The tool is only visible on the home page in dev if it's listed; this is the prereq for identifying what needs work.
