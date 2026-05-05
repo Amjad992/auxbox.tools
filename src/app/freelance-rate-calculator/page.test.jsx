@@ -77,13 +77,28 @@ describe('<FreelanceRateCalculator /> — Quote mode', () => {
     expect(screen.getAllByText(/€1,000/)[0]).toBeInTheDocument();
   });
 
-  it('mode-toggle to Rate shows the placeholder card', async () => {
+  it('Rate mode renders required-rate display + sensitivity table', async () => {
     const user = userEvent.setup();
     render(<FreelanceRateCalculator />);
     await user.click(screen.getByRole('radio', {name: /rate from target/i}));
+
     expect(
-      screen.getByText(/rate mode lands in the next commit/i)
+      screen.getByLabelText(/target annual take-home income/i)
     ).toBeInTheDocument();
+
+    await user.type(
+      screen.getByLabelText(/target annual take-home income/i),
+      '100000'
+    );
+
+    // Required rate appears.
+    expect(screen.getAllByText(/required hourly rate/i).length).toBeGreaterThan(0);
+
+    // Sensitivity table renders all utilization rows.
+    expect(screen.getAllByText(/50%/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/90%/).length).toBeGreaterThan(0);
+    // The default 70% row is highlighted as "yours".
+    expect(screen.getByText(/70% \(yours\)/)).toBeInTheDocument();
   });
 
   it('Income mode renders rate input, time card, and projection grid', async () => {

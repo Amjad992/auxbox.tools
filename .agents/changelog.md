@@ -14,6 +14,18 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-06 - Freelance Rate Calculator: Rate mode + sensitivity table (5/7)
+**What changed:** Rate mode wired end-to-end. Adds:
+- **RateInputs** — single `<CurrencyInput>` for the target annual take-home with helper copy.
+- **RateResult** — big monospaced display for the required hourly rate (full 2-decimal currency formatting because the dollars-and-cents matter here), daily/weekly equivalents, monthly billable hours, and a real `<table>` sensitivity grid showing the required rate at 50/60/70/80/90/100% utilization with the user's current row highlighted via `frc-sensitivity-current`.
+- **Page** — `rateResult` derived via `useMemo` calling `requiredRateForTakeHome` with the same TimeCard/CostsCard/FeesCard inputs. Rate mode reuses TimeCard, CostsCard, FeesCard (zero new infrastructure).
+- Page test added: target $100K → required-rate display + sensitivity row for each utilization, 70% row highlighted as "(yours)".
+**Why:** Branch `feat/freelance-rate-calculator`, commit 5 of 7.
+**Impact:** Math layer was complete in commit 3 (closed-form `requiredRateForTakeHome`); this commit only adds UI.
+**Files changed:** `src/app/freelance-rate-calculator/page.js` (Rate mode wiring), `src/app/freelance-rate-calculator/page.test.jsx` (Rate mode test, replaced obsolete placeholder assertion), `src/app/freelance-rate-calculator/components/RateInputs.js` and `RateResult.js` (new).
+
+---
+
 ## 2026-05-06 - Freelance Rate Calculator: Income mode (4/7)
 **What changed:** Income mode wired end-to-end on `/freelance-rate-calculator`. Adds three new cards:
 - **TimeCard** — sliders for hours/day, days/wk, weeks/yr, utilization with live "working / billable hrs/yr" chips.

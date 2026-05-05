@@ -19,6 +19,7 @@ import {
   billableHoursPerYear,
   incomeForRate,
   quote,
+  requiredRateForTakeHome,
   totalAnnualCosts,
 } from './utils';
 import {COSTS_VIEW, COST_PERIOD} from './constants';
@@ -27,6 +28,8 @@ import QuoteInputs from './components/QuoteInputs';
 import QuoteResult from './components/QuoteResult';
 import IncomeInputs from './components/IncomeInputs';
 import IncomeResult from './components/IncomeResult';
+import RateInputs from './components/RateInputs';
+import RateResult from './components/RateResult';
 import FeesCard from './components/FeesCard';
 import TimeCard from './components/TimeCard';
 import CostsCard from './components/CostsCard';
@@ -131,6 +134,26 @@ function FreelanceRateCalculatorContent() {
     [state.rate, billable, annualCosts, state.fees, state.team.people]
   );
 
+  const rateResult = useMemo(
+    () =>
+      requiredRateForTakeHome({
+        targetIncome: toNumberOrNull(state.targetIncome) ?? 0,
+        billableHours: billable,
+        costs: annualCosts,
+        fees: state.fees,
+        profitMargin: state.profitMargin,
+        people: state.team.people,
+      }),
+    [
+      state.targetIncome,
+      billable,
+      annualCosts,
+      state.fees,
+      state.profitMargin,
+      state.team.people,
+    ]
+  );
+
   return (
     <ToolPage
       title="Freelance Rate Calculator"
@@ -211,11 +234,34 @@ function FreelanceRateCalculatorContent() {
         )}
 
         {state.mode === MODES.RATE && (
-          <Card>
-            <p className="frc-coming-soon">
-              Rate mode lands in the next commit.
-            </p>
-          </Card>
+          <>
+            <RateInputs
+              targetIncome={state.targetIncome}
+              currency={state.currency}
+              onChange={(v) => update({targetIncome: toNumberOrNull(v)})}
+            />
+            <TimeCard
+              value={state.time}
+              onChange={(time) => update({time})}
+            />
+            <CostsCard
+              value={state.costs}
+              currency={state.currency}
+              onChange={(costs) => update({costs})}
+            />
+            <FeesCard value={state.fees} onChange={updateFees} />
+            <RateResult
+              result={rateResult}
+              currency={state.currency}
+              hasTarget={(toNumberOrNull(state.targetIncome) ?? 0) > 0}
+              time={state.time}
+              costs={annualCosts}
+              fees={state.fees}
+              profitMargin={state.profitMargin}
+              people={state.team.people}
+              utilizationCurrent={state.time.utilization}
+            />
+          </>
         )}
 
         <div className="frc-actions">
