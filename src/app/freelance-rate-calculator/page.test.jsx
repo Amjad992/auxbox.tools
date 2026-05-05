@@ -1,5 +1,5 @@
 import {describe, it, expect, beforeEach, vi} from 'vitest';
-import {fireEvent, render, screen} from '@testing-library/react';
+import {fireEvent, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 vi.mock('next/script', () => ({
@@ -154,6 +154,41 @@ describe('<FreelanceRateCalculator /> — Quote mode', () => {
     const profitSlider = screen.getByLabelText(/profit margin/i);
     fireEvent.change(profitSlider, {target: {value: '20'}});
     expect(profitSlider).toHaveValue('20');
+  });
+
+  it('export/import: import rehydrates state from a valid JSON config', async () => {
+    const user = userEvent.setup();
+    render(<FreelanceRateCalculator />);
+
+    // Build a valid payload from outside (default state with hours=7, rate=80).
+    const {DEFAULT_STATE} = await import('./constants');
+    const payload = {
+      schema: 'auxbox.freelance-rate-calculator',
+      version: '1.0.0',
+      exportedAt: '2026-05-06T00:00:00.000+00:00',
+      state: {...DEFAULT_STATE, hours: 7, rate: 80},
+    };
+    const file = new File([JSON.stringify(payload)], 'config.json', {
+      type: 'application/json',
+    });
+
+    const fileInput = screen.getByTestId('frc-import-file');
+    await user.upload(fileInput, file);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/^hours$/i)).toHaveValue(7);
+    });
+    expect(screen.getByLabelText(/hourly rate/i)).toHaveValue(80);
+  });
+
+  it('export/import: invalid JSON shows an error message', async () => {
+    const user = userEvent.setup();
+    render(<FreelanceRateCalculator />);
+    const file = new File(['not json at all'], 'bad.json', {
+      type: 'application/json',
+    });
+    await user.upload(screen.getByTestId('frc-import-file'), file);
+    expect(screen.getAllByRole('alert')[0]).toHaveTextContent(/json/i);
   });
 
   it('Clear resets state and wipes storage', async () => {

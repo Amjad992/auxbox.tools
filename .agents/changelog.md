@@ -14,6 +14,19 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-06 - Freelance Rate Calculator: JSON config export/import + CSV breakdown (7/7)
+**What changed:** New `ExportImportCard` rendered at the bottom of every mode. Three actions:
+- **Download config (.json)** — exports the full state inside an envelope `{schema: 'auxbox.freelance-rate-calculator', version, exportedAt, state}` for forward-compat. Filename includes today's ISO date.
+- **Download breakdown (.csv)** — Income mode only. Builds a CSV with the five-horizon gross+net rows and the annual breakdown, currency code embedded in the header. Cells with embedded commas/quotes/newlines are CSV-escaped.
+- **Import config (.json)** — file input that runs the same `validateFreelanceRateState` as localStorage, then `setState` if valid. Invalid imports show an inline alert and a toast.
+- New module `exportUtils.js` with the pure helpers (`buildConfigPayload`, `parseConfigText`, `buildIncomeCsv`, `defaultConfigFilename`, `defaultBreakdownFilename`, `triggerDownload`). Unit tests in `exportUtils.test.js` cover round-trip, schema-marker check, validation rejection, and CSV header presence/escaping. Page tests cover the full upload→rehydrate flow and the invalid-JSON error path.
+- File reading uses `FileReader` (jsdom's `File.text()` returns empty in the Vitest harness; FileReader is the reliable cross-environment path).
+**Why:** Branch `feat/freelance-rate-calculator`, commit 7 of 7. Closes the feature scope per the original plan.
+**Impact:** No new state shape changes — the export envelope wraps the existing storage state so JSON imports and the localStorage rehydrate path share one validator. Time-tracking *integration* (Toggl/Harvest/etc.) remains explicitly out of scope; this commit ships the export-only side of the user's "no deferrals" instruction.
+**Files changed:** `src/app/freelance-rate-calculator/exportUtils.js` (new), `src/app/freelance-rate-calculator/exportUtils.test.js` (new), `src/app/freelance-rate-calculator/components/ExportImportCard.js` (new), `src/app/freelance-rate-calculator/page.js`, `src/app/freelance-rate-calculator/page.test.jsx`.
+
+---
+
 ## 2026-05-06 - Freelance Rate Calculator: Team multiplier + profit buffer (6/7)
 **What changed:** Two new cards rendered in Income and Rate modes:
 - **TeamCard** — slider 1–50 for number of billable people. v1 simplification: every teammate shares the same rate + utilization, so total revenue scales linearly. State already existed (`team.people` was wired through the math layer in commit 3); this commit just exposes the UI.

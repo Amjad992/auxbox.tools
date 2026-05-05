@@ -32,6 +32,7 @@ import RateInputs from './components/RateInputs';
 import RateResult from './components/RateResult';
 import TeamCard from './components/TeamCard';
 import ProfitCard from './components/ProfitCard';
+import ExportImportCard from './components/ExportImportCard';
 import FeesCard from './components/FeesCard';
 import TimeCard from './components/TimeCard';
 import CostsCard from './components/CostsCard';
@@ -94,6 +95,11 @@ function FreelanceRateCalculatorContent() {
     setState(DEFAULT_STATE);
     markClean();
     showToast('Cleared', 'success');
+  };
+
+  const handleImport = (imported) => {
+    markDirty();
+    setState(imported);
   };
 
   const canClear = useMemo(
@@ -277,6 +283,14 @@ function FreelanceRateCalculatorContent() {
             />
           </>
         )}
+
+        <ExportImportCard
+          state={state}
+          incomeResult={incomeResult}
+          showCsvButton={state.mode === MODES.INCOME}
+          onImport={handleImport}
+          onMessage={showToast}
+        />
 
         <div className="frc-actions">
           <Button
