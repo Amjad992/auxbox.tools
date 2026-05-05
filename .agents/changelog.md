@@ -14,6 +14,18 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-06 - Add /freelance-rate-calculator scaffold + Quote mode (3/7)
+**What changed:** New `/freelance-rate-calculator` route with the full state/persistence scaffold and Quote mode wired end-to-end. The route renders a mode-toggle (Quote / Income / Rate; Income & Rate currently show a placeholder card to be filled in subsequent commits), currency selector with 10 ISO codes, hours+rate inputs, and a Fees & Taxes card with platform/processor/income-tax/other sliders plus presets (Direct, Upwork 10%, Fiverr 20%, Stripe 2.9%, PayPal 3.4%). The Quote result card renders the gross, each non-zero deduction line, the take-home, and an effective hourly rate footnote, all formatted via `formatCurrency` so the currency selector updates rendering live.
+- Pure math in `utils.js`: `workingHoursPerYear`, `billableHoursPerYear`, `totalAnnualCosts`, `applyFees` (compound chain), `quote`, `incomeForRate`, `requiredRateForTakeHome` (closed-form algebra). 27 math tests cover edge cases, the round-trip identity (`requiredRateForTakeHome` ↔ `incomeForRate`), and team/profit scaling.
+- Persistence: `freelance_rate_calculator_state` via `createStorageContext`. Auto-save through the shared `useAutoSave` hook; mount-once hydration via `useHydrateStorage`. Validator covers the full state shape including the still-unused fields for Income/Rate modes (so the schema is stable from this commit forward).
+- Defaults baked in: 8 hr/day, 5 day/wk, 48 wk/yr, 70% utilization, 1 person, $0 costs, **0% income tax** (user override; was 25%), 0% profit margin.
+- Page tests cover quote computation (10 × $100 = $1,000), the compound fee chain via the Upwork 10% preset, the currency-selector live-update, mode-toggle placeholder, Clear, and persistence round-trip.
+**Why:** Branch `feat/freelance-rate-calculator`, commit 3 of a planned 7-commit build per `playground/roadmap/2026-05-06_00-30_freelance-rate-calculator/plan.md`. The user requested a multi-commit split rather than a single monolith.
+**Impact:** Tool not yet linked from the home page or sitemap; final wrap-up commit will register it. No regressions in prior tools.
+**Files changed:** `src/app/freelance-rate-calculator/` (new directory: `constants.js`, `utils.js`, `utils.test.js`, `storageUtils.js`, `StorageContext.js`, `layout.js`, `page.js`, `page.test.jsx`, `freelance-rate-calculator.css`, `components/CurrencyCard.js`, `components/QuoteInputs.js`, `components/QuoteResult.js`, `components/FeesCard.js`).
+
+---
+
 ## 2026-05-06 - Lift `<CurrencyInput>` to src/components/ + migrate salary-raise (freelance-rate-calculator 2/7)
 **What changed:** New shared `<CurrencyInput>` component — labelled numeric input with a leading currency symbol resolved via `Intl.NumberFormat.formatToParts` (so locales rendering "CA$" or "د.إ" work natively). Forwards the native event on change for drop-in replacement of `<input type="number">`. Shared CSS classes `.tool-currency-*` added to `src/styles/tools.css`. Migrated `salary-raise-calculator`'s `PaySection` to consume the shared component for the four pay-period inputs (the percent input keeps the existing `pay-input` styling since it isn't currency).
 **Why:** Place-it-right policy — confirmed second consumer (the upcoming Freelance Rate Calculator and the existing Salary Raise Calculator). Avoids each tool re-styling its own currency-prefixed field.

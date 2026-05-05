@@ -1,0 +1,455 @@
+/* Freelance Rate Calculator — local styles. */
+
+.frc-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.frc-card-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+}
+
+.frc-card-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.frc-card-hint {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.frc-card-hint code {
+  background: rgba(255, 255, 255, 0.06);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+/* Currency selector */
+.frc-currency-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.6rem 1rem;
+}
+
+.frc-currency-label {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.frc-currency-select {
+  background-color: #1f1f1f;
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.frc-currency-select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.15);
+}
+
+.frc-currency-note {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-light);
+}
+
+/* Quote-mode inputs */
+.frc-quote-inputs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+/* Quote result */
+.frc-quote-result {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.frc-quote-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  padding: 4px 0;
+}
+
+.frc-quote-line--bold {
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+.frc-quote-line--deduction {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.frc-quote-line--primary {
+  color: var(--primary-color);
+  font-size: 1.4rem;
+  font-weight: 700;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas,
+      monospace);
+}
+
+.frc-quote-amount {
+  font-variant-numeric: tabular-nums;
+}
+
+.frc-quote-divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 0.5rem 0;
+}
+
+.frc-quote-footnote {
+  margin: 0.6rem 0 0;
+  font-size: 0.85rem;
+  color: var(--text-light);
+  font-style: italic;
+}
+
+.frc-quote-empty {
+  margin: 0;
+  padding: 0.75rem 0;
+  color: var(--text-light);
+  font-style: italic;
+}
+
+/* Fees presets */
+.frc-fees-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.frc-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+}
+
+.frc-preset {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  color: var(--text-secondary);
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease,
+    background-color 0.15s ease;
+  font-family: inherit;
+}
+
+.frc-preset:hover {
+  border-color: var(--primary-color);
+  color: var(--text-primary);
+}
+
+.frc-preset--active {
+  background: rgba(255, 107, 107, 0.12);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+/* Mode-toggle row */
+.frc-mode-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.frc-mode-hint {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+/* Time & utilization */
+.frc-time-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.frc-time-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.6rem;
+}
+
+.frc-time-chip {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+}
+
+/* Costs */
+.frc-costs-toggle {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.8rem;
+}
+
+.frc-costs-toggle-btn {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-family: inherit;
+  transition: all 0.15s ease;
+}
+
+.frc-costs-toggle-btn--active {
+  background: rgba(255, 107, 107, 0.12);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.frc-costs-quick-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.frc-costs-period {
+  background-color: #1f1f1f;
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 0.9rem;
+  outline: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.2s ease;
+}
+
+.frc-costs-period:focus {
+  border-color: var(--primary-color);
+}
+
+.frc-costs-line-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.frc-costs-line {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto auto;
+  gap: 0.5rem;
+  align-items: end;
+}
+
+@media (max-width: 720px) {
+  .frc-costs-line {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.frc-costs-line-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.frc-costs-total {
+  margin-top: 0.6rem;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  border-top: 1px solid var(--border-color);
+  padding-top: 0.6rem;
+}
+
+.frc-costs-total-amount {
+  color: var(--text-primary);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Income mode */
+.frc-income-row-label {
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin: 1rem 0 0.5rem;
+  font-weight: 600;
+}
+
+.frc-income-empty {
+  margin: 0;
+  padding: 0.75rem 0;
+  color: var(--text-light);
+  font-style: italic;
+}
+
+.frc-income-breakdown-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.frc-income-breakdown-table th,
+.frc-income-breakdown-table td {
+  text-align: left;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.frc-income-breakdown-table th {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.frc-income-breakdown-table td {
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Rate mode */
+.frc-rate-display {
+  text-align: center;
+  padding: 1.5rem 0;
+}
+
+.frc-rate-display-label {
+  margin: 0 0 0.5rem;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+}
+
+.frc-rate-display-value {
+  margin: 0;
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas,
+      monospace);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.frc-rate-display-equiv {
+  margin-top: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.frc-sensitivity-caption {
+  margin: 1rem 0 0.4rem;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  text-align: left;
+}
+
+.frc-sensitivity-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.frc-sensitivity-table th,
+.frc-sensitivity-table td {
+  text-align: right;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.frc-sensitivity-table th:first-child,
+.frc-sensitivity-table td:first-child {
+  text-align: left;
+}
+
+.frc-sensitivity-table th {
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.frc-sensitivity-table td {
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.frc-sensitivity-table tr.frc-sensitivity-current td {
+  background: rgba(255, 107, 107, 0.08);
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+/* Actions */
+.frc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+/* Export buttons */
+.frc-export-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border-color);
+}
+
+/* Number input that mimics CurrencyInput visually but no symbol */
+.frc-num-suffix {
+  color: var(--text-secondary);
+  font-weight: 500;
+  padding-right: 12px;
+  font-size: 0.9rem;
+}
+
+.frc-coming-soon {
+  margin: 0;
+  padding: 1rem 0;
+  color: var(--text-light);
+  font-style: italic;
+  text-align: center;
+}
