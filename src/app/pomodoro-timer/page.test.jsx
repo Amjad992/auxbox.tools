@@ -278,47 +278,191 @@ describe('<PomodoroTimer /> — mute toggle suppresses Audio.play', () => {
   });
 });
 
-describe('<PomodoroTimer /> — notifications opt-in', () => {
-  it('Enable notifications calls Notification.requestPermission and updates UI on grant', async () => {
-    const requestSpy = vi.fn().mockResolvedValue('granted');
+describe('<PomodoroTimer /> — notification toggle (4 states)', () => {
+  function stubNotification(permission, requestResult = permission) {
+    const requestSpy = vi.fn().mockResolvedValue(requestResult);
     function NotificationStub() {}
-    NotificationStub.permission = 'default';
+    NotificationStub.permission = permission;
     NotificationStub.requestPermission = requestSpy;
     Object.defineProperty(globalThis, 'Notification', {
       value: NotificationStub,
       configurable: true,
       writable: true,
     });
+    return requestSpy;
+  }
 
+  // State A: permission='default', notifyEnabled=false → "Enable notifications" button;
+  // clicking requests permission, on grant button becomes "Disable notifications".
+  it('State A: requests permission and shows Disable button on grant', async () => {
+    const requestSpy = stubNotification('default', 'granted');
     const user = userEvent.setup();
     render(<PomodoroTimer />);
-    const enableBtn = screen.getByRole('button', {
-      name: /enable desktop notifications/i,
-    });
+
+    const enableBtn = screen.getByRole('button', {name: /enable desktop notifications/i});
     await user.click(enableBtn);
 
     expect(requestSpy).toHaveBeenCalledTimes(1);
-    // The "Enable notifications" button is replaced by the inline status note.
-    expect(
-      screen.queryByRole('button', {name: /enable desktop notifications/i})
-    ).not.toBeInTheDocument();
-    // Multiple matches expected (toast + inline status).
-    expect(
-      screen.getAllByText(/desktop notifications enabled\./i).length
-    ).toBeGreaterThanOrEqual(1);
+    // Enable button is gone; Disable button appears.
+    expect(screen.queryByRole('button', {name: /enable desktop notifications/i})).not.toBeInTheDocument();
+    expect(screen.getByRole('button', {name: /disable desktop notifications/i})).toBeInTheDocument();
+    // Toast confirms enable.
+    expect(screen.getByText(/desktop notifications enabled\./i)).toBeInTheDocument();
   });
 
-  it('does nothing when the Notification API is missing', async () => {
-    delete globalThis.Notification;
+  // State B: permission='granted', notifyEnabled=true → "Disable notifications" button;
+  // clicking turns off without re-requesting.
+  it('State B: shows Disable button when already granted+enabled; click disables without re-requesting', async () => {
+    const requestSpy = stubNotification('granted');
+    window.localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        version: '1.0.0',
+        data: {
+          settings: {workMinutes: 25, shortBreakMinutes: 5, longBreakMinutes: 15, longBreakEvery: 4, muted: false, notifyEnabled: true},
+          runtime: {phase: 'work', status: 'idle', startedAt: null, accumulatedMs: 0, completedWorkSessions: 0},
+          history: {},
+        },
+      })
+    );
     const user = userEvent.setup();
     render(<PomodoroTimer />);
-    const enableBtn = screen.getByRole('button', {
-      name: /enable desktop notifications/i,
-    });
+
+    const disableBtn = screen.getByRole('button', {name: /disable desktop notifications/i});
+    await user.click(disableBtn);
+
+    expect(requestSpy).not.toHaveBeenCalled();
+    // Now shows Enable button again (permission stays granted but notifyEnabled=false).
+    expect(screen.getByRole('button', {name: /enable desktop notifications/i})).toBeInTheDocument();
+    expect(screen.queryByRole('button', {name: /disable desktop notifications/i})).not.toBeInTheDocument();
+    expect(screen.getByText(/desktop notifications disabled\./i)).toBeInTheDocument();
+  });
+
+  // State C: permission='granted', notifyEnabled=false → "Enable notifications";
+  // clicking re-enables without re-requesting permission.
+  it('State C: re-enables without re-requesting when permission already granted', async () => {
+    const requestSpy = stubNotification('granted');
+    window.localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        version: '1.0.0',
+        data: {
+          settings: {workMinutes: 25, shortBreakMinutes: 5, longBreakMinutes: 15, longBreakEvery: 4, muted: false, notifyEnabled: false},
+          runtime: {phase: 'work', status: 'idle', startedAt: null, accumulatedMs: 0, completedWorkSessions: 0},
+          history: {},
+        },
+      })
+    );
+    const user = userEvent.setup();
+    render(<PomodoroTimer />);
+
+    const enableBtn = screen.getByRole('button', {name: /enable desktop notifications/i});
     await user.click(enableBtn);
-    expect(
-      screen.getByText(/notifications are not supported/i)
-    ).toBeInTheDocument();
+
+    expect(requestSpy).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', {name: /disable desktop notifications/i})).toBeInTheDocument();
+    expect(screen.getByText(/desktop notifications enabled\./i)).toBeInTheDocument();
+  });
+
+  // State D: permission='denied' → explanatory text, no button.
+  it('State D: shows explanatory text when notifications are denied', () => {
+    stubNotification('denied');
+    render(<PomodoroTimer />);
+
+    expect(screen.queryByRole('button', {name: /enable desktop notifications/i})).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', {name: /disable desktop notifications/i})).not.toBeInTheDocument();
+    expect(screen.getByText(/notifications blocked in browser/i)).toBeInTheDocument();
+  });
+
+  // Enable → Disable → Enable cycle (States A → B → C).
+  it('full enable-disable-enable cycle works without re-requesting', async () => {
+    const requestSpy = stubNotification('default', 'granted');
+    const user = userEvent.setup();
+    render(<PomodoroTimer />);
+
+    // Enable (State A → grant → State B).
+    await user.click(screen.getByRole('button', {name: /enable desktop notifications/i}));
+    expect(requestSpy).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('button', {name: /disable desktop notifications/i})).toBeInTheDocument();
+
+    // Disable (State B → State C, shown as "Enable").
+    await user.click(screen.getByRole('button', {name: /disable desktop notifications/i}));
+    expect(requestSpy).toHaveBeenCalledTimes(1); // no second request
+    expect(screen.getByRole('button', {name: /enable desktop notifications/i})).toBeInTheDocument();
+
+    // Re-enable (State C → State B).
+    await user.click(screen.getByRole('button', {name: /enable desktop notifications/i}));
+    expect(requestSpy).toHaveBeenCalledTimes(1); // still no additional request
+    expect(screen.getByRole('button', {name: /disable desktop notifications/i})).toBeInTheDocument();
+  });
+
+  it('shows "not supported" note and no button when the Notification API is missing', () => {
+    delete globalThis.Notification;
+    render(<PomodoroTimer />);
+    // No enable/disable buttons when the API is absent.
+    expect(screen.queryByRole('button', {name: /enable desktop notifications/i})).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', {name: /disable desktop notifications/i})).not.toBeInTheDocument();
+    expect(screen.getByText(/notifications not supported in this browser/i)).toBeInTheDocument();
+  });
+});
+
+describe('<PomodoroTimer /> — work-duration across phase cycle (issue 3 regression)', () => {
+  it('second work session shows the custom workMinutes after work→break→work cycle', async () => {
+    // Seed: 30 min work, 1 min short break (speeds up the test), muted.
+    window.localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        version: '1.0.0',
+        data: {
+          settings: {
+            workMinutes: 30,
+            shortBreakMinutes: 1,
+            longBreakMinutes: 15,
+            longBreakEvery: 4,
+            muted: true,
+            notifyEnabled: false,
+          },
+          runtime: {phase: 'work', status: 'idle', startedAt: null, accumulatedMs: 0, completedWorkSessions: 0},
+          history: {},
+        },
+      })
+    );
+
+    const user = userEvent.setup();
+    let now = 1_700_000_000_000;
+    vi.spyOn(Date, 'now').mockImplementation(() => now);
+    let rafCb = null;
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => {
+      rafCb = cb;
+      return 1;
+    });
+    vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => {});
+
+    render(<PomodoroTimer />);
+    // Initial display: 30:00
+    expect(screen.getByRole('timer')).toHaveTextContent('30:00');
+
+    // Start work session.
+    await user.click(screen.getByRole('button', {name: /^start$/i}));
+
+    // Advance past the 30-min work duration.
+    now += 30 * 60_000 + 1_000;
+    act(() => { if (rafCb) rafCb(now); });
+
+    // Phase has auto-completed → now in Short break (paused).
+    expect(screen.getByLabelText(/current phase: short break/i)).toBeInTheDocument();
+    expect(screen.getByRole('timer')).toHaveTextContent('01:00');
+
+    // Start the break.
+    await user.click(screen.getByRole('button', {name: /^start$/i}));
+
+    // Advance past the 1-min break.
+    now += 60_000 + 1_000;
+    act(() => { if (rafCb) rafCb(now); });
+
+    // Second work session: must show 30:00, not the short-break duration (1:00).
+    expect(screen.getByLabelText(/current phase: work/i)).toBeInTheDocument();
+    expect(screen.getByRole('timer')).toHaveTextContent('30:00');
   });
 });
 

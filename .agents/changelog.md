@@ -14,6 +14,26 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-04 - Pomodoro Timer: chime length, notification toggle, work-duration guard
+
+**What changed:** Three UX/correctness fixes on the Pomodoro Timer:
+
+1. **Chime length (Issue 1):** Replaced the original ~9 KB, ~200 ms 880 Hz sine WAV with a new triple-beep WAV (~1.75 s, 27 KB, 8000 Hz mono 16-bit PCM). Pattern: 880 Hz × 250 ms → 250 ms gap → 880 Hz × 250 ms → 250 ms gap → 1100 Hz × 250 ms (ascending close) → 500 ms tail silence. Each beep uses an 8 % linear attack / 42 % sustain / 50 % linear-decay envelope to avoid clicks. Generated locally with a Node one-shot (not committed). Documented at the `new Audio(...)` call site in `src/app/pomodoro-timer/page.js`.
+
+2. **Notification toggle (Issue 2):** The "Enable notifications" button is now a true toggle with four states:
+   - State A (`permission='default'`, `notifyEnabled=false`): "Enable notifications" — clicks → requests permission, on grant sets `notifyEnabled=true`.
+   - State B (`permission='granted'`, `notifyEnabled=true`): "Disable notifications" — clicks → sets `notifyEnabled=false`, no re-request.
+   - State C (`permission='granted'`, `notifyEnabled=false`): "Enable notifications" — clicks → sets `notifyEnabled=true` directly, no re-request.
+   - State D (`permission='denied'`): explanatory status span ("Notifications blocked in browser — update your browser settings to enable."), no button.
+   - API-absent: "Notifications not supported in this browser." (existing behaviour, now shown instead of State D).
+   Also fixed: `fireNotification` now checks `settings.notifyEnabled` in addition to `permission === 'granted'`, so toggling off actually suppresses the `new Notification(...)` call.
+
+3. **Work-duration across phase cycle (Issue 3):** Investigated the suspected stale-closure root cause. Thorough review of `hooks.js`, `utils.js`, `page.js`, `storageUtils.js`, and `useTicker.js` confirmed that the state machine, `completePhase`, `durationFor`, and `computeRemaining` are all correct. `currentPhaseDurationMs = durationFor(runtime.phase, settings)` recomputes fresh on every render; `stateRef.current` ensures `completePhase` reads the latest runtime; `callbackRef` in `useTicker` ensures `onTick` always uses the latest callback. No code-level bug was found — the suspected stale-closure double-completion scenario is neutralised by React 18's render-flush ordering. A regression test (work=30 min, full work→break→work cycle via rAF mocking) is added and passes, confirming correct behaviour and providing a guard against future regressions.
+
+**Why:** User-reported issues after initial Pomodoro Timer shipment.
+**Impact:** Test count: 653 → 658 (+5 new notification-toggle and phase-cycle tests). Lint: 0 errors. Build: green. Asset: `public/sounds/pomodoro-chime.wav` replaced (27 KB, ~1.75 s).
+**Files changed:** `public/sounds/pomodoro-chime.wav`, `src/app/pomodoro-timer/page.js`, `src/app/pomodoro-timer/page.test.jsx`.
+
 ## 2026-05-04 - Add Pomodoro Timer (/pomodoro-timer); lift useNotificationPermission to src/hooks/
 **What changed:** New `/pomodoro-timer` route — configurable Pomodoro Timer with Work / Short break / Long break phase machine, long-break cadence (default every 4 work sessions), big monospaced `MM:SS` display, phase pill, progress bar, Start / Pause / Skip / Reset controls, mute toggle, opt-in desktop notifications, audible chime on phase completion, today's count + last-7-days history strip, and tab-title timer while running. Persists `{settings, runtime, history}` under `pomodoro_timer_state` via `createStorageContext` (300 ms debounced auto-save, dirty-ref gated, synchronous Reset that wipes runtime only — settings + history preserved; markdown-preview MAJ-2 fix shape applied). Wall-clock reads via Luxon `DateTime.now().toMillis()`; today's-date key via `DateTime.local().toISODate()` so midnight rollover Just Works. Consumes the existing `useTicker`, `useDocumentTitle`, `<Slider>`, `<Card>`, `<Button>`, `<ToastContainer>` shared primitives off the shelf.
 
