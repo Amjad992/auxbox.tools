@@ -66,6 +66,10 @@ function PomodoroContent() {
   } = pomo;
 
   const [hydrated, setHydrated] = useState(false);
+  // Tracks whether the component has mounted on the client. Used to gate
+  // notification-permission UI that reads browser APIs unavailable during SSR
+  // (preventing hydration mismatches on `permission` and `supported`).
+  const [mounted, setMounted] = useState(false);
   // Re-render trigger for the rAF loop. Display values are computed at render
   // time from runtime + DateTime.now().toMillis().
   const [, setTick] = useState(0);
@@ -122,6 +126,7 @@ function PomodoroContent() {
       restore(saved);
     }
     setHydrated(true);
+    setMounted(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -448,8 +453,21 @@ function PomodoroContent() {
               C  granted + notifyDisabled → "Enable notifications" (no re-prompt needed)
               D  denied                  → explanatory text, no button
               When the API is not supported at all, a separate "not supported" note is shown.
+
+              Pre-mount: render a stable disabled placeholder matching the most-likely
+              client state (State A button) so SSR and the initial client render agree,
+              preventing a hydration mismatch on `permission` and `supported`.
             */}
-            {!notificationsSupported ? (
+            {!mounted ? (
+              <Button
+                variant="info"
+                onClick={handleToggleNotifications}
+                aria-label="Enable desktop notifications"
+                disabled
+              >
+                Enable notifications
+              </Button>
+            ) : !notificationsSupported ? (
               <span className="pt-notify-status">
                 Notifications not supported in this browser.
               </span>

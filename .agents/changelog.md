@@ -14,6 +14,16 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-04 - Fix: pomodoro hydration mismatch on notification settings
+
+**What changed:** Added a `mounted` boolean state (set to `true` in the same `useEffect` that sets `hydrated`) in `PomodoroContent`. The notification-toggle section of the Settings card is now gated on `mounted`. Before mount, a stable disabled "Enable notifications" placeholder button is rendered — matching the SSR output. After mount, the four real notification states (A/B/C/D based on `permission`, `notifyEnabled`, and `supported`) render as before. This eliminates the Next.js hydration mismatch caused by `useNotificationPermission` returning `supported=false`/`permission='denied'` during SSR and real browser values on first client render.
+
+**Why:** Browser console showed a React hydration error on `/pomodoro-timer` — the notification status span rendered `aria-live="polite"` + status text on the client but nothing on the server, causing a server/client DOM mismatch.
+
+**Impact:** No behaviour change post-mount. Test count unchanged (existing notification-toggle tests use RTL which flushes effects synchronously, so `mounted` is `true` by the time assertions run). Lint: 0 errors. Build: green. No hydration warning in browser.
+
+**Files changed:** `src/app/pomodoro-timer/page.js`.
+
 ## 2026-05-04 - Pomodoro Timer: chime length, notification toggle, work-duration guard
 
 **What changed:** Three UX/correctness fixes on the Pomodoro Timer:
