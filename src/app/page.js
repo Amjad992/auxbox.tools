@@ -97,6 +97,14 @@ const TOOLS = [
       'Decode any cron expression into plain English and see the next 5 fire times in your local time zone. One-click presets for common patterns.',
     cta: 'Open tool',
   },
+  {
+    href: '/pdf-merger',
+    icon: '📎',
+    name: 'PDF Merger',
+    description:
+      'Combine multiple PDFs into one. Drag to reorder, optionally pick per-file page ranges, and download — files never leave your browser.',
+    cta: 'Open tool',
+  },
 ];
 
 export default function Home() {

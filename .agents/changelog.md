@@ -14,6 +14,12 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-05 - Add PDF Merger (`/pdf-merger`)
+**What changed:** New `/pdf-merger` route. Drop multiple PDFs (shared `<DropZone>` consumer with `accept="application/pdf"`, `multiple={true}`); per-file row showing name, size (via shared `formatBytes`), page count, page-range input, drag handle + up/down keyboard buttons, remove button. HTML5 native drag-and-drop reorder (no DnD library). Async parse via `pdf-lib`'s `PDFDocument.load()` to populate page count and detect encryption. Page-range syntax `"1-3,5,7-9"` (1-based, empty = all pages); validated against actual page count with friendly inline errors. Hard caps: 50 MB per file, 8 files total. Encrypted PDFs surfaced with a friendly "Password-protected PDFs are not supported" error. Merge pipeline (`pipeline.js`) creates a new `PDFDocument`, calls `copyPages` per source, returns a Blob; fully async, fully in-memory. **No persistence at all** — files exist for the page session only (privacy: PDFs are user-private content). Live region (`role="status" aria-live="polite"`) announces merge state; `role="alert"` for top-level errors. Files-never-leave-the-browser copy on the page. New dep: `pdf-lib@1.17.1`. No shared lifts in this change — `<DropZone>` and `formatBytes` were already shared (lifted during the image-compressor build); image-compressor's `<FileRow>` is shaped differently and was deliberately NOT consolidated.
+**Why:** Last tool from the original 10-tool batch. Reuses the shared file-input primitives that were lifted ahead of this exact use case during the image-compressor build.
+**Impact:** 685 → 754 tests passing (+69: utils 21 + pipeline 12 + hooks 18 + page 18). Lint: 0 errors (2 pre-existing QR `<img>` warnings unchanged). Build: green; `/pdf-merger` static. Bundle adds `pdf-lib` (~50 KB gzipped); no other deps.
+**Files changed:** `src/app/pdf-merger/{page.js, layout.js, constants.js, utils.js, utils.test.js, pipeline.js, pipeline.test.js, hooks.js, hooks.test.js, page.test.jsx, pdf-merger.css, components/PdfFileRow.js}`, `src/app/page.js` (TOOLS entry), `src/app/sitemap.js` (route entry), `package.json`, `package-lock.json`.
+
 ## 2026-05-05 - Fix cron-explainer general review (1 blocker, 3 major, 4 minor)
 
 **What changed:** Applied all 8 findings from the general review round on `feat/cron-explainer`.

@@ -1,0 +1,252 @@
+/* PDF Merger — tool-specific layout only.
+   Page shell, hero, card surface, buttons, and drop zone visuals come
+   from src/styles/tools.css. */
+
+.pm-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding-bottom: 2rem;
+}
+
+.pm-privacy {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.pm-privacy strong {
+  color: var(--text-primary);
+}
+
+.pm-section-heading {
+  margin: 0 0 0.75rem;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.pm-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.pm-list-empty {
+  margin: 0;
+  color: var(--text-light);
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 1rem 0;
+}
+
+.pm-rejections {
+  margin: 0 0 0.75rem;
+  padding: 0.75rem 1rem;
+  background: rgba(231, 76, 60, 0.08);
+  border: 1px solid rgba(231, 76, 60, 0.4);
+  border-radius: 8px;
+  color: #f3a8a0;
+  font-size: 0.85rem;
+}
+
+.pm-rejections-list {
+  margin: 0.4rem 0 0;
+  padding-left: 1.25rem;
+}
+
+.pm-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.85rem 1rem;
+  background-color: #1f1f1f;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  transition: border-color 0.2s ease, opacity 0.2s ease;
+}
+
+.pm-row--parsing {
+  border-color: rgba(255, 107, 107, 0.4);
+}
+
+.pm-row--error {
+  border-color: rgba(231, 76, 60, 0.6);
+  background-color: rgba(231, 76, 60, 0.06);
+}
+
+.pm-row--ready {
+  border-color: rgba(39, 174, 96, 0.4);
+}
+
+.pm-row--dragging {
+  opacity: 0.5;
+}
+
+.pm-row-handle {
+  flex-shrink: 0;
+  font-size: 1.1rem;
+  color: var(--text-light);
+  cursor: grab;
+  user-select: none;
+  padding-top: 0.15rem;
+}
+
+.pm-row-handle:active {
+  cursor: grabbing;
+}
+
+.pm-row-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.pm-row-name {
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pm-row-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.pm-row-size {
+  font-variant-numeric: tabular-nums;
+}
+
+.pm-row-dot {
+  color: var(--text-light);
+}
+
+.pm-row-status--parsing {
+  color: var(--primary-color);
+}
+
+.pm-row-status--error {
+  color: #e74c3c;
+}
+
+.pm-row-range {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.pm-row-range-label {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.pm-row-range-input {
+  width: 12rem;
+  background-color: #161616;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pm-row-range-input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.15);
+}
+
+.pm-row-range-input--error {
+  border-color: #e74c3c;
+}
+
+.pm-row-range-error {
+  width: 100%;
+  font-size: 0.8rem;
+  color: #e74c3c;
+}
+
+.pm-row-actions {
+  display: flex;
+  gap: 0.4rem;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.pm-row-nudge {
+  width: 32px;
+  height: 32px;
+  background-color: #161616;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.pm-row-nudge:hover:not(:disabled) {
+  background-color: #2a2a2a;
+  color: var(--text-primary);
+}
+
+.pm-row-nudge:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.pm-merge-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.pm-merge-error {
+  margin: 0 0 0.5rem;
+  padding: 0.6rem 0.85rem;
+  background: rgba(231, 76, 60, 0.08);
+  border: 1px solid rgba(231, 76, 60, 0.45);
+  border-radius: 8px;
+  color: #f3a8a0;
+  font-size: 0.9rem;
+}
+
+.pm-live-region {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 600px) {
+  .pm-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .pm-row-actions {
+    justify-content: flex-end;
+  }
+  .pm-row-range-input {
+    width: 100%;
+  }
+}
