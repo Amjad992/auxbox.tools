@@ -113,6 +113,14 @@ const TOOLS = [
       'Shrink JPEG, PNG, and WebP images entirely in your browser. Pick a quality, optionally cap dimensions, and download — no uploads, ever.',
     cta: 'Open tool',
   },
+  {
+    href: '/freelance-rate-calculator',
+    icon: '💼',
+    name: 'Freelance Rate Calculator',
+    description:
+      'Quote a job, project income from a rate, or back-solve the rate that hits a target take-home. Costs, fees, taxes, team and profit margin in one place.',
+    cta: 'Open tool',
+  },
 ];
 
 export default function Home() {

@@ -14,6 +14,14 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-06 - Freelance Rate Calculator: register on home + sitemap, archive plan
+**What changed:** Added the Freelance Rate Calculator tile to the home page tools grid (briefcase emoji 💼) and a sitemap entry at the standard 0.9 priority. Archived the build plan from `playground/roadmap/2026-05-06_00-30_freelance-rate-calculator/` to `playground/roadmap/1-completed/`. HANDOVER updated to reflect that the 7-commit branch is shipped locally and waiting on the user's browser-test pass before the review round.
+**Why:** Final wrap-up after the 7-commit feature branch. Tool is now discoverable from the home page once this branch merges.
+**Impact:** No code-behavior changes — link/sitemap registration only.
+**Files changed:** `src/app/page.js`, `src/app/sitemap.js`, `playground/HANDOVER.md`, `playground/roadmap/...` (archive move).
+
+---
+
 ## 2026-05-06 - Freelance Rate Calculator: JSON config export/import + CSV breakdown (7/7)
 **What changed:** New `ExportImportCard` rendered at the bottom of every mode. Three actions:
 - **Download config (.json)** — exports the full state inside an envelope `{schema: 'auxbox.freelance-rate-calculator', version, exportedAt, state}` for forward-compat. Filename includes today's ISO date.

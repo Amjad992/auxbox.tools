@@ -86,5 +86,11 @@ export default function sitemap() {
       changeFrequency: 'monthly',
       priority: 0.9,
     },
+    {
+      url: `${baseUrl}/freelance-rate-calculator`,
+      lastModified: new Date('2026-05-06'),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+    },
   ];
 }
