@@ -14,6 +14,19 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-06 - Freelance Rate Calculator: Income mode (4/7)
+**What changed:** Income mode wired end-to-end on `/freelance-rate-calculator`. Adds three new cards:
+- **TimeCard** — sliders for hours/day, days/wk, weeks/yr, utilization with live "working / billable hrs/yr" chips.
+- **CostsCard** — Quick / Detailed toggle. Quick = single field with monthly/annual period select. Detailed = repeating line items with predefined-label suggestion chips ("+ Software & subscriptions", etc.) and a live annualised total in the footer.
+- **IncomeInputs** + **IncomeResult** — hourly-rate input feeds the result grid (gross + net at hourly/daily/weekly/monthly/annual horizons via shared `<ResultCard>` and `.tool-results-grid`), plus an annual-breakdown `<table>` rendered when costs or fees are non-zero. Footer chips show total billable hours and effective hourly take-home.
+- **Page** — `quoteResult`, `incomeResult`, derived `annualCosts`, and `billable` computed via `useMemo`. Income mode shows TimeCard + CostsCard + FeesCard above its result; Quote mode keeps its compact card. Rate mode still placeholder for commit 5.
+- Page test updated: added an Income-mode round-trip (default time × $100 = $134,400 annual gross).
+**Why:** Branch `feat/freelance-rate-calculator`, commit 4 of 7.
+**Impact:** Math layer was already complete in commit 3, so this commit is purely UI + plumbing. No breaking changes to other tools.
+**Files changed:** `src/app/freelance-rate-calculator/page.js` (Income mode wiring), `src/app/freelance-rate-calculator/page.test.jsx` (new Income test, replaced obsolete "Income placeholder" assertion), `src/app/freelance-rate-calculator/components/{TimeCard,CostsCard,IncomeInputs,IncomeResult}.js` (new).
+
+---
+
 ## 2026-05-06 - Add /freelance-rate-calculator scaffold + Quote mode (3/7)
 **What changed:** New `/freelance-rate-calculator` route with the full state/persistence scaffold and Quote mode wired end-to-end. The route renders a mode-toggle (Quote / Income / Rate; Income & Rate currently show a placeholder card to be filled in subsequent commits), currency selector with 10 ISO codes, hours+rate inputs, and a Fees & Taxes card with platform/processor/income-tax/other sliders plus presets (Direct, Upwork 10%, Fiverr 20%, Stripe 2.9%, PayPal 3.4%). The Quote result card renders the gross, each non-zero deduction line, the take-home, and an effective hourly rate footnote, all formatted via `formatCurrency` so the currency selector updates rendering live.
 - Pure math in `utils.js`: `workingHoursPerYear`, `billableHoursPerYear`, `totalAnnualCosts`, `applyFees` (compound chain), `quote`, `incomeForRate`, `requiredRateForTakeHome` (closed-form algebra). 27 math tests cover edge cases, the round-trip identity (`requiredRateForTakeHome` ↔ `incomeForRate`), and team/profit scaling.

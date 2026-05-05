@@ -15,11 +15,21 @@ import {
   MODE_OPTIONS,
   STATE_AUTOSAVE_DEBOUNCE_MS,
 } from './constants';
-import {quote} from './utils';
+import {
+  billableHoursPerYear,
+  incomeForRate,
+  quote,
+  totalAnnualCosts,
+} from './utils';
+import {COSTS_VIEW, COST_PERIOD} from './constants';
 import CurrencyCard from './components/CurrencyCard';
 import QuoteInputs from './components/QuoteInputs';
 import QuoteResult from './components/QuoteResult';
+import IncomeInputs from './components/IncomeInputs';
+import IncomeResult from './components/IncomeResult';
 import FeesCard from './components/FeesCard';
+import TimeCard from './components/TimeCard';
+import CostsCard from './components/CostsCard';
 import './freelance-rate-calculator.css';
 
 const SCHEMA = {
@@ -96,6 +106,31 @@ function FreelanceRateCalculatorContent() {
     [state.hours, state.rate, state.fees]
   );
 
+  const annualCosts = useMemo(() => {
+    if (state.costs.view === COSTS_VIEW.QUICK) {
+      const amt = toNumberOrNull(state.costs.quickAmount) ?? 0;
+      return state.costs.quickPeriod === COST_PERIOD.ANNUAL ? amt : amt * 12;
+    }
+    return totalAnnualCosts(state.costs.lineItems);
+  }, [state.costs]);
+
+  const billable = useMemo(
+    () => billableHoursPerYear(state.time),
+    [state.time]
+  );
+
+  const incomeResult = useMemo(
+    () =>
+      incomeForRate({
+        rate: toNumberOrNull(state.rate) ?? 0,
+        billableHours: billable,
+        costs: annualCosts,
+        fees: state.fees,
+        people: state.team.people,
+      }),
+    [state.rate, billable, annualCosts, state.fees, state.team.people]
+  );
+
   return (
     <ToolPage
       title="Freelance Rate Calculator"
@@ -150,12 +185,35 @@ function FreelanceRateCalculatorContent() {
           </>
         )}
 
-        {state.mode !== MODES.QUOTE && (
+        {state.mode === MODES.INCOME && (
+          <>
+            <IncomeInputs
+              rate={state.rate}
+              currency={state.currency}
+              onRateChange={(v) => update({rate: toNumberOrNull(v)})}
+            />
+            <TimeCard
+              value={state.time}
+              onChange={(time) => update({time})}
+            />
+            <CostsCard
+              value={state.costs}
+              currency={state.currency}
+              onChange={(costs) => update({costs})}
+            />
+            <FeesCard value={state.fees} onChange={updateFees} />
+            <IncomeResult
+              result={incomeResult}
+              currency={state.currency}
+              hasRate={(toNumberOrNull(state.rate) ?? 0) > 0}
+            />
+          </>
+        )}
+
+        {state.mode === MODES.RATE && (
           <Card>
             <p className="frc-coming-soon">
-              {state.mode === MODES.INCOME
-                ? 'Income mode lands in the next commit.'
-                : 'Rate mode lands in the next commit.'}
+              Rate mode lands in the next commit.
             </p>
           </Card>
         )}

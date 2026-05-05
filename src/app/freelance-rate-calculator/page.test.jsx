@@ -77,18 +77,33 @@ describe('<FreelanceRateCalculator /> — Quote mode', () => {
     expect(screen.getAllByText(/€1,000/)[0]).toBeInTheDocument();
   });
 
-  it('mode-toggle to Income/Rate shows the placeholder card', async () => {
+  it('mode-toggle to Rate shows the placeholder card', async () => {
     const user = userEvent.setup();
     render(<FreelanceRateCalculator />);
-    await user.click(screen.getByRole('radio', {name: /income from rate/i}));
-    expect(
-      screen.getByText(/income mode lands in the next commit/i)
-    ).toBeInTheDocument();
-
     await user.click(screen.getByRole('radio', {name: /rate from target/i}));
     expect(
       screen.getByText(/rate mode lands in the next commit/i)
     ).toBeInTheDocument();
+  });
+
+  it('Income mode renders rate input, time card, and projection grid', async () => {
+    const user = userEvent.setup();
+    render(<FreelanceRateCalculator />);
+    await user.click(screen.getByRole('radio', {name: /income from rate/i}));
+
+    // Income-specific input.
+    const rateInput = screen.getByLabelText(/hourly rate/i);
+    expect(rateInput).toBeInTheDocument();
+    // Time card sliders are present.
+    expect(screen.getByLabelText(/hours per working day/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/billable utilization/i)).toBeInTheDocument();
+    // Costs card is present.
+    expect(screen.getByRole('tab', {name: /quick/i})).toBeInTheDocument();
+    expect(screen.getByRole('tab', {name: /detailed/i})).toBeInTheDocument();
+
+    await user.type(rateInput, '100');
+    // Default 1344 billable hrs × $100 = $134,400 annual gross.
+    expect(screen.getAllByText(/\$134,400/).length).toBeGreaterThan(0);
   });
 
   it('Clear resets state and wipes storage', async () => {
