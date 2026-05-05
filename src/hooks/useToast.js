@@ -13,14 +13,14 @@ import {useState, useCallback, useRef} from 'react';
  */
 export function useToast(duration = 5000) {
   const [toasts, setToasts] = useState([]);
-  // Per-instance counter used to disambiguate ids generated within the
-  // same millisecond — `Date.now()` alone collides on rapid double-fires.
+  // Monotonic per-instance counter. Each call increments and uses the new
+  // value as the toast id — unique within a hook instance for the lifetime
+  // of the component, with no floating-point precision edge cases.
   const seqRef = useRef(0);
 
   const showToast = useCallback(
     (message, type = 'error') => {
-      seqRef.current = (seqRef.current + 1) & 0xffff;
-      const id = Date.now() * 0x10000 + seqRef.current;
+      const id = ++seqRef.current;
       setToasts((prev) => [...prev, {id, message, type}]);
 
       setTimeout(() => {

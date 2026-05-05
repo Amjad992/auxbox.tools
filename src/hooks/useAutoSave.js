@@ -20,9 +20,29 @@ import {useCallback, useEffect, useRef} from 'react';
  * @param {Array<unknown>} options.deps - Dependency array; whenever any of
  *   these change, the debounce timer is reset and (if dirty + enabled) a
  *   new save is scheduled.
+ *   **IMPORTANT:** `deps` MUST have a stable length across renders. React
+ *   does not support dependency arrays whose length changes between renders,
+ *   and this hook spreads `deps` directly into a `useEffect` call. Passing
+ *   a variable-length array (e.g. one whose length depends on state) will
+ *   cause React to silently rebind effect cleanup against an inconsistent
+ *   dep set. Callers must guarantee a fixed length (typically a literal
+ *   array expression such as `[a, b, c]`).
  * @param {number} [options.debounceMs=300] - Debounce delay.
  */
 export function useAutoSave({onSave, enabled, deps, debounceMs = 300}) {
+  // Dev-only guard: deps.length must be stable across renders.
+  const depsLengthRef = useRef(undefined);
+  if (process.env.NODE_ENV !== 'production') {
+    if (depsLengthRef.current === undefined) {
+      depsLengthRef.current = deps.length;
+    } else if (depsLengthRef.current !== deps.length) {
+      throw new Error(
+        `useAutoSave: deps.length changed between renders (${depsLengthRef.current} → ${deps.length}). ` +
+          'Pass a fixed-length array literal (e.g. [a, b, c]).'
+      );
+    }
+  }
+
   const dirtyRef = useRef(false);
   const onSaveRef = useRef(onSave);
 

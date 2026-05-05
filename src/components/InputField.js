@@ -31,7 +31,9 @@ export default function InputField({
   const errorId = `${inputId}-error`;
   const helperId = helper ? `${inputId}-helper` : undefined;
   const hasError = typeof error === 'string' && error.length > 0;
-  const describedBy = [hasError ? errorId : null, helperId]
+  // When an error is active the helper span is not rendered, so only
+  // include the id that corresponds to what's actually in the DOM.
+  const describedBy = [hasError ? errorId : helperId]
     .filter(Boolean)
     .join(' ') || undefined;
 

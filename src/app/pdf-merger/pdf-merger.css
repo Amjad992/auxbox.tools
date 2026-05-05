@@ -197,8 +197,12 @@
 }
 
 @media (max-width: 600px) {
-  /* `.tool-file-row` already collapses to a stacked layout; keep the
-     pdf-merger-specific tweak for the range input. */
+  /* `.tool-file-row` already collapses to a stacked layout; restore the
+     stretch alignment that `.pm-row { align-items: flex-start }` overrides
+     on wider viewports, and keep the range-input full-width tweak. */
+  .pm-row {
+    align-items: stretch;
+  }
   .pm-row-range-input {
     width: 100%;
   }

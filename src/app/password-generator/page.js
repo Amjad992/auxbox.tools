@@ -1,5 +1,5 @@
 'use client';
-import {useEffect, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import ToolPage from '../../components/ToolPage';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
@@ -43,11 +43,26 @@ function PasswordGeneratorContent() {
   // Screen-reader announcement for the Generate action (MAJ-2).
   const [srAnnouncement, setSrAnnouncement] = useState('');
 
-  // Copy-with-dedup-and-toast. Passing dismissToast wires the dedup so a
-  // subsequent action (Generate) can clear the prior "Password copied"
-  // banner — addressing MIN-8.
+  // Tracks the id of the most recent "Password copied" success toast so
+  // handleGenerate can dismiss it immediately (MIN-8). The hook's own dedup
+  // only fires on the next copy(); we need an explicit dismiss on Generate.
+  const copyToastIdRef = useRef(null);
+
+  // Wrap showToast so we can intercept the id of the "Password copied"
+  // success toast and store it for handleGenerate to dismiss.
+  const showToastForCopy = useCallback(
+    (message, type) => {
+      const id = showToast(message, type);
+      if (type === 'success') copyToastIdRef.current = id;
+      return id;
+    },
+    [showToast]
+  );
+
+  // Copy-with-dedup-and-toast. Passing dismissToast wires the hook's own
+  // dedup so a second Copy still clears the prior banner.
   const copy = useCopyToClipboard({
-    showToast,
+    showToast: showToastForCopy,
     dismissToast,
     successMessage: 'Password copied',
     errorMessage: 'Could not copy to clipboard',
@@ -64,6 +79,12 @@ function PasswordGeneratorContent() {
   }, [error, showToast]);
 
   const handleGenerate = () => {
+    // Dismiss any stale "Password copied" banner (MIN-8). The copy hook
+    // deduplicates on the next copy(); this clears it on Generate instead.
+    if (copyToastIdRef.current !== null) {
+      dismissToast(copyToastIdRef.current);
+      copyToastIdRef.current = null;
+    }
     generate();
     setSrAnnouncement(`New password generated, ${settings.length} characters`);
   };

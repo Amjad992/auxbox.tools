@@ -54,6 +54,17 @@ describe('<InputField />', () => {
     expect(screen.getByText('oops')).toBeInTheDocument();
   });
 
+  it('aria-describedby only references the error id, not the helper id, when both error and helper are set', () => {
+    render(<InputField id="x" label="Q" helper="hint text" error="bad input" />);
+    const input = screen.getByLabelText('Q');
+    const describedBy = input.getAttribute('aria-describedby');
+    expect(describedBy).toBe('x-error');
+    // The helper span is not rendered when there is an error, so the
+    // helper id must not appear in aria-describedby.
+    expect(describedBy).not.toContain('x-helper');
+    expect(document.getElementById('x-helper')).toBeNull();
+  });
+
   it('no error: aria-invalid is omitted', () => {
     render(<InputField id="x" label="Q" />);
     const input = screen.getByLabelText('Q');

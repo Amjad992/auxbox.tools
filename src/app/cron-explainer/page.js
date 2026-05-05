@@ -40,7 +40,7 @@ function CronExplainerContent() {
   const [now, setNow] = useState(() => DateTime.now().toJSDate());
 
   // Hydrate once from storage.
-  useHydrateStorage(() => {
+  const hydrated = useHydrateStorage(() => {
     const saved = loadState();
     if (saved && typeof saved === 'object' && typeof saved.expression === 'string') {
       setExpression(saved.expression);
@@ -66,7 +66,7 @@ function CronExplainerContent() {
   // input (markdown-preview MAJ-2 phantom-write guard) and over the size
   // cap (mirrors markdown-preview's autosave gate).
   const {markDirty} = useAutoSave({
-    enabled: expression.length <= MAX_PERSISTED_CHARS,
+    enabled: hydrated && expression.length <= MAX_PERSISTED_CHARS,
     deps: [expression],
     onSave: () => saveState({expression}),
     debounceMs: STATE_AUTOSAVE_DEBOUNCE_MS,

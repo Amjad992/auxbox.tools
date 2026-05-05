@@ -1,4 +1,4 @@
-import {useCallback, useRef} from 'react';
+import {useCallback, useEffect, useRef} from 'react';
 import {copyToClipboard} from '../lib/clipboard';
 
 /**
@@ -9,6 +9,12 @@ import {copyToClipboard} from '../lib/clipboard';
  * hook tracks the most recent success-toast id and dismisses it the next
  * time `copy()` runs — preventing the "stale ‘Password copied’ banner is
  * still visible after you generated a new password" UX bug.
+ *
+ * Concurrent calls are not designed to be interleaved safely: whichever
+ * clipboard operation resolves first will set `lastSuccessIdRef`, and the
+ * second resolution will dismiss that id before showing its own success
+ * toast. For the typical single-button copy flow this is the correct
+ * behaviour; avoid parallel `copy()` calls from independent triggers.
  *
  * @param {object} [options]
  * @param {(msg:string, type?:string) => number} [options.showToast]
@@ -26,7 +32,9 @@ export function useCopyToClipboard(options = {}) {
   } = options;
 
   const optsRef = useRef({showToast, dismissToast, successMessage, errorMessage});
-  optsRef.current = {showToast, dismissToast, successMessage, errorMessage};
+  useEffect(() => {
+    optsRef.current = {showToast, dismissToast, successMessage, errorMessage};
+  });
 
   const lastSuccessIdRef = useRef(null);
 

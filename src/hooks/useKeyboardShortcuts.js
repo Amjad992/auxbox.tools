@@ -31,8 +31,11 @@ function matchesKey(event, key) {
  * Default behavior:
  * - Modifier keys (Meta/Ctrl/Alt) are ignored — shortcuts only fire on
  *   bare keypresses to avoid stomping on browser/OS shortcuts.
- * - Keypresses with a focused form field target (input/textarea/select/
- *   contenteditable) are ignored, so the user can type freely.
+ * - Keypresses with a focused form field target (input, textarea, select,
+ *   or contenteditable) are ignored, so the user can type freely. The
+ *   `<select>` guard prevents shortcuts from firing when the user is
+ *   navigating a dropdown (Space opens a select; suppressing that here is
+ *   the correct default).
  *
  * Both gates can be disabled via the second `options` arg.
  *

@@ -1,5 +1,5 @@
 import {describe, it, expect, vi} from 'vitest';
-import {renderHook, act, waitFor} from '@testing-library/react';
+import {render, renderHook, act, waitFor} from '@testing-library/react';
 import {useHydrateStorage} from './useHydrateStorage';
 
 describe('useHydrateStorage', () => {
@@ -32,5 +32,32 @@ describe('useHydrateStorage', () => {
       resolveLoader();
     });
     await waitFor(() => expect(result.current).toBe(true));
+  });
+
+  it('does not flip hydrated to true when unmounted before async loader resolves', async () => {
+    // Collect each rendered value so we can assert it never went true.
+    const renders = [];
+    let resolveLoader;
+
+    function Comp() {
+      const hydrated = useHydrateStorage(
+        () => new Promise((r) => { resolveLoader = r; })
+      );
+      renders.push(hydrated);
+      return null;
+    }
+
+    const {unmount} = render(<Comp />);
+    // Unmount before the loader resolves — the cancelled flag should block
+    // the setHydrated(true) call.
+    unmount();
+
+    // Resolve after unmount; should be a no-op.
+    await act(async () => {
+      resolveLoader();
+    });
+
+    // The component only ever rendered with hydrated === false.
+    expect(renders.every((v) => v === false)).toBe(true);
   });
 });

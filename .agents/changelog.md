@@ -14,6 +14,33 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-06 - Address review-round-1 findings (refactor branch)
+**What changed:** Applied 11 of 12 findings from the general review round on `refactor/shared-extractions-batch`. Round folder: `playground/reviews/review-rounds/general/2026-05-06/`.
+
+- **S1** — password-generator: restored Generate→dismiss-prior-copy-toast behaviour (MIN-8 regression). Added `copyToastIdRef` + `showToastForCopy` wrapper so `handleGenerate` can dismiss the stale "Password copied" banner immediately without changing the `useCopyToClipboard` hook API.
+- **S2** — `useToast`: replaced `Date.now() * 0x10000 + seqRef` id arithmetic (overflows `MAX_SAFE_INTEGER`, ULP ≥ 32) with a simple monotonic counter `++seqRef.current`. Updated comment block.
+- **S3** — `InputField`: `aria-describedby` now only includes `helperId` when no error is active (`[hasError ? errorId : helperId]`). The helper span is not rendered when `error` is set; including its id in `aria-describedby` created a dangling ARIA reference.
+- **S4** — pdf-merger CSS: re-added `@media (max-width: 600px) { .pm-row { align-items: stretch } }` so the shared base's responsive override is not defeated by `.pm-row`'s unconditional `align-items: flex-start`.
+- **S5** — cron-explainer: captured `hydrated` from `useHydrateStorage` and gated `useAutoSave.enabled` on `hydrated && ...` (matches the contract every other migrated tool follows).
+- **S6** — `useCopyToClipboard`: moved `optsRef.current = {…}` assignment from the render body into a `useEffect` (no deps array) so it runs after the commit phase, safe for React concurrent rendering.
+- **S7** — `useCopyToClipboard.test.js`: replaced bare `document.execCommand = vi.fn()` assignment with an `Object.defineProperty` guard + `vi.spyOn` + `mockRestore()` to avoid test-pollution from unrestored globals.
+- **S8** — `useAutoSave`: added a loud JSDoc note that `deps` MUST have a stable length across renders, plus a dev-only runtime invariant (throws if `deps.length` changes between renders; guarded by `NODE_ENV !== 'production'`).
+- **S9** — `useKeyboardShortcuts` JSDoc: updated the "Default behavior" section to explicitly mention `<select>` as a guarded form field, matching the actual `FORM_SELECTOR` constant.
+- **S10** — `useHydrateStorage.test.js`: added an unmount-before-async-resolve test that asserts `hydrated` never flips to `true` after the component unmounts (verifies the `cancelled` flag path).
+- **S11** — `useCopyToClipboard`: added a concurrent-calls test asserting the second `copy()` dismisses the first's success id then shows its own; added a JSDoc note about concurrent-call behaviour.
+
+**Deferred:** F8 (pomodoro `handleReset` → `useAutoSave.replaceImmediate`) — single real consumer, marginal API-surface growth. Park for when a second tool needs the pattern.
+
+**Why:** Review round findings addressed per the review protocol in `.agents/skills/review/SKILL.md`. Highest-severity finding (S1) was a UX regression introduced by the refactor.
+
+**Impact:** 797 → 800 tests (+3 new: S3 InputField aria-describedby test, S10 unmount test, S11 concurrent test). Lint clean (pre-existing QR `<img>` warnings only). Build green.
+
+**Files changed:**
+- `src/hooks/useToast.js` (S2), `src/hooks/useCopyToClipboard.js` (S6, S11 JSDoc), `src/hooks/useCopyToClipboard.test.js` (S7, S11), `src/hooks/useAutoSave.js` (S8), `src/hooks/useKeyboardShortcuts.js` (S9), `src/hooks/useHydrateStorage.test.js` (S10).
+- `src/components/InputField.js` (S3), `src/components/InputField.test.jsx` (S3).
+- `src/app/password-generator/page.js` (S1), `src/app/cron-explainer/page.js` (S5), `src/app/pdf-merger/pdf-merger.css` (S4).
+- `.agents/changelog.md`.
+
 ## 2026-05-06 - Shared extractions batch (refactor)
 **What changed:** Lifted six recurring patterns into the shared layer and migrated every consumer.
 
