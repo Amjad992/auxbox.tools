@@ -105,6 +105,14 @@ const TOOLS = [
       'Combine multiple PDFs into one. Drag to reorder, optionally pick per-file page ranges, and download — files never leave your browser.',
     cta: 'Open tool',
   },
+  {
+    href: '/image-compressor',
+    icon: '🖼️',
+    name: 'Image Compressor',
+    description:
+      'Shrink JPEG, PNG, and WebP images entirely in your browser. Pick a quality, optionally cap dimensions, and download — no uploads, ever.',
+    cta: 'Open tool',
+  },
 ];
 
 export default function Home() {

@@ -80,7 +80,11 @@ export default function sitemap() {
       changeFrequency: 'monthly',
       priority: 0.9,
     },
-    // /image-compressor route exists but is intentionally hidden until polish
-    // is finished — not listed on the home page or in this sitemap.
+    {
+      url: `${baseUrl}/image-compressor`,
+      lastModified: new Date('2026-05-05'),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+    },
   ];
 }

@@ -14,6 +14,12 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-05 - Unhide Image Compressor on home + sitemap (polish branch)
+**What changed:** Re-added the `/image-compressor` entry to `src/app/page.js` `TOOLS` and to `src/app/sitemap.js` (`lastModified: 2026-05-05`). Restores what `77cbb95` removed when the tool was parked. Sits on `feat/image-compressor-polish` — NOT merged to `main`, so the user can reassess in dev before any UX iteration lands.
+**Why:** User opened the polish branch to reassess the tool. The tool is only visible on the home page in dev if it's listed; this is the prereq for identifying what needs work.
+**Impact:** `/image-compressor` back on the home grid and in the sitemap on this branch only. Tool behaviour unchanged — same code as on `main`.
+**Files changed:** `src/app/page.js`, `src/app/sitemap.js`.
+
 ## 2026-05-05 - Fix pdf-merger general review (1 major, 10 minor)
 **What changed:** Applied all 11 findings from the general review round on `feat/pdf-merger`. MAJ-1: encryption detection in `parsePdfMetadata` now gates on `err.name === 'EncryptedPDFError'` first, then `/encrypt/i` message fallback — prevents silent misclassification if pdf-lib changes its error message. MIN-1: `validateAdditions` now runs per-file validators (MIME, size) before applying the slot cap, so `.png` and oversized files get the accurate rejection reason. MIN-2: `setMergeStatus('success')` moved to after `onDownload` (now inlined in the hook) returns successfully; download failures set `status='error'`. MIN-3: `parsePageRange` adds `/^\d+$/` raw-string gate before `Number()`, rejecting scientific notation (`1e2`), leading-plus (`+5`), and hex literals (`0x3`). MIN-4: `PDFDocument.load` in `mergePdfs` now passes `{ignoreEncryption: false}` explicitly. MIN-5: `downloadBlob` moved from `page.js` into `hooks.js`; hook tracks created URLs in `urlsRef = useRef(new Set())` with `setTimeout`-deferred revocation and an unmount cleanup effect. MIN-6: Reorder hint ("Drag rows to reorder, or use the ↑/↓ buttons.") added above the file list. MIN-7: `inputMode="numeric"` added to the page-range `<input>`. MIN-8: `mergedFilename(snapshot)` call changed to `mergedFilename()` (zero-arg). MIN-9: `mergedCount` state added to `usePdfMerger`; success live-region reads from it instead of `files.length`. MIN-10: Explicit `clearAll` test added to `hooks.test.js`.
 **Why:** General review (Opus + Copilot) round on the initial PDF Merger commit.
