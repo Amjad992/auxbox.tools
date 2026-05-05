@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import Card from '../../../components/Card';
+import CurrencyInput from '../../../components/CurrencyInput';
 import {PERIODS} from '../constants';
 
 const PERIOD_LABELS = {
@@ -13,8 +14,9 @@ const PERIOD_LABELS = {
  * One card with a labeled input per pay period. Optionally includes a
  * leading "Percentage" input (used by the raise section).
  *
- * All inputs are bidirectional — typing in any one calls onChange so the
- * parent's canonical state can recompute the rest.
+ * The pay-period inputs use shared `<CurrencyInput>` (lifted in the
+ * freelance-rate-calculator branch). The percent input keeps the local
+ * pay-input styling because it's not a currency.
  */
 export default function PaySection({
   title,
@@ -50,20 +52,16 @@ export default function PaySection({
         )}
 
         {PERIODS.map((p) => (
-          <div className="pay-row" key={p}>
-            <label className="pay-label">{PERIOD_LABELS[p]}</label>
-            <div className="pay-input-wrap">
-              <input
-                type="number"
-                inputMode="decimal"
-                step="0.01"
-                className="pay-input"
-                value={values[p] ?? ''}
-                onChange={handle(p)}
-                placeholder="0"
-              />
-            </div>
-          </div>
+          <CurrencyInput
+            key={p}
+            className="pay-row"
+            label={PERIOD_LABELS[p]}
+            currency="USD"
+            value={values[p] ?? ''}
+            onChange={handle(p)}
+            step="0.01"
+            placeholder="0"
+          />
         ))}
       </div>
     </Card>

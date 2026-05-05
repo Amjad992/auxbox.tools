@@ -14,6 +14,14 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-06 - Lift `<CurrencyInput>` to src/components/ + migrate salary-raise (freelance-rate-calculator 2/7)
+**What changed:** New shared `<CurrencyInput>` component — labelled numeric input with a leading currency symbol resolved via `Intl.NumberFormat.formatToParts` (so locales rendering "CA$" or "د.إ" work natively). Forwards the native event on change for drop-in replacement of `<input type="number">`. Shared CSS classes `.tool-currency-*` added to `src/styles/tools.css`. Migrated `salary-raise-calculator`'s `PaySection` to consume the shared component for the four pay-period inputs (the percent input keeps the existing `pay-input` styling since it isn't currency).
+**Why:** Place-it-right policy — confirmed second consumer (the upcoming Freelance Rate Calculator and the existing Salary Raise Calculator). Avoids each tool re-styling its own currency-prefixed field.
+**Impact:** Salary-raise now shows a `$` prefix on the four period inputs (it didn't before — minor visual upgrade). All 47 salary-raise tests stay green. `<CurrencyInput>` has 8 of its own tests covering symbol resolution, event forwarding, helper/error states, and prop pass-through.
+**Files changed:** `src/components/CurrencyInput.js` (new), `src/components/CurrencyInput.test.jsx` (new), `src/styles/tools.css` (currency input section), `src/app/salary-raise-calculator/components/PaySection.js`.
+
+---
+
 ## 2026-05-06 - Add `formatCurrency` to src/lib/format.js (freelance-rate-calculator commit 1/7)
 **What changed:** New `formatCurrency(value, currency='USD', options?)` helper using `Intl.NumberFormat`. Whole numbers render without trailing zeros (`$1,000`); non-finite input returns `—` matching `formatBytes`. Tests cover USD/EUR/GBP/JPY display, negatives, locale-specific separators, `alwaysDecimals` override, very-large values, and invalid input.
 **Why:** Both the upcoming Freelance Rate Calculator and the existing Salary Raise Calculator (commit 2) need locale-aware currency rendering. Single shared helper keeps the formatting consistent and avoids each tool re-deriving it.
