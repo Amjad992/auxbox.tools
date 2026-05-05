@@ -30,6 +30,8 @@ import IncomeInputs from './components/IncomeInputs';
 import IncomeResult from './components/IncomeResult';
 import RateInputs from './components/RateInputs';
 import RateResult from './components/RateResult';
+import TeamCard from './components/TeamCard';
+import ProfitCard from './components/ProfitCard';
 import FeesCard from './components/FeesCard';
 import TimeCard from './components/TimeCard';
 import CostsCard from './components/CostsCard';
@@ -225,6 +227,10 @@ function FreelanceRateCalculatorContent() {
               onChange={(costs) => update({costs})}
             />
             <FeesCard value={state.fees} onChange={updateFees} />
+            <TeamCard
+              value={state.team}
+              onChange={(team) => update({team})}
+            />
             <IncomeResult
               result={incomeResult}
               currency={state.currency}
@@ -250,6 +256,14 @@ function FreelanceRateCalculatorContent() {
               onChange={(costs) => update({costs})}
             />
             <FeesCard value={state.fees} onChange={updateFees} />
+            <TeamCard
+              value={state.team}
+              onChange={(team) => update({team})}
+            />
+            <ProfitCard
+              value={state.profitMargin}
+              onChange={(profitMargin) => update({profitMargin})}
+            />
             <RateResult
               result={rateResult}
               currency={state.currency}

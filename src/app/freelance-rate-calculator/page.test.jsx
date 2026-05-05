@@ -1,5 +1,5 @@
 import {describe, it, expect, beforeEach, vi} from 'vitest';
-import {render, screen} from '@testing-library/react';
+import {fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 vi.mock('next/script', () => ({
@@ -119,6 +119,41 @@ describe('<FreelanceRateCalculator /> — Quote mode', () => {
     await user.type(rateInput, '100');
     // Default 1344 billable hrs × $100 = $134,400 annual gross.
     expect(screen.getAllByText(/\$134,400/).length).toBeGreaterThan(0);
+  });
+
+  it('Team slider in Income mode doubles annual revenue', async () => {
+    const user = userEvent.setup();
+    render(<FreelanceRateCalculator />);
+    await user.click(screen.getByRole('radio', {name: /income from rate/i}));
+    await user.type(screen.getByLabelText(/hourly rate/i), '100');
+    // Default: 1 person, $134,400 annual gross.
+    expect(screen.getAllByText(/\$134,400/).length).toBeGreaterThan(0);
+
+    // Bump team to 2 people via the slider. jsdom doesn't translate
+    // keyboard arrows on range inputs to change events, so dispatch
+    // explicitly.
+    const teamSlider = screen.getByLabelText(/number of billable people/i);
+    fireEvent.change(teamSlider, {target: {value: '2'}});
+    // Now 2 people × 1344 hrs × $100 = $268,800 annual.
+    expect(screen.getAllByText(/\$268,800/).length).toBeGreaterThan(0);
+  });
+
+  it('Profit slider in Rate mode raises the required hourly rate', async () => {
+    const user = userEvent.setup();
+    render(<FreelanceRateCalculator />);
+    await user.click(screen.getByRole('radio', {name: /rate from target/i}));
+    await user.type(
+      screen.getByLabelText(/target annual take-home income/i),
+      '100000'
+    );
+
+    expect(screen.getByLabelText(/profit margin/i)).toBeInTheDocument();
+
+    // Default profitMargin = 0. Bump it via fireEvent (jsdom doesn't
+    // translate keyboard arrows on range inputs to change events).
+    const profitSlider = screen.getByLabelText(/profit margin/i);
+    fireEvent.change(profitSlider, {target: {value: '20'}});
+    expect(profitSlider).toHaveValue('20');
   });
 
   it('Clear resets state and wipes storage', async () => {

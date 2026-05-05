@@ -14,6 +14,17 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-06 - Freelance Rate Calculator: Team multiplier + profit buffer (6/7)
+**What changed:** Two new cards rendered in Income and Rate modes:
+- **TeamCard** — slider 1–50 for number of billable people. v1 simplification: every teammate shares the same rate + utilization, so total revenue scales linearly. State already existed (`team.people` was wired through the math layer in commit 3); this commit just exposes the UI.
+- **ProfitCard** — slider 0–100% for profit margin on top of break-even. Only meaningful in Rate mode (raises the required hourly rate by the configured factor); kept in that mode only. Income mode does not include it because Income answers "what do I make at this rate" — there's no break-even to mark up.
+- Two new page tests: TeamCard at 2 people doubles the Income annual-gross display ($134,400 → $268,800) and ProfitCard slider updates state to 20%.
+**Why:** Branch `feat/freelance-rate-calculator`, commit 6 of 7.
+**Impact:** No new math; everything was already plumbed through `incomeForRate(people)` and `requiredRateForTakeHome(profitMargin)` as of commit 3.
+**Files changed:** `src/app/freelance-rate-calculator/page.js`, `src/app/freelance-rate-calculator/page.test.jsx`, `src/app/freelance-rate-calculator/components/TeamCard.js` (new), `src/app/freelance-rate-calculator/components/ProfitCard.js` (new).
+
+---
+
 ## 2026-05-06 - Freelance Rate Calculator: Rate mode + sensitivity table (5/7)
 **What changed:** Rate mode wired end-to-end. Adds:
 - **RateInputs** — single `<CurrencyInput>` for the target annual take-home with helper copy.
