@@ -14,6 +14,20 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-04 - Fix: pomodoro completion fires from setTimeout to work cross-tab; suppress ghost notifications on rehydrate
+
+**What changed:** Phase auto-completion in the Pomodoro Timer was driven by the rAF ticker (`useTicker`). Browsers freeze `requestAnimationFrame` when the tab is hidden, so the completion callback (chime + OS notification + state transition) only fired when the user returned to the tab — producing a "ghost notification" exactly at the moment they came back, not at the actual completion time. Fixed by driving completion via `setTimeout` instead (which keeps firing in background tabs, throttled to ~1 Hz minimum by browsers — more than sufficient for multi-minute intervals). The rAF ticker continues to run for the visual countdown display only; the `onTick` callback now only calls `setTick`.
+
+Implementation: a `useEffect` in `PomodoroContent` (keyed on `runtime` and `settings`) schedules a `setTimeout` for `remainingMs` when status is `RUNNING`, and clears it on Pause, Skip, Reset, and unmount. The `completionTimeoutRef` holds the active timeout ID. Settings changes (e.g. slider drag mid-run) cause a reschedule for the correct new remaining time.
+
+Ghost-notification suppression on rehydrate: if the persisted state has `status: RUNNING` and `remainingMs <= 0` on mount (the phase ended while the page was closed), `completePhase()` is called directly inside the mount effect with no audio or notification side effects — the state transitions silently to the next phase so the display is correct.
+
+**Why:** `requestAnimationFrame` is paused in background tabs by browsers (per the Page Visibility API). `setTimeout` with a delay ≥ several hundred ms is allowed to fire in hidden tabs (per the HTML spec, throttled to ~1 Hz), making it reliable for coarse-grained events like phase completion.
+
+**Impact:** Phase completion now fires at the correct wall-clock time regardless of tab visibility. Ghost notifications on tab-return are eliminated. 663 tests pass (658 baseline + 5 new: one positive completion test, three clear-on-action tests, one rehydrate-silent test). Lint: 0 errors. Build: green.
+
+**Files changed:** `src/app/pomodoro-timer/page.js`, `src/app/pomodoro-timer/page.test.jsx`, `.agents/changelog.md`.
+
 ## 2026-05-04 - Fix: gate full pomodoro notification region on mount to clear hydration mismatch
 
 **What changed:** Replaced the pre-mount placeholder-button approach (commit `a023b3f`) with a `mounted &&` gate that renders the entire notification toggle region as `null` until client mount. Previously the placeholder `<Button>` (a `<button>` element) conflicted with what SSR actually produced when `notificationsSupported=false` (a `<span>`) — causing a server/client element-shape mismatch. Now both SSR and the initial client render produce nothing for this subtree; after `useEffect` sets `mounted=true`, the correct state-based UI appears.

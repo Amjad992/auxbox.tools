@@ -153,26 +153,12 @@ describe('<PomodoroTimer /> — start / skip / reset', () => {
 
 describe('<PomodoroTimer /> — mute toggle suppresses Audio.play', () => {
   it('does not call Audio.play when muted on phase completion', async () => {
-    const playSpy = vi.fn().mockResolvedValue(undefined);
-    const audioInstances = [];
-    const AudioStub = vi.fn().mockImplementation(() => {
-      const inst = {play: playSpy, currentTime: 0};
-      audioInstances.push(inst);
-      return inst;
-    });
-    vi.stubGlobal('Audio', AudioStub);
+    vi.useFakeTimers({shouldAdvanceTime: true});
+    const user = userEvent.setup({advanceTimers: vi.advanceTimersByTime});
 
-    const user = userEvent.setup();
-    let now = 1_700_000_000_000;
-    const nowSpy = vi.spyOn(Date, 'now').mockImplementation(() => now);
-    let rafCb = null;
-    const rafSpy = vi
-      .spyOn(window, 'requestAnimationFrame')
-      .mockImplementation((cb) => {
-        rafCb = cb;
-        return 1;
-      });
-    vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => {});
+    const playSpy = vi.fn().mockResolvedValue(undefined);
+    const AudioStub = vi.fn().mockImplementation(() => ({play: playSpy, currentTime: 0}));
+    vi.stubGlobal('Audio', AudioStub);
 
     // Pre-seed with mute=on and a 1-minute work duration so the phase ends fast.
     window.localStorage.setItem(
@@ -203,10 +189,9 @@ describe('<PomodoroTimer /> — mute toggle suppresses Audio.play', () => {
     render(<PomodoroTimer />);
     await user.click(screen.getByRole('button', {name: /^start$/i}));
 
-    // Cross the 60_000 ms work duration so the next tick triggers completion.
-    now = now + 70_000;
-    act(() => {
-      if (rafCb) rafCb(now);
+    // Advance past the 1-min work duration — setTimeout fires completion.
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(60_000 + 100);
     });
 
     expect(playSpy).not.toHaveBeenCalled();
@@ -215,27 +200,17 @@ describe('<PomodoroTimer /> — mute toggle suppresses Audio.play', () => {
       screen.getByLabelText(/current phase: short break/i)
     ).toBeInTheDocument();
 
-    nowSpy.mockRestore();
-    rafSpy.mockRestore();
+    vi.useRealTimers();
     vi.unstubAllGlobals();
   });
 
   it('plays the chime when not muted on phase completion', async () => {
+    vi.useFakeTimers({shouldAdvanceTime: true});
+    const user = userEvent.setup({advanceTimers: vi.advanceTimersByTime});
+
     const playSpy = vi.fn().mockResolvedValue(undefined);
     const AudioStub = vi.fn().mockImplementation(() => ({play: playSpy, currentTime: 0}));
     vi.stubGlobal('Audio', AudioStub);
-
-    const user = userEvent.setup();
-    let now = 1_700_000_000_000;
-    const nowSpy = vi.spyOn(Date, 'now').mockImplementation(() => now);
-    let rafCb = null;
-    const rafSpy = vi
-      .spyOn(window, 'requestAnimationFrame')
-      .mockImplementation((cb) => {
-        rafCb = cb;
-        return 1;
-      });
-    vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => {});
 
     window.localStorage.setItem(
       STORAGE_KEY,
@@ -265,15 +240,13 @@ describe('<PomodoroTimer /> — mute toggle suppresses Audio.play', () => {
     render(<PomodoroTimer />);
     await user.click(screen.getByRole('button', {name: /^start$/i}));
 
-    now = now + 70_000;
-    act(() => {
-      if (rafCb) rafCb(now);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(60_000 + 100);
     });
 
     expect(playSpy).toHaveBeenCalled();
 
-    nowSpy.mockRestore();
-    rafSpy.mockRestore();
+    vi.useRealTimers();
     vi.unstubAllGlobals();
   });
 });
@@ -408,6 +381,9 @@ describe('<PomodoroTimer /> — notification toggle (4 states)', () => {
 
 describe('<PomodoroTimer /> — work-duration across phase cycle (issue 3 regression)', () => {
   it('second work session shows the custom workMinutes after work→break→work cycle', async () => {
+    vi.useFakeTimers({shouldAdvanceTime: true});
+    const user = userEvent.setup({advanceTimers: vi.advanceTimersByTime});
+
     // Seed: 30 min work, 1 min short break (speeds up the test), muted.
     window.localStorage.setItem(
       STORAGE_KEY,
@@ -428,16 +404,6 @@ describe('<PomodoroTimer /> — work-duration across phase cycle (issue 3 regres
       })
     );
 
-    const user = userEvent.setup();
-    let now = 1_700_000_000_000;
-    vi.spyOn(Date, 'now').mockImplementation(() => now);
-    let rafCb = null;
-    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => {
-      rafCb = cb;
-      return 1;
-    });
-    vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => {});
-
     render(<PomodoroTimer />);
     // Initial display: 30:00
     expect(screen.getByRole('timer')).toHaveTextContent('30:00');
@@ -445,24 +411,27 @@ describe('<PomodoroTimer /> — work-duration across phase cycle (issue 3 regres
     // Start work session.
     await user.click(screen.getByRole('button', {name: /^start$/i}));
 
-    // Advance past the 30-min work duration.
-    now += 30 * 60_000 + 1_000;
-    act(() => { if (rafCb) rafCb(now); });
+    // Advance past the 30-min work duration — setTimeout fires completion.
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(30 * 60_000 + 1_000);
+    });
 
     // Phase has auto-completed → now in Short break (paused).
     expect(screen.getByLabelText(/current phase: short break/i)).toBeInTheDocument();
-    expect(screen.getByRole('timer')).toHaveTextContent('01:00');
 
     // Start the break.
     await user.click(screen.getByRole('button', {name: /^start$/i}));
 
     // Advance past the 1-min break.
-    now += 60_000 + 1_000;
-    act(() => { if (rafCb) rafCb(now); });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(60_000 + 1_000);
+    });
 
     // Second work session: must show 30:00, not the short-break duration (1:00).
     expect(screen.getByLabelText(/current phase: work/i)).toBeInTheDocument();
     expect(screen.getByRole('timer')).toHaveTextContent('30:00');
+
+    vi.useRealTimers();
   });
 });
 
@@ -517,5 +486,259 @@ describe('<PomodoroTimer /> — persistence', () => {
     expect(typeof persisted.data.runtime.startedAt).toBe('number');
     // user object retained for later assertions.
     void user;
+  });
+});
+
+describe('<PomodoroTimer /> — setTimeout-driven cross-tab completion', () => {
+  it('setTimeout fires phase completion: audio + notification fire, phase advances', async () => {
+    vi.useFakeTimers({shouldAdvanceTime: true});
+    const user = userEvent.setup({advanceTimers: vi.advanceTimersByTime});
+
+    const playSpy = vi.fn().mockResolvedValue(undefined);
+    const AudioStub = vi.fn().mockImplementation(() => ({play: playSpy, currentTime: 0}));
+    vi.stubGlobal('Audio', AudioStub);
+
+    const NotifySpy = vi.fn();
+    function NotificationStub(title, opts) { NotifySpy(title, opts); }
+    NotificationStub.permission = 'granted';
+    NotificationStub.requestPermission = vi.fn().mockResolvedValue('granted');
+    Object.defineProperty(globalThis, 'Notification', {
+      value: NotificationStub,
+      configurable: true,
+      writable: true,
+    });
+
+    window.localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        version: '1.0.0',
+        data: {
+          settings: {
+            workMinutes: 1,
+            shortBreakMinutes: 5,
+            longBreakMinutes: 15,
+            longBreakEvery: 4,
+            muted: false,
+            notifyEnabled: true,
+          },
+          runtime: {phase: 'work', status: 'idle', startedAt: null, accumulatedMs: 0, completedWorkSessions: 0},
+          history: {},
+        },
+      })
+    );
+
+    render(<PomodoroTimer />);
+    await user.click(screen.getByRole('button', {name: /^start$/i}));
+
+    // Advance fake clock past the 1-minute work phase.
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(60_000 + 100);
+    });
+
+    // Phase advanced to Short break.
+    expect(screen.getByLabelText(/current phase: short break/i)).toBeInTheDocument();
+    // Audio played.
+    expect(playSpy).toHaveBeenCalledTimes(1);
+    // Notification fired with the correct title and options body.
+    expect(NotifySpy).toHaveBeenCalledWith('Work complete', expect.objectContaining({body: expect.any(String)}));
+
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+    delete globalThis.Notification;
+  });
+
+  it('Pause clears the completion timeout (no completion fires after pause)', async () => {
+    vi.useFakeTimers({shouldAdvanceTime: true});
+    const user = userEvent.setup({advanceTimers: vi.advanceTimersByTime});
+
+    const playSpy = vi.fn().mockResolvedValue(undefined);
+    const AudioStub = vi.fn().mockImplementation(() => ({play: playSpy, currentTime: 0}));
+    vi.stubGlobal('Audio', AudioStub);
+
+    window.localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        version: '1.0.0',
+        data: {
+          settings: {
+            workMinutes: 1,
+            shortBreakMinutes: 5,
+            longBreakMinutes: 15,
+            longBreakEvery: 4,
+            muted: false,
+            notifyEnabled: false,
+          },
+          runtime: {phase: 'work', status: 'idle', startedAt: null, accumulatedMs: 0, completedWorkSessions: 0},
+          history: {},
+        },
+      })
+    );
+
+    render(<PomodoroTimer />);
+    await user.click(screen.getByRole('button', {name: /^start$/i}));
+    // Pause before completion.
+    await user.click(screen.getByRole('button', {name: /^pause$/i}));
+
+    // Advance well past the work duration — completion must NOT fire.
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(60_000 + 5_000);
+    });
+
+    // Still on Work phase (not advanced).
+    expect(screen.getByLabelText(/current phase: work/i)).toBeInTheDocument();
+    expect(playSpy).not.toHaveBeenCalled();
+
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  it('Skip clears the completion timeout (no double-completion after skip)', async () => {
+    vi.useFakeTimers({shouldAdvanceTime: true});
+    const user = userEvent.setup({advanceTimers: vi.advanceTimersByTime});
+
+    const playSpy = vi.fn().mockResolvedValue(undefined);
+    const AudioStub = vi.fn().mockImplementation(() => ({play: playSpy, currentTime: 0}));
+    vi.stubGlobal('Audio', AudioStub);
+
+    window.localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        version: '1.0.0',
+        data: {
+          settings: {
+            workMinutes: 1,
+            shortBreakMinutes: 5,
+            longBreakMinutes: 15,
+            longBreakEvery: 4,
+            muted: false,
+            notifyEnabled: false,
+          },
+          runtime: {phase: 'work', status: 'idle', startedAt: null, accumulatedMs: 0, completedWorkSessions: 0},
+          history: {},
+        },
+      })
+    );
+
+    render(<PomodoroTimer />);
+    await user.click(screen.getByRole('button', {name: /^start$/i}));
+    // Skip immediately.
+    await user.click(screen.getByRole('button', {name: /skip phase/i}));
+
+    // Advance past what would have been the original work timeout.
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(60_000 + 5_000);
+    });
+
+    // Should be on Short break (skipped to), no extra phase transition.
+    expect(screen.getByLabelText(/current phase: short break/i)).toBeInTheDocument();
+    // Audio must NOT have fired (skip doesn't play audio, and the old timeout was cleared).
+    expect(playSpy).not.toHaveBeenCalled();
+
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  it('Reset clears the completion timeout (no completion fires after reset)', async () => {
+    vi.useFakeTimers({shouldAdvanceTime: true});
+    const user = userEvent.setup({advanceTimers: vi.advanceTimersByTime});
+
+    const playSpy = vi.fn().mockResolvedValue(undefined);
+    const AudioStub = vi.fn().mockImplementation(() => ({play: playSpy, currentTime: 0}));
+    vi.stubGlobal('Audio', AudioStub);
+
+    window.localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        version: '1.0.0',
+        data: {
+          settings: {
+            workMinutes: 1,
+            shortBreakMinutes: 5,
+            longBreakMinutes: 15,
+            longBreakEvery: 4,
+            muted: false,
+            notifyEnabled: false,
+          },
+          runtime: {phase: 'work', status: 'idle', startedAt: null, accumulatedMs: 0, completedWorkSessions: 0},
+          history: {},
+        },
+      })
+    );
+
+    render(<PomodoroTimer />);
+    await user.click(screen.getByRole('button', {name: /^start$/i}));
+    // Reset before completion.
+    await user.click(screen.getByRole('button', {name: /^reset$/i}));
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(60_000 + 5_000);
+    });
+
+    // Still on Work, idle — no audio, no phase transition from the old timeout.
+    expect(screen.getByLabelText(/current phase: work/i)).toBeInTheDocument();
+    expect(playSpy).not.toHaveBeenCalled();
+
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+});
+
+describe('<PomodoroTimer /> — rehydrate silent path (ghost notification suppression)', () => {
+  it('does not play audio or fire Notification when rehydrating an already-expired running session', async () => {
+    const playSpy = vi.fn().mockResolvedValue(undefined);
+    const AudioStub = vi.fn().mockImplementation(() => ({play: playSpy, currentTime: 0}));
+    vi.stubGlobal('Audio', AudioStub);
+
+    const NotifySpy = vi.fn();
+    function NotificationStub(title, opts) { NotifySpy(title, opts); }
+    NotificationStub.permission = 'granted';
+    NotificationStub.requestPermission = vi.fn().mockResolvedValue('granted');
+    Object.defineProperty(globalThis, 'Notification', {
+      value: NotificationStub,
+      configurable: true,
+      writable: true,
+    });
+
+    // Simulate: user started a 1-min work session, then the tab was hidden.
+    // The session naturally ended 5 seconds ago — remainingMs < 0 on mount.
+    const workMinutes = 1;
+    const startedAt = Date.now() - (workMinutes * 60_000 + 5_000);
+
+    window.localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        version: '1.0.0',
+        data: {
+          settings: {
+            workMinutes,
+            shortBreakMinutes: 5,
+            longBreakMinutes: 15,
+            longBreakEvery: 4,
+            muted: false,
+            notifyEnabled: true,
+          },
+          runtime: {
+            phase: 'work',
+            status: 'running',
+            startedAt,
+            accumulatedMs: 0,
+            completedWorkSessions: 0,
+          },
+          history: {},
+        },
+      })
+    );
+
+    render(<PomodoroTimer />);
+
+    // After mount + effect flush, phase should have auto-advanced to Short break.
+    expect(screen.getByLabelText(/current phase: short break/i)).toBeInTheDocument();
+    // CRITICAL: no audio, no notification — the user is now looking at the page,
+    // not receiving a cross-tab background notification.
+    expect(playSpy).not.toHaveBeenCalled();
+    expect(NotifySpy).not.toHaveBeenCalled();
+
+    vi.unstubAllGlobals();
+    delete globalThis.Notification;
   });
 });

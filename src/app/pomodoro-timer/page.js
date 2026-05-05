@@ -74,6 +74,8 @@ function PomodoroContent() {
   // time from runtime + DateTime.now().toMillis().
   const [, setTick] = useState(0);
   const dirtyRef = useRef(false);
+  // Holds the active completion-timeout id so we can clear it on pause/skip/reset.
+  const completionTimeoutRef = useRef(null);
 
   // Audio is constructed lazily on the first transition that needs it.
   // Audio asset: locally generated triple-beep WAV (8000 Hz, mono, 16-bit PCM,
@@ -123,6 +125,32 @@ function PomodoroContent() {
   useEffect(() => {
     const saved = loadState();
     if (saved && typeof saved === 'object') {
+      // Detect the cross-tab rehydrate case: the timer was running when the
+      // page was closed or hidden, and the phase has already expired.
+      // In this case we transition silently (no chime, no notification) —
+      // firing audio + OS notification now would be the "ghost notification"
+      // bug: the timer finished while the user was away, they're now back.
+      if (
+        saved.runtime?.status === STATUS.RUNNING &&
+        saved.runtime?.startedAt != null &&
+        saved.settings
+      ) {
+        const now = DateTime.now().toMillis();
+        const remaining = computeRemaining(saved.runtime, now, saved.settings);
+        if (remaining <= 0) {
+          // Phase already expired: restore snapshot then immediately complete
+          // the phase (state transition only, no side effects).
+          restore(saved);
+          // completePhase reads from stateRef.current which won't have updated
+          // yet from the restore() call above (React batches the setState).
+          // We call it inside the same synchronous effect; React will batch all
+          // the setStates and reconcile once.
+          completePhase();
+          setHydrated(true);
+          setMounted(true);
+          return;
+        }
+      }
       restore(saved);
     }
     setHydrated(true);
@@ -145,12 +173,30 @@ function PomodoroContent() {
     return () => clearTimeout(handle);
   }, [hydrated, settings, runtime, history, saveState]);
 
-  // ─── Live tick + auto-completion detection ──────────────────────────
+  // ─── Live tick (display only) ────────────────────────────────────────
+  // rAF drives the visual countdown refresh only. Completion is driven by
+  // a setTimeout scheduled below, which fires even when the tab is hidden.
   const onTick = useCallback(() => {
     setTick((n) => (n + 1) % 1_000_000);
+  }, []);
+
+  useTicker(onTick, {active: runtime.status === STATUS.RUNNING});
+
+  // ─── Completion scheduling via setTimeout ────────────────────────────
+  // setTimeout keeps ticking in background tabs (throttled to ~1 Hz min),
+  // which is more than precise enough for multi-minute phases.
+  // This is the single source of truth for auto-completion; the rAF ticker
+  // above handles display only.
+  useEffect(() => {
+    if (runtime.status !== STATUS.RUNNING) {
+      clearTimeout(completionTimeoutRef.current);
+      completionTimeoutRef.current = null;
+      return;
+    }
     const now = DateTime.now().toMillis();
     const remaining = computeRemaining(runtime, now, settings);
-    if (remaining <= 0 && runtime.status === STATUS.RUNNING) {
+    clearTimeout(completionTimeoutRef.current);
+    completionTimeoutRef.current = setTimeout(() => {
       const completed = completePhase();
       const completedLabel = PHASE_LABELS[completed];
       if (!settings.muted) playChime();
@@ -160,7 +206,12 @@ function PomodoroContent() {
           : 'Back to work.';
       fireNotification(`${completedLabel} complete`, nextLabel);
       showToast(`${completedLabel} complete — ${nextLabel}`, 'success');
-    }
+    }, Math.max(0, remaining));
+
+    return () => {
+      clearTimeout(completionTimeoutRef.current);
+      completionTimeoutRef.current = null;
+    };
   }, [
     runtime,
     settings,
@@ -169,8 +220,6 @@ function PomodoroContent() {
     fireNotification,
     showToast,
   ]);
-
-  useTicker(onTick, {active: runtime.status === STATUS.RUNNING});
 
   // ─── Live values for render ─────────────────────────────────────────
   const liveNow = DateTime.now().toMillis();
