@@ -67,3 +67,42 @@ export function formatPercent(pct, options = {}) {
   }
   return `${sign}${formatted}%`;
 }
+
+/**
+ * Currency formatter built on top of `Intl.NumberFormat`.
+ *
+ * The currency is treated as a *label* — no FX conversion is performed.
+ * Whole numbers are rendered without trailing zeros (`$1,000` not `$1,000.00`)
+ * unless `options.alwaysDecimals` is true.
+ *
+ * Examples:
+ *   formatCurrency(1234.5)             → "$1,234.50"
+ *   formatCurrency(1000)               → "$1,000"
+ *   formatCurrency(1000, 'EUR')        → "€1,000"
+ *   formatCurrency(1234.5, 'EUR', {locale: 'it-IT'}) → "1.234,50 €"
+ *   formatCurrency(0, 'GBP')           → "£0"
+ *   formatCurrency(-50, 'USD')         → "-$50"
+ *
+ * Returns "—" for non-finite input.
+ *
+ * @param {number} value
+ * @param {string} [currency='USD']  ISO 4217 code; passed straight to Intl.
+ * @param {{locale?:string, alwaysDecimals?:boolean, maximumFractionDigits?:number}} [options]
+ */
+export function formatCurrency(value, currency = 'USD', options = {}) {
+  if (!Number.isFinite(value)) return '—';
+  const {
+    locale = undefined,
+    alwaysDecimals = false,
+    maximumFractionDigits = 2,
+  } = options;
+  const isWhole = Number.isInteger(value);
+  const minimumFractionDigits =
+    alwaysDecimals || !isWhole ? Math.min(2, maximumFractionDigits) : 0;
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency,
+    minimumFractionDigits,
+    maximumFractionDigits,
+  }).format(value);
+}

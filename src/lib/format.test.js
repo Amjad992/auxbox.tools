@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import {formatBytes, formatPercent} from './format';
+import {formatBytes, formatCurrency, formatPercent} from './format';
 
 describe('formatBytes', () => {
   it('returns 0 B for zero', () => {
@@ -75,5 +75,49 @@ describe('formatPercent', () => {
     expect(formatPercent(NaN)).toBe('');
     expect(formatPercent(Infinity)).toBe('');
     expect(formatPercent('5')).toBe('');
+  });
+});
+
+describe('formatCurrency', () => {
+  it('formats USD with default options', () => {
+    expect(formatCurrency(1000, 'USD', {locale: 'en-US'})).toBe('$1,000');
+    expect(formatCurrency(1234.5, 'USD', {locale: 'en-US'})).toBe('$1,234.50');
+    expect(formatCurrency(0, 'USD', {locale: 'en-US'})).toBe('$0');
+  });
+
+  it('renders negative values', () => {
+    expect(formatCurrency(-50, 'USD', {locale: 'en-US'})).toBe('-$50');
+    expect(formatCurrency(-12.5, 'USD', {locale: 'en-US'})).toBe('-$12.50');
+  });
+
+  it('handles other currencies', () => {
+    expect(formatCurrency(1000, 'EUR', {locale: 'en-US'})).toBe('€1,000');
+    expect(formatCurrency(1000, 'GBP', {locale: 'en-US'})).toBe('£1,000');
+    expect(formatCurrency(1000, 'JPY', {locale: 'en-US'})).toBe('¥1,000');
+  });
+
+  it('respects locale-specific decimal comma', () => {
+    const result = formatCurrency(1234.5, 'EUR', {locale: 'it-IT'});
+    expect(result).toMatch(/1\.?234,50/);
+  });
+
+
+  it('alwaysDecimals forces trailing zeros', () => {
+    expect(
+      formatCurrency(1000, 'USD', {locale: 'en-US', alwaysDecimals: true})
+    ).toBe('$1,000.00');
+  });
+
+  it('handles very large values', () => {
+    expect(formatCurrency(1_000_000_000, 'USD', {locale: 'en-US'})).toBe(
+      '$1,000,000,000'
+    );
+  });
+
+  it('returns em-dash for non-finite input', () => {
+    expect(formatCurrency(NaN)).toBe('—');
+    expect(formatCurrency(Infinity)).toBe('—');
+    expect(formatCurrency(undefined)).toBe('—');
+    expect(formatCurrency(null)).toBe('—');
   });
 });

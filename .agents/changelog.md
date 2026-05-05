@@ -14,6 +14,14 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-06 - Add `formatCurrency` to src/lib/format.js (freelance-rate-calculator commit 1/7)
+**What changed:** New `formatCurrency(value, currency='USD', options?)` helper using `Intl.NumberFormat`. Whole numbers render without trailing zeros (`$1,000`); non-finite input returns `—` matching `formatBytes`. Tests cover USD/EUR/GBP/JPY display, negatives, locale-specific separators, `alwaysDecimals` override, very-large values, and invalid input.
+**Why:** Both the upcoming Freelance Rate Calculator and the existing Salary Raise Calculator (commit 2) need locale-aware currency rendering. Single shared helper keeps the formatting consistent and avoids each tool re-deriving it.
+**Impact:** Pure addition. No existing consumers; first use comes in commit 2's `<CurrencyInput>` lift. Treats currency as a label only — no FX conversion.
+**Files changed:** `src/lib/format.js`, `src/lib/format.test.js`.
+
+---
+
 ## 2026-05-06 - Address review-round-1 findings (refactor branch)
 **What changed:** Applied 11 of 12 findings from the general review round on `refactor/shared-extractions-batch`. Round folder: `playground/reviews/review-rounds/general/2026-05-06/`.
 
