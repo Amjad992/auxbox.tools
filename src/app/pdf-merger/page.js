@@ -10,6 +10,7 @@ import {MAX_FILE_BYTES, MAX_FILES, PDF_MIME} from './constants';
 import {formatBytes} from '../../lib/format';
 import './pdf-merger.css';
 
+
 const SCHEMA = {
   '@context': 'https://schema.org',
   '@type': 'WebApplication',
@@ -22,22 +23,6 @@ const SCHEMA = {
   offers: {'@type': 'Offer', price: '0', priceCurrency: 'USD'},
 };
 
-/**
- * Trigger a download for a Blob via a temporary anchor. Returns a teardown
- * function so the caller can revoke the object URL on unmount / next merge.
- */
-function downloadBlob(blob, filename) {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  // Defer revocation so the browser has a chance to start the download.
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
 export default function PdfMerger() {
   const {
     files,
@@ -46,6 +31,7 @@ export default function PdfMerger() {
     canMerge,
     mergeStatus,
     mergeError,
+    mergedCount,
     addFiles,
     removeFile,
     moveFile,
@@ -104,13 +90,13 @@ export default function PdfMerger() {
   );
 
   const handleMerge = useCallback(async () => {
-    await merge({onDownload: downloadBlob});
+    await merge();
   }, [merge]);
 
   const liveMessage = (() => {
     if (mergeStatus === 'merging') return 'Merging PDFs…';
     if (mergeStatus === 'success')
-      return `Merged ${files.length} files into a combined PDF. Download started.`;
+      return `Merged ${mergedCount} files into a combined PDF. Download started.`;
     return '';
   })();
 
@@ -172,26 +158,31 @@ export default function PdfMerger() {
               No files yet. Drop or pick PDFs above to get started.
             </p>
           ) : (
-            <div className="pm-list">
-              {files.map((item, index) => (
-                <PdfFileRow
-                  key={item.id}
-                  item={item}
-                  index={index}
-                  total={files.length}
-                  rangeError={fileRangeErrors[index]}
-                  onRemove={removeFile}
-                  onMoveUp={handleMoveUp}
-                  onMoveDown={handleMoveDown}
-                  onPageRangeChange={setPageRange}
-                  onDragStart={(e) => handleDragStart(e, index)}
-                  onDragOver={handleDragOver}
-                  onDrop={(e) => handleDrop(e, index)}
-                  onDragEnd={handleDragEnd}
-                  isDragging={draggingId === item.id}
-                />
-              ))}
-            </div>
+            <>
+              <p className="pm-list-hint">
+                Drag rows to reorder, or use the ↑/↓ buttons.
+              </p>
+              <div className="pm-list">
+                {files.map((item, index) => (
+                  <PdfFileRow
+                    key={item.id}
+                    item={item}
+                    index={index}
+                    total={files.length}
+                    rangeError={fileRangeErrors[index]}
+                    onRemove={removeFile}
+                    onMoveUp={handleMoveUp}
+                    onMoveDown={handleMoveDown}
+                    onPageRangeChange={setPageRange}
+                    onDragStart={(e) => handleDragStart(e, index)}
+                    onDragOver={handleDragOver}
+                    onDrop={(e) => handleDrop(e, index)}
+                    onDragEnd={handleDragEnd}
+                    isDragging={draggingId === item.id}
+                  />
+                ))}
+              </div>
+            </>
           )}
 
           {files.length > 0 && (

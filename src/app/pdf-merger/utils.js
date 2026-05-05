@@ -82,6 +82,9 @@ export function parsePageRange(input, pageCount) {
       if (aRaw === '' || bRaw === '') {
         return {error: `Invalid range "${part}".`};
       }
+      if (!/^\d+$/.test(aRaw) || !/^\d+$/.test(bRaw)) {
+        return {error: `Invalid range "${part}".`};
+      }
       const a = Number(aRaw);
       const b = Number(bRaw);
       if (!Number.isInteger(a) || !Number.isInteger(b) || a < 1 || b < 1) {
@@ -98,6 +101,9 @@ export function parsePageRange(input, pageCount) {
       }
       for (let i = a; i <= b; i++) indices.push(i - 1);
     } else {
+      if (!/^\d+$/.test(part)) {
+        return {error: `Invalid page "${part}".`};
+      }
       const n = Number(part);
       if (!Number.isInteger(n) || n < 1) {
         return {error: `Invalid page "${part}".`};
@@ -130,16 +136,19 @@ export function validateAdditions(currentFiles, newFiles) {
 
   let acceptedCount = 0;
   for (const file of newFiles) {
-    if (acceptedCount >= remainingSlots) {
-      rejected.push({file, reason: ERR_TOO_MANY});
-      continue;
-    }
+    // Run per-file validators first so the user gets the accurate rejection
+    // reason (not PDF, too large) even when the slot cap would also apply.
     if (!isPdfFile(file)) {
       rejected.push({file, reason: ERR_NOT_PDF});
       continue;
     }
     if (file.size > MAX_FILE_BYTES) {
       rejected.push({file, reason: ERR_TOO_LARGE});
+      continue;
+    }
+    // Only apply the slot cap to files that would otherwise be accepted.
+    if (acceptedCount >= remainingSlots) {
+      rejected.push({file, reason: ERR_TOO_MANY});
       continue;
     }
     accepted.push(file);

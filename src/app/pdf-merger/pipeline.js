@@ -19,7 +19,7 @@ export async function parsePdfMetadata(arrayBuffer) {
     return {pageCount: doc.getPageCount()};
   } catch (err) {
     const msg = (err && err.message) || '';
-    if (/encrypt/i.test(msg)) {
+    if (err?.name === 'EncryptedPDFError' || /encrypt/i.test(msg)) {
       return {error: 'encrypted', message: ERR_ENCRYPTED};
     }
     return {error: 'corrupt', message: ERR_CORRUPT};
@@ -47,7 +47,7 @@ export async function mergePdfs(parsedFiles, selections) {
 
   const merged = await PDFDocument.create();
   for (let i = 0; i < parsedFiles.length; i++) {
-    const src = await PDFDocument.load(parsedFiles[i].arrayBuffer);
+    const src = await PDFDocument.load(parsedFiles[i].arrayBuffer, {ignoreEncryption: false});
     const indices = selections[i].indices;
     const pages = await merged.copyPages(src, indices);
     for (const page of pages) merged.addPage(page);

@@ -151,6 +151,23 @@ describe('parsePageRange', () => {
     expect(parsePageRange('1', -1)).toHaveProperty('error');
     expect(parsePageRange('1', 1.5)).toHaveProperty('error');
   });
+
+  // MIN-3: scientific notation, leading +, hex literals must be rejected
+  it('rejects scientific notation "1e2" (MIN-3)', () => {
+    expect(parsePageRange('1e2', 200)).toHaveProperty('error');
+  });
+
+  it('rejects leading-plus "+5" (MIN-3)', () => {
+    expect(parsePageRange('+5', 10)).toHaveProperty('error');
+  });
+
+  it('rejects hex literal "0x3" (MIN-3)', () => {
+    expect(parsePageRange('0x3', 10)).toHaveProperty('error');
+  });
+
+  it('rejects "1-1e2" range where upper bound is scientific notation (MIN-3)', () => {
+    expect(parsePageRange('1-1e2', 200)).toHaveProperty('error');
+  });
 });
 
 describe('validateAdditions', () => {
@@ -218,7 +235,6 @@ describe('validateAdditions', () => {
 
 describe('mergedFilename', () => {
   it('returns merged.pdf', () => {
-    expect(mergedFilename([])).toBe(MERGED_FILENAME);
-    expect(mergedFilename([{name: 'a.pdf'}])).toBe('merged.pdf');
+    expect(mergedFilename()).toBe(MERGED_FILENAME);
   });
 });

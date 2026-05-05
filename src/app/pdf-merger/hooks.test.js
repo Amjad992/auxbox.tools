@@ -10,6 +10,20 @@ vi.mock('./pipeline', () => ({
 import {parsePdfMetadata, mergePdfs} from './pipeline';
 import {usePdfMerger} from './hooks';
 
+// jsdom doesn't implement URL.createObjectURL / revokeObjectURL.
+// Provide stubs so the hook's URL lifecycle code can run.
+if (typeof URL.createObjectURL !== 'function') {
+  URL.createObjectURL = vi.fn(() => 'blob:mock-url');
+}
+if (typeof URL.revokeObjectURL !== 'function') {
+  URL.revokeObjectURL = vi.fn();
+}
+
+// Also stub document.body.appendChild / removeChild so downloadBlob anchor
+// manipulation doesn't throw in jsdom.
+const _appendChild = document.body.appendChild.bind(document.body);
+const _removeChild = document.body.removeChild.bind(document.body);
+
 function makePdf(name = 'doc.pdf', size = 1024) {
   const buf = new Uint8Array(size);
   const file = new File([buf], name, {type: 'application/pdf'});
@@ -26,10 +40,14 @@ beforeEach(() => {
   mergePdfs.mockReset();
   // Default: parse always succeeds with 5 pages.
   parsePdfMetadata.mockResolvedValue({pageCount: 5});
+  // Reset URL stubs between tests.
+  URL.createObjectURL.mockClear?.();
+  URL.revokeObjectURL.mockClear?.();
 });
 
 afterEach(() => {
   vi.restoreAllMocks();
+  vi.useRealTimers();
 });
 
 describe('usePdfMerger', () => {
@@ -172,7 +190,10 @@ describe('usePdfMerger', () => {
     expect(result.current.fileRangeErrors[0]).toMatch(/exceeds/);
   });
 
-  it('merge happy path: calls mergePdfs with arrayBuffers + indices, calls onDownload', async () => {
+  it('merge happy path: calls mergePdfs with arrayBuffers + indices, triggers download', async () => {
+    URL.createObjectURL = vi.fn(() => 'blob:mock-url');
+    URL.revokeObjectURL = vi.fn();
+
     const {result} = renderHook(() => usePdfMerger());
     await act(async () => {
       result.current.addFiles([makePdf('a.pdf'), makePdf('b.pdf')]);
@@ -184,9 +205,8 @@ describe('usePdfMerger', () => {
     const fakeBlob = new Blob(['x'], {type: 'application/pdf'});
     mergePdfs.mockResolvedValueOnce(fakeBlob);
 
-    const onDownload = vi.fn();
     await act(async () => {
-      await result.current.merge({onDownload});
+      await result.current.merge();
     });
 
     expect(mergePdfs).toHaveBeenCalledTimes(1);
@@ -195,8 +215,11 @@ describe('usePdfMerger', () => {
     expect(parsedFiles[0]).toHaveProperty('arrayBuffer');
     expect(selections[0].indices).toEqual([0, 1, 2, 3, 4]); // empty range = all 5
 
-    expect(onDownload).toHaveBeenCalledWith(fakeBlob, 'merged.pdf');
+    // Hook creates an object URL for the download.
+    expect(URL.createObjectURL).toHaveBeenCalledWith(fakeBlob);
     expect(result.current.mergeStatus).toBe('success');
+    // mergedCount captures the snapshot length.
+    expect(result.current.mergedCount).toBe(2);
   });
 
   it('merge error path: surfaces mergeError and sets status', async () => {
@@ -214,5 +237,30 @@ describe('usePdfMerger', () => {
     });
     expect(result.current.mergeStatus).toBe('error');
     expect(result.current.mergeError).toMatch(/pdf-lib boom/);
+  });
+
+  it('clearAll resets all state slices after a failed merge (MIN-10)', async () => {
+    const {result} = renderHook(() => usePdfMerger());
+    await act(async () => {
+      result.current.addFiles([makePdf('a.pdf'), makePdf('b.pdf')]);
+    });
+    await waitFor(() =>
+      expect(result.current.files.every((f) => f.status === 'ready')).toBe(true)
+    );
+
+    // Trigger a failing merge.
+    mergePdfs.mockRejectedValueOnce(new Error('boom'));
+    await act(async () => {
+      await result.current.merge();
+    });
+    expect(result.current.mergeStatus).toBe('error');
+    expect(result.current.mergeError).toBeTruthy();
+
+    // clearAll must reset all four state slices.
+    act(() => result.current.clearAll());
+    expect(result.current.files).toEqual([]);
+    expect(result.current.rejections).toEqual([]);
+    expect(result.current.mergeStatus).toBe('idle');
+    expect(result.current.mergeError).toBeNull();
   });
 });

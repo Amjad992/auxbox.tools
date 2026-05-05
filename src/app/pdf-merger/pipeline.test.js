@@ -48,10 +48,19 @@ describe('parsePdfMetadata', () => {
     expect(PDFDocument.load).toHaveBeenCalledWith(buf, {ignoreEncryption: false});
   });
 
-  it('returns an "encrypted" error when pdf-lib reports encryption', async () => {
+  it('returns an "encrypted" error when pdf-lib reports encryption via message', async () => {
     PDFDocument.load.mockRejectedValueOnce(
       new Error('Input document is encrypted')
     );
+    const result = await parsePdfMetadata(new ArrayBuffer(8));
+    expect(result.error).toBe('encrypted');
+    expect(result.message).toMatch(/password-protected/i);
+  });
+
+  it('returns an "encrypted" error when pdf-lib throws EncryptedPDFError class (MAJ-1)', async () => {
+    const e = new Error('something else');
+    e.name = 'EncryptedPDFError';
+    PDFDocument.load.mockRejectedValueOnce(e);
     const result = await parsePdfMetadata(new ArrayBuffer(8));
     expect(result.error).toBe('encrypted');
     expect(result.message).toMatch(/password-protected/i);
@@ -107,8 +116,8 @@ describe('mergePdfs', () => {
     );
 
     expect(PDFDocument.create).toHaveBeenCalledTimes(1);
-    expect(PDFDocument.load).toHaveBeenNthCalledWith(1, bufA);
-    expect(PDFDocument.load).toHaveBeenNthCalledWith(2, bufB);
+    expect(PDFDocument.load).toHaveBeenNthCalledWith(1, bufA, {ignoreEncryption: false});
+    expect(PDFDocument.load).toHaveBeenNthCalledWith(2, bufB, {ignoreEncryption: false});
 
     expect(copyPages).toHaveBeenNthCalledWith(1, srcA, [0, 2]);
     expect(copyPages).toHaveBeenNthCalledWith(2, srcB, [1]);

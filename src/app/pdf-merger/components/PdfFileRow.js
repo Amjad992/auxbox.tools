@@ -90,6 +90,7 @@ export default function PdfFileRow({
             <input
               id={`pm-range-${id}`}
               type="text"
+              inputMode="numeric"
               className={[
                 'pm-row-range-input',
                 rangeError && 'pm-row-range-input--error',

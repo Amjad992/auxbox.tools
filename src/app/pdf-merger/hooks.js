@@ -3,6 +3,21 @@ import {validateAdditions, parsePageRange, reorder, mergedFilename} from './util
 import {mergePdfs, parsePdfMetadata} from './pipeline';
 import {ERR_CORRUPT} from './constants';
 
+/**
+ * Trigger a browser download for a Blob via a temporary anchor.
+ * Returns the object URL so the caller can track and revoke it.
+ */
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  return url;
+}
+
 let nextId = 1;
 const makeId = () => `pdf-${nextId++}`;
 
@@ -24,12 +39,23 @@ export function usePdfMerger() {
   const [rejections, setRejections] = useState([]); // most recent batch only
   const [mergeStatus, setMergeStatus] = useState('idle'); // idle|merging|success|error
   const [mergeError, setMergeError] = useState(null);
+  const [mergedCount, setMergedCount] = useState(0);
 
   const mountedRef = useRef(true);
   useEffect(() => {
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
+    };
+  }, []);
+
+  // Track object URLs created for downloads so we can revoke them on unmount.
+  const urlsRef = useRef(new Set());
+  useEffect(() => {
+    const urls = urlsRef.current;
+    return () => {
+      urls.forEach(URL.revokeObjectURL);
+      urls.clear();
     };
   }, []);
 
@@ -141,12 +167,11 @@ export function usePdfMerger() {
   }, []);
 
   /**
-   * Run the merge. Returns the resulting Blob (and triggers a download
-   * via the caller's hookable `onDownload` callback). Surfaces any
-   * pdf-lib failure as `mergeError`.
+   * Run the merge and trigger a browser download. Surfaces any pdf-lib
+   * failure as `mergeError`. The hook owns the object URL lifecycle.
    */
   const merge = useCallback(
-    async ({onDownload} = {}) => {
+    async () => {
       // Snapshot current files at call time.
       const snapshot = files;
       if (snapshot.length < 2) {
@@ -185,16 +210,26 @@ export function usePdfMerger() {
           selections
         );
         if (!mountedRef.current) return blob;
-        setMergeStatus('success');
-        if (onDownload) {
-          try {
-            onDownload(blob, mergedFilename(snapshot));
-          } catch (err) {
-            // Download trigger is best-effort; surface as merge error so the
-            // user doesn't think the merge silently failed.
+        // Capture merged count from snapshot before any further state updates.
+        setMergedCount(snapshot.length);
+        try {
+          const url = downloadBlob(blob, mergedFilename());
+          urlsRef.current.add(url);
+          // Defer revocation so the browser has a chance to start the download.
+          setTimeout(() => {
+            URL.revokeObjectURL(url);
+            urlsRef.current.delete(url);
+          }, 1000);
+        } catch (err) {
+          // Download trigger is best-effort; surface as merge error so the
+          // user doesn't think the merge silently failed.
+          if (mountedRef.current) {
+            setMergeStatus('error');
             setMergeError('Merge succeeded but the download could not be started.');
           }
+          return blob;
         }
+        if (mountedRef.current) setMergeStatus('success');
         return blob;
       } catch (err) {
         if (!mountedRef.current) return null;
@@ -233,6 +268,7 @@ export function usePdfMerger() {
     canMerge,
     mergeStatus,
     mergeError,
+    mergedCount,
     addFiles,
     removeFile,
     moveFile,
