@@ -14,6 +14,14 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-07 - Tip Calculator: register on home + sitemap (tip-calculator 3/3)
+**What changed:** Added the Tip Calculator tile (🧾) to the home grid and sitemap entry at priority 0.9. Plan archived from `playground/roadmap/` to `playground/roadmap/1-completed/`. HANDOVER updated to reflect the build is awaiting user test pass before merge.
+**Why:** Final wrap-up of the tip-calculator build queue (item #1).
+**Impact:** Tile-and-sitemap registration only.
+**Files changed:** `src/app/page.js`, `src/app/sitemap.js`, `playground/HANDOVER.md`, `playground/roadmap/...` (archive move).
+
+---
+
 ## 2026-05-07 - Add `/tip-calculator` (tip-calculator 2/3)
 **What changed:** New `/tip-calculator` route. Bill amount + tip-percent slider (with 15/18/20/25% chip presets) + people slider → total + per-person split. Currency selector reuses the shared 10-ISO list. Big monospaced "Per person" headline, subtotal/tip/total stack, per-person-tip footer chip, Copy-summary button (copies a one-line "$X bill, 18% tip, 2 people → $59.00 each (total $118.00)" string), Clear button.
 - Pure math in `utils.js` with 8 unit tests (round-trip, zero-bill, zero-tip, fractional people clamp, etc.).

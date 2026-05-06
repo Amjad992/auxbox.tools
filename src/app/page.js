@@ -121,6 +121,14 @@ const TOOLS = [
       'Quote a job, project income from a rate, or back-solve the rate that hits a target take-home. Costs, fees, taxes, team and profit margin in one place.',
     cta: 'Open tool',
   },
+  {
+    href: '/tip-calculator',
+    icon: '🧾',
+    name: 'Tip Calculator',
+    description:
+      'Bill amount, tip percent, and people — see the total and what each person owes. Mobile-friendly, runs entirely in your browser.',
+    cta: 'Open tool',
+  },
 ];
 
 export default function Home() {
