@@ -14,6 +14,19 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-07 - Add `/tip-calculator` (tip-calculator 2/3)
+**What changed:** New `/tip-calculator` route. Bill amount + tip-percent slider (with 15/18/20/25% chip presets) + people slider → total + per-person split. Currency selector reuses the shared 10-ISO list. Big monospaced "Per person" headline, subtotal/tip/total stack, per-person-tip footer chip, Copy-summary button (copies a one-line "$X bill, 18% tip, 2 people → $59.00 each (total $118.00)" string), Clear button.
+- Pure math in `utils.js` with 8 unit tests (round-trip, zero-bill, zero-tip, fractional people clamp, etc.).
+- 8 page tests cover defaults, preset chip click, people slider re-compute, currency switch, Clear, and localStorage persistence round-trip.
+- Persistence under `tip_calculator_state` via `createStorageContext` + shared `useAutoSave` + `useHydrateStorage`. Auto-save debounce 300 ms.
+- Defaults: USD, blank bill, 18% tip, 2 people.
+- Mobile-first: bill row collapses to a single column under 520 px so the currency dropdown stacks below the amount.
+**Why:** Branch `feat/tip-calculator`, commit 2 of 3.
+**Impact:** No regressions in prior tools — all shared primitives used as-is.
+**Files changed:** `src/app/tip-calculator/` (new directory: `constants.js`, `utils.js`, `utils.test.js`, `storageUtils.js`, `StorageContext.js`, `layout.js`, `page.js`, `page.test.jsx`, `tip-calculator.css`).
+
+---
+
 ## 2026-05-07 - Lift `CURRENCIES` to `src/lib/currencies.js` (tip-calculator 1/3)
 **What changed:** Pulled the 10-currency list out of `freelance-rate-calculator/constants.js` and into `src/lib/currencies.js`. Re-exported from the calculator's constants for backwards compat. Tip Calculator (next commit) will be the second consumer.
 **Why:** Place-it-right policy — confirmed second consumer. Every future money tool will need the same list.
