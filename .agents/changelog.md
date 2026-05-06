@@ -14,6 +14,22 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-07 - Add `/hash-generator` (SHA-256 / SHA-1 / SHA-512 / MD5)
+**What changed:** New `/hash-generator` route. Paste text or drop a file → SHA-256, SHA-512, SHA-1, MD5 hashes side-by-side, lowercase hex, per-row Copy + Copy all.
+- **Modes:** Text (live recompute, 200 ms debounce, stale-attempt guard) / File (drop or pick, single-file, hashes computed once on selection). Mode toggle uses shared `<ModeToggle>`.
+- **Algorithms:** SHA-* via `crypto.subtle.digest` (zero-dep, browser-native). MD5 via `spark-md5` — first runtime dep added since the freelance-rate-calculator's Luxon. Adds ~8 KB minified gzip.
+- **Privacy by design:** the hashed input is **never persisted**. Only the user's preferred mode (Text / File) is saved to localStorage. The privacy line in the UI states this. State validator only accepts `{mode}` — extra fields rejected.
+- **File mode:** large-file warning above 500 MB; `Clear file` per-file action; `Clear` global action wipes everything including the persisted mode.
+- **Math (`utils.js`):** `hashText(text, algos)`, `hashBuffer(buffer, algos)`, `hashBufferWith(algo, buffer)`, `toHex(buffer)`. 7 unit tests cover empty-string + "abc" against canonical RFC 1321 / FIPS 180-4 vectors for all four algorithms, plus a hex-conversion direct test.
+- **Page tests (7):** default render, "abc" → canonical SHA-256 displayed, all four algorithm rows present, mode toggle to File swaps the surface, switching modes clears prior input + result, Clear, mode-only persistence (asserts the input is NOT in storage).
+- **A11y:** `aria-live="polite"` on the hash list; `aria-label="Text to hash"` on the textarea; ModeToggle is a labeled `radiogroup`. `<DropZone>` already keyboard-accessible.
+- **Home tile:** 🔑 "Hash Generator". Sitemap entry at priority 0.9.
+**Why:** Build-queue item #3 from `playground/roadmap/2026-05-06_13-35_tool-backlog/plan.md`. The privacy story (no upload, no persistence of input) is the moat against the major free hash sites that all upload. SHA-* without a dep + MD5 with a small lib is the right scope/cost trade.
+**Impact:** First runtime dep added (`spark-md5@^3.0.2`). 14 new tests (7 math + 7 page), all green. Production build registers `/hash-generator` as a static route.
+**Files changed:** `src/app/hash-generator/` (new directory: `constants.js`, `utils.js`, `utils.test.js`, `storageUtils.js`, `StorageContext.js`, `layout.js`, `page.js`, `page.test.jsx`, `hash-generator.css`); `src/app/page.js`; `src/app/sitemap.js`; `package.json`, `package-lock.json` (spark-md5).
+
+---
+
 ## 2026-05-07 - Bill Splitter review-round-1 fixes (S1–S8)
 **What changed:** Applied 8 fixes from the general review round on `feat/bill-splitter`. Round folder: `playground/reviews/review-rounds/general/2026-05-07-bill-splitter/`. Reviewers: Opus subagent (10 findings, 1 blocker + 1 major + minor/info), CodeRabbit (no findings), Copilot (8 findings, 1 blocker + 1 major + minor). Codex skipped per standing user instruction.
 

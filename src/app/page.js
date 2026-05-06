@@ -137,6 +137,14 @@ const TOOLS = [
       'Split a restaurant bill by item — add diners, what each ordered, tax and tip. See exactly who owes what. Browser-only, no upload.',
     cta: 'Open tool',
   },
+  {
+    href: '/hash-generator',
+    icon: '🔑',
+    name: 'Hash Generator',
+    description:
+      'Compute SHA-256, SHA-512, SHA-1 and MD5 hashes for any text or file. Verify checksums in your browser — input never leaves your device.',
+    cta: 'Open tool',
+  },
 ];
 
 export default function Home() {
