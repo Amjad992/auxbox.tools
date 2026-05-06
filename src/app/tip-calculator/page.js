@@ -25,9 +25,9 @@ import './tip-calculator.css';
 const SCHEMA = {
   '@context': 'https://schema.org',
   '@type': 'WebApplication',
-  name: 'Tip Calculator',
+  name: 'Bill & Tip Calculator',
   description:
-    'Free tip calculator. Enter your bill, tip percent and number of people; see total and per-person split. Browser-only, no upload.',
+    'Free bill and tip calculator. Enter your bill, tip percent and number of people; see total and per-person split. Browser-only, no upload.',
   url: 'https://auxbox.tools/tip-calculator',
   applicationCategory: 'FinanceApplication',
   operatingSystem: 'Any',
@@ -115,11 +115,11 @@ function TipCalculatorContent() {
 
   return (
     <ToolPage
-      title="Tip Calculator"
+      title="Bill & Tip Calculator"
       tagline="Bill + tip + people → total and per-person split. Mobile-friendly, runs entirely in your browser."
       schema={SCHEMA}
       schemaId="tip-calculator-schema"
-      errorMessage="There was an error loading the tip calculator. Please refresh the page."
+      errorMessage="There was an error loading the calculator. Please refresh the page."
     >
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 

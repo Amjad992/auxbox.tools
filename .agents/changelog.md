@@ -14,6 +14,18 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-07 - Bill & Tip Calculator: rename, default tip 0%, add 5/10% presets
+**What changed:**
+- Display name renamed from "Tip Calculator" to "Bill & Tip Calculator" everywhere user-visible — page heading via `<ToolPage title>`, schema.org `name`, openGraph/Twitter titles, page metadata title, home-grid tile name + description. Route slug stays `/tip-calculator` (preserves SEO target for "tip calculator" searches; the rename is purely visual).
+- Default `tipPct` lowered from 18% → 0%. Lets the user pick a tip rather than assuming a US restaurant convention; matches the user's "no opinionated default" preference established on freelance-rate-calculator (default income tax 0%).
+- Tip preset chips expanded from `[15, 18, 20, 25]` to `[5, 10, 15, 18, 20, 25]`. 5% and 10% cover non-restaurant tipping contexts (delivery, lower-tip cultures).
+- Page tests updated: heading regex now matches `/bill\s*&\s*tip calculator/i`; 100 / 2 default test asserts $50 (tip 0%); new test asserts 5% and 10% chips render and select; tip-dependent tests explicitly click a preset before asserting math.
+**Why:** User flagged that "Tip Calculator" hides the bill-splitting capability; renaming surfaces it. Default 0% tip + lower-percent presets serve a wider audience than US-restaurant defaults.
+**Impact:** No URL change → SEO continuity for the existing `/tip-calculator` route. Storage `tipPct: 18` for users who already saved state stays valid (within the [0,30] bound); they just see "0%" default on a fresh visit. 17 tip-calculator tests + 8 CurrencySelect + 59 freelance-rate-calculator + 1 added preset test = 85 passing.
+**Files changed:** `src/app/tip-calculator/{constants,layout,page,page.test}.{js,jsx}`, `src/app/page.js` (home tile).
+
+---
+
 ## 2026-05-07 - Tip Calculator review-round-1 fixes (S1–S7)
 **What changed:** Applied all 7 findings from the general review round on `feat/tip-calculator`. Round folder: `playground/reviews/review-rounds/general/2026-05-07-tip-calculator/`. Reviewers: Opus subagent (8 findings, 1 major), CodeRabbit (no findings), Copilot (6 findings, 2 major). Codex skipped per standing user instruction.
 

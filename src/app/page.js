@@ -124,9 +124,9 @@ const TOOLS = [
   {
     href: '/tip-calculator',
     icon: '🧾',
-    name: 'Tip Calculator',
+    name: 'Bill & Tip Calculator',
     description:
-      'Bill amount, tip percent, and people — see the total and what each person owes. Mobile-friendly, runs entirely in your browser.',
+      'Bill amount, tip percent, and number of people — see the total and what each person owes. Mobile-friendly, runs entirely in your browser.',
     cta: 'Open tool',
   },
 ];

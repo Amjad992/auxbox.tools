@@ -1,26 +1,27 @@
 import PropTypes from 'prop-types';
 
 export const metadata = {
-  title: 'Tip Calculator — Bill, Tip Percent, Per-Person Split',
+  title: 'Bill & Tip Calculator — Total, Tip, Per-Person Split',
   description:
-    'Free tip calculator. Enter your bill and tip percent, see the total and per-person split instantly. Mobile-friendly, no upload, runs entirely in your browser.',
+    'Free bill and tip calculator. Enter your bill, pick a tip percent, choose how many people are splitting, and see the per-person total. Mobile-friendly, no upload, runs entirely in your browser.',
   keywords: [
+    'Bill Calculator',
     'Tip Calculator',
     'Bill Splitter',
     'Per Person Split Calculator',
-    'Restaurant Tip Calculator',
+    'Restaurant Bill Calculator',
     'Free Online Tool',
   ],
   openGraph: {
     type: 'website',
-    title: 'Tip Calculator',
+    title: 'Bill & Tip Calculator',
     description:
       'Bill + tip + people → total and per-person split. Free and offline.',
     url: 'https://auxbox.tools/tip-calculator',
   },
   twitter: {
     card: 'summary',
-    title: 'Tip Calculator',
+    title: 'Bill & Tip Calculator',
     description:
       'Bill + tip + people → per-person split. Free and offline.',
   },
