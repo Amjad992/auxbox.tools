@@ -124,11 +124,6 @@ function BillSplitterContent() {
     showToast('Cleared', 'success');
   };
 
-  const handleAddDemo = () => {
-    update(DEMO_STATE);
-    showToast('Demo loaded', 'success');
-  };
-
   const canClear = useMemo(
     () =>
       state.currency !== DEFAULT_STATE.currency ||
@@ -144,6 +139,20 @@ function BillSplitterContent() {
       ),
     [state]
   );
+
+  const handleAddDemo = () => {
+    if (
+      canClear &&
+      typeof window !== 'undefined' &&
+      !window.confirm(
+        'Loading the demo will replace your current bill. Continue?'
+      )
+    ) {
+      return;
+    }
+    update(DEMO_STATE);
+    showToast('Demo loaded', 'success');
+  };
 
   const result = useMemo(
     () =>
@@ -187,7 +196,7 @@ function BillSplitterContent() {
     >
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
-      <div className="bs-stack">
+      <div className="tool-stack">
         <Card>
           <div className="bs-card-header">
             <h2 className="bs-card-title">People</h2>
@@ -257,16 +266,16 @@ function BillSplitterContent() {
                     }
                     placeholder="0.00"
                   />
-                  <div className="bs-assign-select-wrap">
+                  <div className="tool-select-wrap">
                     <label
                       htmlFor={`bs-item-${it.id}-assign`}
-                      className="bs-assign-select-label"
+                      className="tool-select-label"
                     >
                       Who ordered it?
                     </label>
                     <select
                       id={`bs-item-${it.id}-assign`}
-                      className="bs-assign-select"
+                      className="tool-select"
                       value={it.assignedTo}
                       onChange={(e) =>
                         updateItem(it.id, {assignedTo: e.target.value})
@@ -309,14 +318,14 @@ function BillSplitterContent() {
                 leftHint={`${BOUNDS.TAX_PCT_MIN}%`}
                 rightHint={`${BOUNDS.TAX_PCT_MAX}%`}
               />
-              <div className="bs-presets">
+              <div className="tool-presets">
                 {TAX_PRESETS.map((p) => {
                   const active = state.taxPct === p;
                   return (
                     <button
                       type="button"
                       key={p}
-                      className={`bs-preset${active ? ' bs-preset--active' : ''}`}
+                      className={`tool-preset${active ? ' tool-preset--active' : ''}`}
                       onClick={() => update({taxPct: p})}
                       aria-pressed={active}
                     >
@@ -334,19 +343,20 @@ function BillSplitterContent() {
                 min={BOUNDS.TIP_PCT_MIN}
                 max={BOUNDS.TIP_PCT_MAX}
                 step={1}
+                integerOnly
                 onChange={(v) => update({tipPct: v})}
                 formatValue={(v) => `${v}%`}
                 leftHint={`${BOUNDS.TIP_PCT_MIN}%`}
                 rightHint={`${BOUNDS.TIP_PCT_MAX}%`}
               />
-              <div className="bs-presets">
+              <div className="tool-presets">
                 {TIP_PRESETS.map((p) => {
                   const active = state.tipPct === p;
                   return (
                     <button
                       type="button"
                       key={p}
-                      className={`bs-preset${active ? ' bs-preset--active' : ''}`}
+                      className={`tool-preset${active ? ' tool-preset--active' : ''}`}
                       onClick={() => update({tipPct: p})}
                       aria-pressed={active}
                     >
@@ -396,7 +406,7 @@ function BillSplitterContent() {
                   </tbody>
                   <tfoot>
                     <tr>
-                      <td>Total</td>
+                      <th scope="row">Total</th>
                       <td>{fmt(result.totals.subtotal)}</td>
                       <td>{fmt(result.totals.tax)}</td>
                       <td>{fmt(result.totals.tip)}</td>
@@ -407,7 +417,7 @@ function BillSplitterContent() {
                   </tfoot>
                 </table>
 
-                <div className="bs-result-cards" aria-hidden="true">
+                <div className="bs-result-cards">
                   {result.perPerson.map((p) => (
                     <div key={p.personId} className="bs-result-card">
                       <p className="bs-result-card-name">{p.name}</p>

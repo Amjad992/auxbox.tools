@@ -97,7 +97,7 @@ export default function CostsCard({value, currency, onChange}) {
           />
           <select
             aria-label="Period"
-            className="frc-costs-period"
+            className="tool-select"
             value={value.quickPeriod}
             onChange={(e) => setQuickPeriod(e.target.value)}
           >
@@ -178,7 +178,7 @@ function CostLine({item, currency, onChange, onRemove}) {
         placeholder="0"
       />
       <select
-        className="frc-costs-period"
+        className="tool-select"
         value={item.period}
         onChange={(e) => onChange({period: e.target.value})}
         aria-label="Period for this line item"

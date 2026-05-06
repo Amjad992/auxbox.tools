@@ -161,14 +161,14 @@ function TipCalculatorContent() {
             leftHint={`${BOUNDS.TIP_PCT_MIN}%`}
             rightHint={`${BOUNDS.TIP_PCT_MAX}%`}
           />
-          <div className="tc-presets">
+          <div className="tool-presets">
             {TIP_PRESETS.map((p) => {
               const active = state.tipPct === p;
               return (
                 <button
                   type="button"
                   key={p}
-                  className={`tc-preset${active ? ' tc-preset--active' : ''}`}
+                  className={`tool-preset${active ? ' tool-preset--active' : ''}`}
                   onClick={() => update({tipPct: p})}
                   aria-pressed={active}
                 >

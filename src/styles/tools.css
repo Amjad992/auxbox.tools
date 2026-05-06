@@ -299,6 +299,73 @@
   font-weight: 700;
 }
 
+/* ═══ Native select + presets (shared) ═════════
+   Default styling for non-currency native <select>s and the
+   chip-row presets used across multiple tools (tip percent,
+   tax percent, fee presets, etc). */
+.tool-select-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.tool-select-label {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.tool-select {
+  background-color: #1f1f1f;
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 0.95rem;
+  outline: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tool-select:focus,
+.tool-select:focus-visible {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.15);
+}
+
+/* Chip-style toggle group used for tip/tax/preset rows. */
+.tool-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+}
+
+.tool-preset {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  color: var(--text-secondary);
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease,
+    background-color 0.15s ease;
+  font-family: inherit;
+}
+
+.tool-preset:hover {
+  border-color: var(--primary-color);
+  color: var(--text-primary);
+}
+
+.tool-preset--active {
+  background: rgba(255, 107, 107, 0.12);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
 /* ═══ Currency input (shared) ══════════════════ */
 .tool-currency-field {
   display: flex;

@@ -1,11 +1,5 @@
 /* Bill Splitter — local styles. */
 
-.bs-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
 .bs-card-header {
   display: flex;
   justify-content: space-between;
@@ -62,74 +56,12 @@
   }
 }
 
-.bs-assign-select-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.bs-assign-select-label {
-  color: var(--text-secondary);
-  font-size: 0.85rem;
-  font-weight: 500;
-}
-
-.bs-assign-select {
-  background-color: #1f1f1f;
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 12px 14px;
-  font-size: 0.95rem;
-  outline: none;
-  cursor: pointer;
-  font-family: inherit;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.bs-assign-select:focus {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.15);
-}
-
 .bs-empty {
   margin: 0;
   padding: 0.75rem 0;
   color: var(--text-light);
   font-style: italic;
   text-align: center;
-}
-
-/* Tax/tip */
-.bs-presets {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.4rem;
-}
-
-.bs-preset {
-  background: transparent;
-  border: 1px solid var(--border-color);
-  border-radius: 999px;
-  color: var(--text-secondary);
-  padding: 6px 14px;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: border-color 0.15s ease, color 0.15s ease,
-    background-color 0.15s ease;
-  font-family: inherit;
-}
-
-.bs-preset:hover {
-  border-color: var(--primary-color);
-  color: var(--text-primary);
-}
-
-.bs-preset--active {
-  background: rgba(255, 107, 107, 0.12);
-  border-color: var(--primary-color);
-  color: var(--primary-color);
 }
 
 .bs-rate-card-stack {

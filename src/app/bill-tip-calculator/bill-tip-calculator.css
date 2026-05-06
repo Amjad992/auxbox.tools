@@ -58,38 +58,6 @@
   box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.15);
 }
 
-/* Tip presets row */
-.tc-presets {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-}
-
-.tc-preset {
-  background: transparent;
-  border: 1px solid var(--border-color);
-  border-radius: 999px;
-  color: var(--text-secondary);
-  padding: 6px 14px;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: border-color 0.15s ease, color 0.15s ease,
-    background-color 0.15s ease;
-  font-family: inherit;
-}
-
-.tc-preset:hover {
-  border-color: var(--primary-color);
-  color: var(--text-primary);
-}
-
-.tc-preset--active {
-  background: rgba(255, 107, 107, 0.12);
-  border-color: var(--primary-color);
-  color: var(--primary-color);
-}
-
 /* Result */
 .tc-result {
   display: flex;

@@ -14,6 +14,35 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-07 - Bill Splitter review-round-1 fixes (S1–S8)
+**What changed:** Applied 8 fixes from the general review round on `feat/bill-splitter`. Round folder: `playground/reviews/review-rounds/general/2026-05-07-bill-splitter/`. Reviewers: Opus subagent (10 findings, 1 blocker + 1 major + minor/info), CodeRabbit (no findings), Copilot (8 findings, 1 blocker + 1 major + minor). Codex skipped per standing user instruction.
+
+- **S1 (blocker) — Drop `aria-hidden="true"` from `.bs-result-cards`.** The CSS already removes the hidden representation from the a11y tree via `display: none`, so the explicit `aria-hidden` was actively hiding the *visible* mobile UI from screen readers. WCAG 2.1 SC 4.1.3 fix; mobile screen-reader users now see the per-person breakdown.
+- **S2 (major) — Lift `.tool-select` and `.tool-preset` to `src/styles/tools.css`.** Three independent native-`<select>` styling clones (`.bs-assign-select`, `.frc-costs-period`, `.tc-currency-select` legacy) and two preset-chip clones (`.bs-preset` / `.tc-preset`) consolidated into shared classes. `bill-splitter` and `bill-tip-calculator` and `freelance-rate-calculator/components/CostsCard.js` all migrated. (cgpa-calculator's `.grade-select` differs in palette and is left for a follow-up.)
+- **S3 (minor)** — `.bs-stack` was a clone of the existing `.tool-stack`; replaced and the rule deleted.
+- **S4 (minor)** — Footer "Total" cell becomes `<th scope="row">` for screen-reader row-header semantics (WCAG H63).
+- **S5 (minor)** — "Load demo" now prompts for confirmation when `canClear` is true (user has typed something). Bypasses the confirm when the form is already at defaults.
+- **S6 (minor)** — `validateBillSplitterState` enforces `people.length >= 1` AND referential integrity for `item.assignedTo` (must be `'shared'` or a known person id). Prevents stale-orphan-assignment silent re-bucketing on hydrate.
+- **S7 (minor)** — Replaced `newId`'s module-level counter with `crypto.randomUUID()` (with `Math.random` fallback). SSR-safe; no shared mutable state across requests.
+- **S8 (minor)** — Tip slider explicit `integerOnly` to match the asymmetry intent with the tax slider (which uses `step={0.5}` + `integerOnly={false}`).
+
+**Skipped (with reasons):**
+- Opus F6 (addPerson stale closure): defensible for single-user click cadence; `crypto.randomUUID` ids prevent collisions even on rapid clicks.
+- Opus F7 (cents drift): info-only; documented in a JSDoc note in `utils.js`. Fix is integer-cents settlement and is a v2 concern.
+- Opus F8 (perf): info; no change needed.
+- Opus F10 (SEO): clean.
+- Opus F9 / Copilot test-style (`getAllByDisplayValue` papers over UI duplication): tests pass; the assertion is weaker but still load-bearing. Migration to scoped `within(...)` is a polish round, not a blocker.
+
+**Doc fix from Copilot F8:** the original `Add /bill-splitter` changelog entry said "30 new tests (10 math + 20 page)". Actual count was 10 math + 10 page = 20 total. Noted here for the historical record; not editing the prior entry.
+
+**Why:** Round-one fixes from the local-review-multi-agent process. All findings addressed in one round per the protocol's "no deferral" rule.
+
+**Impact:** 97 tests across the three affected tools (bill-splitter 20 + bill-tip-calculator 17 + freelance-rate-calculator 60), all passing. No regressions in any other tool. Three tools now share the new `.tool-select` and `.tool-preset` classes, removing ~75 lines of duplicated CSS.
+
+**Files changed:** `src/styles/tools.css` (added `.tool-select*` and `.tool-preset*` blocks); `src/app/bill-splitter/{page,utils,storageUtils,bill-splitter.css}.js`; `src/app/bill-tip-calculator/{page,bill-tip-calculator.css}.js`; `src/app/freelance-rate-calculator/{components/CostsCard.js,freelance-rate-calculator.css}`.
+
+---
+
 ## 2026-05-07 - Add `/bill-splitter` (uneven-split companion to Bill & Tip Calculator)
 **What changed:** New `/bill-splitter` route. Different shape from the Bill & Tip Calculator — handles **uneven splits**: each diner gets the items they ordered, then tax + tip is divided proportionally to each person's subtotal.
 - **People card:** repeating row `{name, remove}`. "+ Add person" button. Last person can't be removed (disabled state).

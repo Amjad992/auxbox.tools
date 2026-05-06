@@ -6,6 +6,13 @@ import {SHARED_ASSIGNMENT} from './constants';
  * Split a bill across people with mixed individual + shared items, then
  * proportionally distribute tax and tip across each person's subtotal.
  *
+ * Note: math runs in floating-point with no internal rounding —
+ * `formatCurrency` rounds at display time. For pathological inputs
+ * (e.g. $100.01 split three ways) the sum of rounded per-person rows
+ * can differ from the rounded grand total by 1 cent. Acceptable for v1;
+ * convert to integer cents internally + assign the remainder to the
+ * largest-subtotal diner if a strict-reconciliation policy is needed.
+ *
  * Algorithm:
  *   1. For each person p, sum items where assignedTo === p.id.
  *   2. Sum 'shared' items, divide equally across all people.
@@ -109,8 +116,14 @@ function clampPct(p) {
   return v / 100;
 }
 
-let nextIdCounter = 0;
 export function newId(prefix = 'i') {
-  // Time-prefixed + counter to avoid collisions across rapid re-renders.
-  return `${prefix}${Date.now().toString(36)}-${++nextIdCounter}`;
+  // Prefer crypto.randomUUID (browsers + Node ≥ 18). Falls back to a
+  // Math.random suffix for the rare environment that lacks it. No
+  // module-level mutable state, so the helper is SSR-safe.
+  const suffix =
+    typeof globalThis !== 'undefined' &&
+    globalThis.crypto?.randomUUID
+      ? globalThis.crypto.randomUUID().slice(0, 8)
+      : Math.random().toString(36).slice(2, 10);
+  return `${prefix}-${suffix}`;
 }

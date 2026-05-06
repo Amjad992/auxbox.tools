@@ -242,23 +242,6 @@
   align-items: end;
 }
 
-.frc-costs-period {
-  background-color: #1f1f1f;
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 9px 12px;
-  font-size: 0.9rem;
-  outline: none;
-  cursor: pointer;
-  font-family: inherit;
-  transition: border-color 0.2s ease;
-}
-
-.frc-costs-period:focus {
-  border-color: var(--primary-color);
-}
-
 .frc-costs-line-list {
   display: flex;
   flex-direction: column;
