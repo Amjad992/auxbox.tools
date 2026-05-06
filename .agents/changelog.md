@@ -14,6 +14,14 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-07 - Lift `CURRENCIES` to `src/lib/currencies.js` (tip-calculator 1/3)
+**What changed:** Pulled the 10-currency list out of `freelance-rate-calculator/constants.js` and into `src/lib/currencies.js`. Re-exported from the calculator's constants for backwards compat. Tip Calculator (next commit) will be the second consumer.
+**Why:** Place-it-right policy — confirmed second consumer. Every future money tool will need the same list.
+**Impact:** Pure refactor. All 59 freelance-rate-calculator tests stay green.
+**Files changed:** `src/lib/currencies.js` (new), `src/app/freelance-rate-calculator/constants.js`.
+
+---
+
 ## 2026-05-06 - Freelance Rate Calculator: surface accepted Hours formats in the label
 **What changed:** The Hours field's accepted formats are now part of the visible label — `Hours — accepts 12.5, 12:19, or 12h 19m` with each format in a `<code>` chip. The placeholder echoes them and the helper line below changes color based on state: gray default, red on parse error, primary on a successful parse (`Parsed: 12h 19m`). Previously the format hint only appeared in a subtle gray helper that the user didn't notice.
 **Why:** User flagged "you allowed me to write whatever … but you didn't tell me." The accepted-format affordance needs to be obvious before they type, not after they fail.

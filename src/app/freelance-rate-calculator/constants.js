@@ -18,22 +18,8 @@ export const MODE_OPTIONS = [
   {value: MODES.RATE, label: 'Rate from target'},
 ];
 
-// Currency selector. ISO codes only; the symbol is resolved via Intl
-// at render time. No FX conversion — currency is a label.
-export const CURRENCIES = [
-  {value: 'USD', label: 'USD — US Dollar'},
-  {value: 'EUR', label: 'EUR — Euro'},
-  {value: 'GBP', label: 'GBP — Pound Sterling'},
-  {value: 'SAR', label: 'SAR — Saudi Riyal'},
-  {value: 'AED', label: 'AED — Emirati Dirham'},
-  {value: 'JPY', label: 'JPY — Japanese Yen'},
-  {value: 'CAD', label: 'CAD — Canadian Dollar'},
-  {value: 'AUD', label: 'AUD — Australian Dollar'},
-  {value: 'INR', label: 'INR — Indian Rupee'},
-  {value: 'CNY', label: 'CNY — Chinese Yuan'},
-];
-
-export const CURRENCY_VALUES = CURRENCIES.map((c) => c.value);
+// Currency selector — re-exported from the shared lib.
+export {CURRENCIES, CURRENCY_VALUES} from '../../lib/currencies';
 
 export const COSTS_VIEW = {
   QUICK: 'quick',
