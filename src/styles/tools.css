@@ -175,6 +175,7 @@
 
 /* ═══ Currency select (shared dropdown) ════════ */
 .tool-currency-select-wrap {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
@@ -186,23 +187,116 @@
   font-weight: 500;
 }
 
-.tool-currency-select {
+.tool-currency-select-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
   background-color: #1f1f1f;
   color: var(--text-primary);
   border: 1px solid var(--border-color);
   border-radius: 8px;
-  padding: 12px 14px;
+  padding: 10px 12px;
   font-size: 0.95rem;
-  outline: none;
-  cursor: pointer;
   font-family: inherit;
+  cursor: pointer;
+  outline: none;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
   min-width: 12ch;
+  text-align: left;
 }
 
-.tool-currency-select:focus {
+.tool-currency-select-trigger:hover {
+  border-color: rgba(255, 107, 107, 0.5);
+}
+
+.tool-currency-select-trigger:focus-visible,
+.tool-currency-select-trigger[aria-expanded='true'] {
   border-color: var(--primary-color);
   box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.15);
+}
+
+.tool-currency-select-trigger-code {
+  color: var(--primary-color);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.tool-currency-select-trigger-name {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tool-currency-select-trigger-chevron {
+  color: var(--text-light);
+  font-size: 0.7rem;
+  transition: transform 0.2s ease;
+}
+
+.tool-currency-select-trigger[aria-expanded='true']
+  .tool-currency-select-trigger-chevron {
+  transform: rotate(180deg);
+}
+
+.tool-currency-select-listbox {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin: 0.4rem 0 0;
+  list-style: none;
+  padding: 0.3rem;
+  background: #1f1f1f;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  max-height: 280px;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+.tool-currency-select-option {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  outline: none;
+  transition: background-color 0.12s ease;
+}
+
+.tool-currency-select-option--active {
+  background-color: rgba(255, 107, 107, 0.10);
+}
+
+.tool-currency-select-option--selected {
+  background-color: rgba(255, 107, 107, 0.18);
+}
+
+.tool-currency-select-option--selected.tool-currency-select-option--active {
+  background-color: rgba(255, 107, 107, 0.25);
+}
+
+.tool-currency-select-option-code {
+  color: var(--primary-color);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  min-width: 3ch;
+}
+
+.tool-currency-select-option-name {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  flex: 1;
+}
+
+.tool-currency-select-option-check {
+  color: var(--primary-color);
+  font-weight: 700;
 }
 
 /* ═══ Currency input (shared) ══════════════════ */

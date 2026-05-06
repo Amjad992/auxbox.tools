@@ -13,49 +13,76 @@ function setup(props = {}) {
 }
 
 describe('<CurrencySelect />', () => {
-  it('renders the default label "Currency"', () => {
+  it('renders the default label "Currency" and the trigger button', () => {
     setup();
-    expect(screen.getByLabelText(/^currency$/i)).toBeInTheDocument();
+    expect(screen.getByText(/^currency$/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', {expanded: false})
+    ).toBeInTheDocument();
   });
 
   it('renders a custom label when provided', () => {
     setup({label: 'Pick a currency'});
-    expect(screen.getByLabelText(/pick a currency/i)).toBeInTheDocument();
+    expect(screen.getByText(/pick a currency/i)).toBeInTheDocument();
   });
 
-  it('renders 10 options', () => {
+  it('opens the listbox on trigger click', async () => {
+    const user = userEvent.setup();
     setup();
-    const select = screen.getByRole('combobox');
-    expect(select.querySelectorAll('option')).toHaveLength(10);
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button'));
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+    expect(screen.getAllByRole('option')).toHaveLength(10);
   });
 
-  it('fires onChange with the picked currency code (not the event)', async () => {
+  it('selecting an option fires onChange with the picked code and closes', async () => {
     const onChange = vi.fn();
     const user = userEvent.setup();
     setup({onChange});
-    await user.selectOptions(screen.getByRole('combobox'), 'EUR');
+    await user.click(screen.getByRole('button'));
+    await user.click(screen.getByRole('option', {name: /EUR/}));
+    expect(onChange).toHaveBeenCalledWith('EUR');
+    // Listbox closes after selection.
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+  });
+
+  it('marks the current value with aria-selected', async () => {
+    const user = userEvent.setup();
+    setup({value: 'GBP'});
+    await user.click(screen.getByRole('button'));
+    const selected = screen
+      .getAllByRole('option')
+      .find((o) => o.getAttribute('aria-selected') === 'true');
+    expect(selected).toHaveTextContent('GBP');
+  });
+
+  it('Escape closes the listbox and refocuses the trigger', async () => {
+    const user = userEvent.setup();
+    setup();
+    const trigger = screen.getByRole('button');
+    await user.click(trigger);
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+    await user.keyboard('{Escape}');
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
+  });
+
+  it('arrow-down + Enter selects the next currency', async () => {
+    const onChange = vi.fn();
+    const user = userEvent.setup();
+    setup({value: 'USD', onChange});
+    await user.click(screen.getByRole('button'));
+    await user.keyboard('{ArrowDown}{Enter}');
+    // From USD (index 0), arrow-down goes to EUR (index 1).
     expect(onChange).toHaveBeenCalledWith('EUR');
   });
 
-  it('labelStyle="code" renders option text as just the code (e.g. "USD")', () => {
-    setup({labelStyle: 'code'});
-    const options = screen.getAllByRole('option');
-    expect(options[0]).toHaveTextContent('USD');
-    expect(options[0].textContent).toBe('USD');
-  });
-
-  it('labelStyle="full" (default) renders full label text (e.g. "USD — US Dollar")', () => {
-    setup({labelStyle: 'full'});
-    const options = screen.getAllByRole('option');
-    expect(options[0].textContent).toBe('USD — US Dollar');
-  });
-
-  it('forwards id to the select element', () => {
+  it('forwards id to the trigger button', () => {
     setup({id: 'my-select'});
-    expect(screen.getByRole('combobox').id).toBe('my-select');
+    expect(screen.getByRole('button')).toHaveAttribute('id', 'my-select');
   });
 
-  it('appends className to the wrapper element', () => {
+  it('applies className to the wrapper', () => {
     const {container} = setup({className: 'extra-class'});
     expect(container.firstChild).toHaveClass('extra-class');
   });

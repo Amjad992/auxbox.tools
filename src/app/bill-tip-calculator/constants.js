@@ -1,10 +1,10 @@
-// Tip Calculator constants.
+// Bill & Tip Calculator constants.
 
 export const STORAGE_VERSION = '1.0.0';
-export const STORAGE_KEY = 'tip_calculator_state';
+export const STORAGE_KEY = 'bill_tip_calculator_state';
 export const STATE_AUTOSAVE_DEBOUNCE_MS = 300;
 
-export const TIP_PRESETS = [5, 10, 15, 18, 20, 25];
+export const TIP_PRESETS = [0, 5, 10, 15, 20, 25, 30];
 
 export const BOUNDS = {
   TIP_PCT_MIN: 0,

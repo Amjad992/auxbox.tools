@@ -27,7 +27,7 @@ describe('<TipCalculator /> — page render', () => {
       screen.getByRole('heading', {name: /bill\s*&\s*tip calculator/i})
     ).toBeInTheDocument();
     expect(screen.getByLabelText(/bill amount/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/^currency$/i)).toBeInTheDocument();
+    expect(screen.getByText(/^currency$/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/tip percent/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/number of people/i)).toBeInTheDocument();
   });
@@ -76,14 +76,15 @@ describe('<TipCalculator /> — page render', () => {
     const user = userEvent.setup();
     render(<TipCalculator />);
     await user.type(screen.getByLabelText(/bill amount/i), '100');
-    await user.click(screen.getByRole('button', {name: /^18%$/}));
+    // Use the 20% preset to give the math a non-zero tip leg.
+    await user.click(screen.getByRole('button', {name: /^20%$/}));
 
     fireEvent.change(screen.getByLabelText(/number of people/i), {
       target: {value: '4'},
     });
 
-    // 100 × 1.18 / 4 = 29.50.
-    expect(screen.getAllByText(/\$29\.50/).length).toBeGreaterThan(0);
+    // 100 × 1.20 / 4 = 30.00.
+    expect(screen.getAllByText(/\$30\.00/).length).toBeGreaterThan(0);
   });
 
   it('switching currency from USD to EUR re-renders the displayed amount', async () => {
@@ -91,7 +92,9 @@ describe('<TipCalculator /> — page render', () => {
     render(<TipCalculator />);
     await user.type(screen.getByLabelText(/bill amount/i), '100');
 
-    await user.selectOptions(screen.getByLabelText(/^currency$/i), 'EUR');
+    // Open the currency popover, click the EUR row.
+    await user.click(screen.getByRole('button', {expanded: false, name: /USD/}));
+    await user.click(screen.getByRole('option', {name: /EUR/}));
 
     // Default tipPct = 0%, 2 people → €50.00 each.
     expect(screen.getAllByText(/€50\.00/).length).toBeGreaterThan(0);

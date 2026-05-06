@@ -20,7 +20,7 @@ import {
   TIP_PRESETS,
 } from './constants';
 import {calculateTip} from './utils';
-import './tip-calculator.css';
+import './bill-tip-calculator.css';
 
 const SCHEMA = {
   '@context': 'https://schema.org',
@@ -28,7 +28,7 @@ const SCHEMA = {
   name: 'Bill & Tip Calculator',
   description:
     'Free bill and tip calculator. Enter your bill, tip percent and number of people; see total and per-person split. Browser-only, no upload.',
-  url: 'https://auxbox.tools/tip-calculator',
+  url: 'https://auxbox.tools/bill-tip-calculator',
   applicationCategory: 'FinanceApplication',
   operatingSystem: 'Any',
   offers: {'@type': 'Offer', price: '0', priceCurrency: 'USD'},
@@ -143,7 +143,6 @@ function TipCalculatorContent() {
               id="tc-currency"
               value={state.currency}
               onChange={(v) => update({currency: v})}
-              labelStyle="code"
             />
           </div>
         </Card>

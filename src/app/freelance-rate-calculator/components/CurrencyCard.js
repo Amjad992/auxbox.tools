@@ -10,7 +10,6 @@ export default function CurrencyCard({value, onChange}) {
           id="frc-currency"
           value={value}
           onChange={onChange}
-          labelStyle="full"
         />
         <p className="frc-currency-note">
           Display label only — no FX conversion.

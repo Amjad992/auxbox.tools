@@ -29,7 +29,7 @@ describe('<FreelanceRateCalculator /> — Quote mode', () => {
     expect(
       screen.getByRole('radiogroup', {name: /calculation mode/i})
     ).toBeInTheDocument();
-    expect(screen.getByLabelText(/currency/i)).toBeInTheDocument();
+    expect(screen.getByText(/^currency$/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/^hours\b/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/hourly rate/i)).toBeInTheDocument();
   });
@@ -71,7 +71,9 @@ describe('<FreelanceRateCalculator /> — Quote mode', () => {
     await user.type(screen.getByLabelText(/^hours\b/i), '10');
     await user.type(screen.getByLabelText(/hourly rate/i), '100');
 
-    await user.selectOptions(screen.getByLabelText(/currency/i), 'EUR');
+    // Open the currency popover, click EUR.
+    await user.click(screen.getByRole('button', {expanded: false, name: /USD/}));
+    await user.click(screen.getByRole('option', {name: /EUR/}));
 
     // Result should now use € symbol.
     expect(screen.getAllByText(/€1,000/)[0]).toBeInTheDocument();

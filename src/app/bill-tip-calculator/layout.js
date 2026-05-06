@@ -17,7 +17,7 @@ export const metadata = {
     title: 'Bill & Tip Calculator',
     description:
       'Bill + tip + people → total and per-person split. Free and offline.',
-    url: 'https://auxbox.tools/tip-calculator',
+    url: 'https://auxbox.tools/bill-tip-calculator',
   },
   twitter: {
     card: 'summary',
@@ -26,14 +26,14 @@ export const metadata = {
       'Bill + tip + people → per-person split. Free and offline.',
   },
   alternates: {
-    canonical: 'https://auxbox.tools/tip-calculator',
+    canonical: 'https://auxbox.tools/bill-tip-calculator',
   },
 };
 
-export default function TipCalculatorLayout({children}) {
+export default function BillTipCalculatorLayout({children}) {
   return children;
 }
 
-TipCalculatorLayout.propTypes = {
+BillTipCalculatorLayout.propTypes = {
   children: PropTypes.node.isRequired,
 };

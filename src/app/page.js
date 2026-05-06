@@ -122,7 +122,7 @@ const TOOLS = [
     cta: 'Open tool',
   },
   {
-    href: '/tip-calculator',
+    href: '/bill-tip-calculator',
     icon: '🧾',
     name: 'Bill & Tip Calculator',
     description:
