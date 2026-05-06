@@ -14,6 +14,20 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-06 - Freelance Rate Calculator: smart Hours parser (decimal / hh:mm / 12h 19m)
+**What changed:** The Quote-mode Hours field is now a flexible-format text input that accepts:
+- Decimal hours (`12`, `12.5`, `12,5` for EU comma users)
+- Colon notation (`12:19`, `0:30`)
+- h/m suffixes (`12h 19m`, `12h19m`, `30m`, `2h`)
+The parser (`parseHours` in `utils.js`) returns decimal hours or null for unparseable input (including negatives or "1:60" with minutes ≥ 60). A live "Parsed: 12h 19m" helper appears below the input on a successful parse, falling back to a format hint when empty and a clear error message ("Couldn't parse — try …") on garbage input. The math layer is unchanged — `quote()` still receives decimal hours.
+- New helpers: `parseHours(raw)` and `formatHoursLabel(decimal)` with 16 unit tests covering each accepted form, edge cases (1:60 rejected, 12abc rejected), and round-tripping. Three new page tests cover `12:19` end-to-end ($1,231.67 quote at $100/hr), `2h 30m` h/m form, and the error-hint path.
+- QuoteInputs becomes a controlled component holding the raw text locally so the user can type partial input (`12:`) without the parent's null parse clobbering the in-flight text. The useEffect that re-syncs on external resets (Clear, Import) skips when both sides agree on null, fixing the mid-type wipe.
+**Why:** User flagged "how can I input 12 hours and 19 minutes? the field just has number field". Decimal-only is hostile for a tool freelancers will reach for to bill real time. Smart parsing + parsed-feedback label is more forgiving than two separate fields and matches how time trackers (Toggl/Harvest) accept input.
+**Impact:** Hours input changed from `<input type="number" step="0.25">` to `<input type="text">` with a parser. Page tests adjusted for the type change (`toHaveValue('5')` instead of `toHaveValue(5)`).
+**Files changed:** `src/app/freelance-rate-calculator/utils.js` (parseHours + formatHoursLabel), `src/app/freelance-rate-calculator/utils.test.js` (parser tests), `src/app/freelance-rate-calculator/components/QuoteInputs.js` (text input + helper), `src/app/freelance-rate-calculator/page.test.jsx` (new tests + updated assertions).
+
+---
+
 ## 2026-05-06 - Fix input rendering: kill `appearance: textfield`, bump padding, replace cost-line label hack
 **What changed:**
 - `.tool-currency-input` and `.tool-field-input`: switched from `appearance: textfield` to `appearance: none` (with `-moz-appearance: textfield` retained for Firefox spinner suppression). On Safari/macOS, `appearance: textfield` was reapplying native widget styling — including a white background that won over `background: transparent` — so the freelance-rate-calculator's currency inputs rendered as a small white pill instead of the dark themed look.

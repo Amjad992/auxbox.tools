@@ -201,3 +201,76 @@ function clampPct(p) {
 
 // Re-export for tests.
 export const _internal = {num, clampPct};
+
+/**
+ * Parse a flexible duration string into decimal hours.
+ *
+ * Accepts:
+ *   - decimal hours:        "12", "12.5", "0.25", "12,5"
+ *   - colon notation:       "12:19", "0:30", "1:05"
+ *   - h/m suffixes:         "12h 19m", "12h19m", "12 h 19 m", "30m", "2h"
+ *   - whitespace tolerant:  "  12 : 19  "
+ *
+ * Returns null when the input is empty or unparseable. Negative inputs
+ * also return null (no negative durations).
+ *
+ * Examples:
+ *   parseHours("12.5")      → 12.5
+ *   parseHours("12:19")     → 12.31666… (12 + 19/60)
+ *   parseHours("12h 19m")   → 12.31666…
+ *   parseHours("30m")       → 0.5
+ *   parseHours("")          → null
+ */
+export function parseHours(raw) {
+  if (raw == null) return null;
+  const s = String(raw).trim();
+  if (s === '') return null;
+
+  // 1. h/m form: "12h 19m" or "30m" or "2h"
+  const hmMatch = s
+    .toLowerCase()
+    .match(/^(?:(\d+(?:[.,]\d+)?)\s*h)?\s*(?:(\d+(?:[.,]\d+)?)\s*m)?$/);
+  if (hmMatch && (hmMatch[1] || hmMatch[2])) {
+    const h = hmMatch[1] ? parseFloat(hmMatch[1].replace(',', '.')) : 0;
+    const m = hmMatch[2] ? parseFloat(hmMatch[2].replace(',', '.')) : 0;
+    if (Number.isFinite(h) && Number.isFinite(m) && h >= 0 && m >= 0) {
+      return h + m / 60;
+    }
+  }
+
+  // 2. Colon form: "12:19"
+  const colonMatch = s.match(/^(\d+)\s*:\s*(\d+(?:\.\d+)?)$/);
+  if (colonMatch) {
+    const h = parseInt(colonMatch[1], 10);
+    const m = parseFloat(colonMatch[2]);
+    if (Number.isFinite(h) && Number.isFinite(m) && h >= 0 && m >= 0 && m < 60) {
+      return h + m / 60;
+    }
+  }
+
+  // 3. Decimal — accept comma OR dot as separator. Reject any string
+  // with trailing/extra characters (parseFloat is too lenient).
+  const normalized = s.replace(',', '.');
+  if (/^\d+(\.\d+)?$/.test(normalized)) {
+    const decimal = parseFloat(normalized);
+    if (Number.isFinite(decimal) && decimal >= 0) return decimal;
+  }
+
+  return null;
+}
+
+/**
+ * Format decimal hours back to a "Xh Ym" label for display next to the
+ * Hours input. Used as live feedback when the user types in any accepted
+ * format. Pure helper so it can be unit tested.
+ */
+export function formatHoursLabel(decimalHours) {
+  if (!Number.isFinite(decimalHours) || decimalHours < 0) return '';
+  if (decimalHours === 0) return '0h';
+  const totalMinutes = Math.round(decimalHours * 60);
+  const h = Math.floor(totalMinutes / 60);
+  const m = totalMinutes % 60;
+  if (h === 0) return `${m}m`;
+  if (m === 0) return `${h}h`;
+  return `${h}h ${m}m`;
+}

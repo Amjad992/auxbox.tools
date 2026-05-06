@@ -7,6 +7,8 @@ import {
   quote,
   incomeForRate,
   requiredRateForTakeHome,
+  parseHours,
+  formatHoursLabel,
 } from './utils';
 import {COST_PERIOD} from './constants';
 
@@ -346,5 +348,68 @@ describe('requiredRateForTakeHome (round-trip)', () => {
       people: 1,
     });
     expect(r.rate).toBe(Infinity);
+  });
+});
+
+describe('parseHours', () => {
+  it('decimal forms', () => {
+    expect(parseHours('12')).toBe(12);
+    expect(parseHours('12.5')).toBe(12.5);
+    expect(parseHours('0.25')).toBe(0.25);
+    expect(parseHours('12,5')).toBe(12.5); // EU comma
+  });
+
+  it('colon notation', () => {
+    expect(parseHours('12:19')).toBeCloseTo(12 + 19 / 60, 6);
+    expect(parseHours('0:30')).toBe(0.5);
+    expect(parseHours('1:05')).toBeCloseTo(1 + 5 / 60, 6);
+    expect(parseHours(' 12 : 19 ')).toBeCloseTo(12 + 19 / 60, 6);
+  });
+
+  it('rejects colon notation with minutes >= 60', () => {
+    expect(parseHours('1:60')).toBeNull();
+    expect(parseHours('1:75')).toBeNull();
+  });
+
+  it('h/m suffix forms', () => {
+    expect(parseHours('12h 19m')).toBeCloseTo(12 + 19 / 60, 6);
+    expect(parseHours('12h19m')).toBeCloseTo(12 + 19 / 60, 6);
+    expect(parseHours('30m')).toBe(0.5);
+    expect(parseHours('2h')).toBe(2);
+    expect(parseHours('12 H 19 M')).toBeCloseTo(12 + 19 / 60, 6);
+  });
+
+  it('returns null for empty or garbage', () => {
+    expect(parseHours('')).toBeNull();
+    expect(parseHours('   ')).toBeNull();
+    expect(parseHours(null)).toBeNull();
+    expect(parseHours(undefined)).toBeNull();
+    expect(parseHours('abc')).toBeNull();
+    expect(parseHours('12abc')).toBeNull();
+  });
+
+  it('rejects negative durations', () => {
+    expect(parseHours('-5')).toBeNull();
+  });
+});
+
+describe('formatHoursLabel', () => {
+  it('common cases', () => {
+    expect(formatHoursLabel(0)).toBe('0h');
+    expect(formatHoursLabel(12)).toBe('12h');
+    expect(formatHoursLabel(12.5)).toBe('12h 30m');
+    expect(formatHoursLabel(0.25)).toBe('15m');
+    expect(formatHoursLabel(12 + 19 / 60)).toBe('12h 19m');
+  });
+
+  it('rounds minutes to nearest', () => {
+    // 0.491666… hours → 29.5 min → 30m
+    expect(formatHoursLabel(29.5 / 60)).toBe('30m');
+  });
+
+  it('returns empty string for non-finite or negative', () => {
+    expect(formatHoursLabel(NaN)).toBe('');
+    expect(formatHoursLabel(-1)).toBe('');
+    expect(formatHoursLabel(Infinity)).toBe('');
   });
 });

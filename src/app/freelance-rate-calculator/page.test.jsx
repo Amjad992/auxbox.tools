@@ -101,6 +101,34 @@ describe('<FreelanceRateCalculator /> — Quote mode', () => {
     expect(screen.getByText(/70% \(yours\)/)).toBeInTheDocument();
   });
 
+  it('Hours field accepts 12:19 and shows the parsed label', async () => {
+    const user = userEvent.setup();
+    render(<FreelanceRateCalculator />);
+    await user.type(screen.getByLabelText(/^hours$/i), '12:19');
+    await user.type(screen.getByLabelText(/hourly rate/i), '100');
+
+    expect(screen.getByText(/parsed: 12h 19m/i)).toBeInTheDocument();
+    // 12 + 19/60 ≈ 12.3167 hours × $100 = $1,231.67. Rendered as $1,232.
+    expect(screen.getAllByText(/\$1,231|\$1,232/)[0]).toBeInTheDocument();
+  });
+
+  it('Hours field accepts h/m suffix form', async () => {
+    const user = userEvent.setup();
+    render(<FreelanceRateCalculator />);
+    await user.type(screen.getByLabelText(/^hours$/i), '2h 30m');
+    await user.type(screen.getByLabelText(/hourly rate/i), '100');
+
+    expect(screen.getByText(/parsed: 2h 30m/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/\$250/)[0]).toBeInTheDocument();
+  });
+
+  it('Hours field shows an error hint on garbage input', async () => {
+    const user = userEvent.setup();
+    render(<FreelanceRateCalculator />);
+    await user.type(screen.getByLabelText(/^hours$/i), 'abc');
+    expect(screen.getByText(/couldn’t parse/i)).toBeInTheDocument();
+  });
+
   it('Income mode renders rate input, time card, and projection grid', async () => {
     const user = userEvent.setup();
     render(<FreelanceRateCalculator />);
@@ -176,7 +204,7 @@ describe('<FreelanceRateCalculator /> — Quote mode', () => {
     await user.upload(fileInput, file);
 
     await waitFor(() => {
-      expect(screen.getByLabelText(/^hours$/i)).toHaveValue(7);
+      expect(screen.getByLabelText(/^hours$/i)).toHaveValue('7');
     });
     expect(screen.getByLabelText(/hourly rate/i)).toHaveValue(80);
   });
@@ -199,7 +227,7 @@ describe('<FreelanceRateCalculator /> — Quote mode', () => {
 
     await user.click(screen.getByRole('button', {name: /^clear$/i}));
 
-    expect(screen.getByLabelText(/^hours$/i)).toHaveValue(null);
+    expect(screen.getByLabelText(/^hours$/i)).toHaveValue('');
     expect(screen.getByLabelText(/hourly rate/i)).toHaveValue(null);
     expect(
       screen.getByText(/enter hours and a rate to see the quote/i)
@@ -219,7 +247,7 @@ describe('<FreelanceRateCalculator /> — Quote mode', () => {
     expect(window.localStorage.getItem(STORAGE_KEY)).toBeTruthy();
 
     render(<FreelanceRateCalculator />);
-    expect(screen.getByLabelText(/^hours$/i)).toHaveValue(5);
+    expect(screen.getByLabelText(/^hours$/i)).toHaveValue('5');
     expect(screen.getByLabelText(/hourly rate/i)).toHaveValue(200);
   });
 });
