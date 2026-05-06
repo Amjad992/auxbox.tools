@@ -14,6 +14,24 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-07 - Add `/bill-splitter` (uneven-split companion to Bill & Tip Calculator)
+**What changed:** New `/bill-splitter` route. Different shape from the Bill & Tip Calculator — handles **uneven splits**: each diner gets the items they ordered, then tax + tip is divided proportionally to each person's subtotal.
+- **People card:** repeating row `{name, remove}`. "+ Add person" button. Last person can't be removed (disabled state).
+- **Items card:** repeating row `{label, amount, assignedTo}`. Assignment select shows "Shared" + every person; "Shared" items split equally across all diners. "+ Add item" button. Empty state explains the model.
+- **Tax & tip card:** two sliders with chip presets (tax 0/5/8/10/13/15, tip 0/5/10/15/18/20). Tax 0–20%, tip 0–30%.
+- **Currency card:** shared `<CurrencySelect>` popover (the round-2 pattern from bill-tip-calculator).
+- **Result card:** desktop = `<table>` with one row per person and a totals footer; mobile (<720 px) = stack of per-person mini-cards (table is hidden via media query). `aria-live` region wraps both branches so screen readers announce the result.
+- **Actions:** Copy summary (multi-line per-person plain text), Load demo (3 diners, 5 items, 8% tax, 18% tip), Clear.
+- **Math (`utils.js`):** `splitBill({people, items, taxPct, tipPct})` returns `{perPerson:[{personId, name, subtotal, taxShare, tipShare, total}], totals:{subtotal, tax, tip, grandTotal}}`. Proportional tax/tip distribution; 0-subtotal fallback to equal split. Items assigned to a removed person ID are silently treated as "shared". 10 unit tests (round-trip identity, mixed personal+shared, ghost assignments, invalid amounts, percent clamping).
+- **Persistence:** `bill_splitter_state` via shared `createStorageContext` + `useAutoSave` + `useHydrateStorage`. Validator covers people array, items array, currency, tax/tip bounds.
+- **Page tests (10):** default render, add/remove person (last is disabled), add item, two-diner round-trip with tax+tip, Load demo, Clear, persistence round-trip, currency popover swap, tax preset chip.
+- **Home tile:** 🍽️ "Bill Splitter". Sitemap entry at priority 0.9.
+**Why:** Build-queue item #2 from `playground/roadmap/2026-05-06_13-35_tool-backlog/plan.md`. The Bill & Tip Calculator (#1) handles equal splits; this tool covers the harder "who ate what" case that was never going to fit cleanly into a slider-based UI.
+**Impact:** No regressions. Reuses every shared primitive: `<ToolPage>`, `<Card>`, `<Button>`, `<CurrencyInput>`, `<CurrencySelect>`, `<InputField>`, `<Slider>`, `<ToastContainer>`, `useToast`, `useAutoSave`, `useHydrateStorage`, `useCopyToClipboard`, `formatCurrency`, `CURRENCIES`, `createStorageContext`. No new shared lifts; everything that's tool-specific (per-person cards, item rows, assignment select, totals chips) stays local.
+**Files changed:** `src/app/bill-splitter/` (new directory: `constants.js`, `utils.js`, `utils.test.js`, `storageUtils.js`, `StorageContext.js`, `layout.js`, `page.js`, `page.test.jsx`, `bill-splitter.css`); `src/app/page.js`; `src/app/sitemap.js`.
+
+---
+
 ## 2026-05-07 - Bill & Tip Calculator round-2 polish: route rename, popover currency picker, expanded tip presets
 **What changed:**
 - **Route renamed `/tip-calculator` → `/bill-tip-calculator`.** URL now matches the display name. Directory `src/app/tip-calculator/` → `src/app/bill-tip-calculator/`; CSS file renamed; `STORAGE_KEY` from `tip_calculator_state` → `bill_tip_calculator_state`; metadata `url` + `alternates.canonical` + schema URL + sitemap URL + home tile `href` all updated. (Existing localStorage state under the old key is dropped — no production users yet, branch hasn't shipped.)

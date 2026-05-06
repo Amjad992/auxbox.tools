@@ -129,6 +129,14 @@ const TOOLS = [
       'Bill amount, tip percent, and number of people — see the total and what each person owes. Mobile-friendly, runs entirely in your browser.',
     cta: 'Open tool',
   },
+  {
+    href: '/bill-splitter',
+    icon: '🍽️',
+    name: 'Bill Splitter',
+    description:
+      'Split a restaurant bill by item — add diners, what each ordered, tax and tip. See exactly who owes what. Browser-only, no upload.',
+    cta: 'Open tool',
+  },
 ];
 
 export default function Home() {
