@@ -30,7 +30,7 @@ describe('<FreelanceRateCalculator /> — Quote mode', () => {
       screen.getByRole('radiogroup', {name: /calculation mode/i})
     ).toBeInTheDocument();
     expect(screen.getByLabelText(/currency/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/^hours$/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^hours\b/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/hourly rate/i)).toBeInTheDocument();
   });
 
@@ -44,7 +44,7 @@ describe('<FreelanceRateCalculator /> — Quote mode', () => {
   it('computes a basic quote (10 × $100 = $1,000)', async () => {
     const user = userEvent.setup();
     render(<FreelanceRateCalculator />);
-    await user.type(screen.getByLabelText(/^hours$/i), '10');
+    await user.type(screen.getByLabelText(/^hours\b/i), '10');
     await user.type(screen.getByLabelText(/hourly rate/i), '100');
 
     expect(screen.getAllByText(/\$1,000/)[0]).toBeInTheDocument();
@@ -55,7 +55,7 @@ describe('<FreelanceRateCalculator /> — Quote mode', () => {
   it('applies the compound fee chain (10 × $100, 10% platform + 25% tax)', async () => {
     const user = userEvent.setup();
     render(<FreelanceRateCalculator />);
-    await user.type(screen.getByLabelText(/^hours$/i), '10');
+    await user.type(screen.getByLabelText(/^hours\b/i), '10');
     await user.type(screen.getByLabelText(/hourly rate/i), '100');
 
     // Use Upwork preset for 10% platform fee.
@@ -68,7 +68,7 @@ describe('<FreelanceRateCalculator /> — Quote mode', () => {
   it('switches currency display from USD to EUR', async () => {
     const user = userEvent.setup();
     render(<FreelanceRateCalculator />);
-    await user.type(screen.getByLabelText(/^hours$/i), '10');
+    await user.type(screen.getByLabelText(/^hours\b/i), '10');
     await user.type(screen.getByLabelText(/hourly rate/i), '100');
 
     await user.selectOptions(screen.getByLabelText(/currency/i), 'EUR');
@@ -104,7 +104,7 @@ describe('<FreelanceRateCalculator /> — Quote mode', () => {
   it('Hours field accepts 12:19 and shows the parsed label', async () => {
     const user = userEvent.setup();
     render(<FreelanceRateCalculator />);
-    await user.type(screen.getByLabelText(/^hours$/i), '12:19');
+    await user.type(screen.getByLabelText(/^hours\b/i), '12:19');
     await user.type(screen.getByLabelText(/hourly rate/i), '100');
 
     expect(screen.getByText(/parsed: 12h 19m/i)).toBeInTheDocument();
@@ -115,7 +115,7 @@ describe('<FreelanceRateCalculator /> — Quote mode', () => {
   it('Hours field accepts h/m suffix form', async () => {
     const user = userEvent.setup();
     render(<FreelanceRateCalculator />);
-    await user.type(screen.getByLabelText(/^hours$/i), '2h 30m');
+    await user.type(screen.getByLabelText(/^hours\b/i), '2h 30m');
     await user.type(screen.getByLabelText(/hourly rate/i), '100');
 
     expect(screen.getByText(/parsed: 2h 30m/i)).toBeInTheDocument();
@@ -125,7 +125,7 @@ describe('<FreelanceRateCalculator /> — Quote mode', () => {
   it('Hours field shows an error hint on garbage input', async () => {
     const user = userEvent.setup();
     render(<FreelanceRateCalculator />);
-    await user.type(screen.getByLabelText(/^hours$/i), 'abc');
+    await user.type(screen.getByLabelText(/^hours\b/i), 'abc');
     expect(screen.getByText(/couldn’t parse/i)).toBeInTheDocument();
   });
 
@@ -204,7 +204,7 @@ describe('<FreelanceRateCalculator /> — Quote mode', () => {
     await user.upload(fileInput, file);
 
     await waitFor(() => {
-      expect(screen.getByLabelText(/^hours$/i)).toHaveValue('7');
+      expect(screen.getByLabelText(/^hours\b/i)).toHaveValue('7');
     });
     expect(screen.getByLabelText(/hourly rate/i)).toHaveValue(80);
   });
@@ -222,12 +222,12 @@ describe('<FreelanceRateCalculator /> — Quote mode', () => {
   it('Clear resets state and wipes storage', async () => {
     const user = userEvent.setup();
     render(<FreelanceRateCalculator />);
-    await user.type(screen.getByLabelText(/^hours$/i), '10');
+    await user.type(screen.getByLabelText(/^hours\b/i), '10');
     await user.type(screen.getByLabelText(/hourly rate/i), '50');
 
     await user.click(screen.getByRole('button', {name: /^clear$/i}));
 
-    expect(screen.getByLabelText(/^hours$/i)).toHaveValue('');
+    expect(screen.getByLabelText(/^hours\b/i)).toHaveValue('');
     expect(screen.getByLabelText(/hourly rate/i)).toHaveValue(null);
     expect(
       screen.getByText(/enter hours and a rate to see the quote/i)
@@ -237,7 +237,7 @@ describe('<FreelanceRateCalculator /> — Quote mode', () => {
   it('persists state across remounts via localStorage', async () => {
     const user = userEvent.setup();
     const {unmount} = render(<FreelanceRateCalculator />);
-    await user.type(screen.getByLabelText(/^hours$/i), '5');
+    await user.type(screen.getByLabelText(/^hours\b/i), '5');
     await user.type(screen.getByLabelText(/hourly rate/i), '200');
 
     // Wait for the autosave debounce (300ms).
@@ -247,7 +247,7 @@ describe('<FreelanceRateCalculator /> — Quote mode', () => {
     expect(window.localStorage.getItem(STORAGE_KEY)).toBeTruthy();
 
     render(<FreelanceRateCalculator />);
-    expect(screen.getByLabelText(/^hours$/i)).toHaveValue('5');
+    expect(screen.getByLabelText(/^hours\b/i)).toHaveValue('5');
     expect(screen.getByLabelText(/hourly rate/i)).toHaveValue(200);
   });
 });

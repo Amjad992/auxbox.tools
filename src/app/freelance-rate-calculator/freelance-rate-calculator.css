@@ -80,6 +80,29 @@
   gap: 1rem;
 }
 
+.frc-hours-formats {
+  color: var(--text-light);
+  font-weight: 400;
+  font-size: 0.8rem;
+}
+
+.frc-hours-formats code {
+  background: rgba(255, 255, 255, 0.06);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.frc-hours-hint--parsed {
+  color: var(--primary-color);
+  font-weight: 500;
+}
+
+.frc-hours-hint--error {
+  color: #e74c3c;
+}
+
 /* Quote result */
 .frc-quote-result {
   display: flex;

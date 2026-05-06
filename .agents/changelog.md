@@ -14,6 +14,14 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-06 - Freelance Rate Calculator: surface accepted Hours formats in the label
+**What changed:** The Hours field's accepted formats are now part of the visible label — `Hours — accepts 12.5, 12:19, or 12h 19m` with each format in a `<code>` chip. The placeholder echoes them and the helper line below changes color based on state: gray default, red on parse error, primary on a successful parse (`Parsed: 12h 19m`). Previously the format hint only appeared in a subtle gray helper that the user didn't notice.
+**Why:** User flagged "you allowed me to write whatever … but you didn't tell me." The accepted-format affordance needs to be obvious before they type, not after they fail.
+**Impact:** No behaviour change — same parser, same math. Pure discoverability fix.
+**Files changed:** `src/app/freelance-rate-calculator/components/QuoteInputs.js`, `src/app/freelance-rate-calculator/freelance-rate-calculator.css`, `src/app/freelance-rate-calculator/page.test.jsx` (label-regex updated to match the longer label).
+
+---
+
 ## 2026-05-06 - Freelance Rate Calculator: smart Hours parser (decimal / hh:mm / 12h 19m)
 **What changed:** The Quote-mode Hours field is now a flexible-format text input that accepts:
 - Decimal hours (`12`, `12.5`, `12,5` for EU comma users)

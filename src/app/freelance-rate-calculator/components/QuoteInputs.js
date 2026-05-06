@@ -54,7 +54,11 @@ export default function QuoteInputs({
       <div className="frc-quote-inputs">
         <div className="tool-field">
           <label htmlFor="frc-hours" className="tool-field-label">
-            Hours
+            Hours{' '}
+            <span className="frc-hours-formats">
+              — accepts <code>12.5</code>, <code>12:19</code>, or{' '}
+              <code>12h 19m</code>
+            </span>
           </label>
           <input
             id="frc-hours"
@@ -66,16 +70,21 @@ export default function QuoteInputs({
             }`}
             value={hoursRaw}
             onChange={handleHoursChange}
-            placeholder="12, 12:19, or 12h 19m"
+            placeholder="e.g. 12, 12:19, 12h 19m"
             aria-invalid={isInvalid ? 'true' : undefined}
             aria-describedby="frc-hours-hint"
           />
-          <span id="frc-hours-hint" className="tool-field-helper">
+          <span
+            id="frc-hours-hint"
+            className={`tool-field-helper${
+              isInvalid ? ' frc-hours-hint--error' : ''
+            }${parsedLabel && !isInvalid ? ' frc-hours-hint--parsed' : ''}`}
+          >
             {isInvalid
               ? 'Couldn’t parse — try 12, 12.5, 12:19, or 12h 19m.'
               : parsedLabel
                 ? `Parsed: ${parsedLabel}`
-                : 'Decimal (12.5), colon (12:19), or h/m (12h 19m).'}
+                : 'Type any of the formats above.'}
           </span>
         </div>
         <CurrencyInput
