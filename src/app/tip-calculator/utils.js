@@ -1,7 +1,9 @@
 // Tip Calculator — pure math.
 
 export function calculateTip({bill, tipPct, people}) {
-  const b = num(bill);
+  // Clamp negative bills to zero — typed/pasted negatives bypass `min="0"`
+  // on the input, and propagating them produces nonsensical negative tips.
+  const b = Math.max(0, num(bill));
   const t = num(tipPct);
   const p = Math.max(1, Math.floor(num(people)));
   const tipAmount = b * (t / 100);

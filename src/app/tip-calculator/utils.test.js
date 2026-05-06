@@ -48,6 +48,14 @@ describe('calculateTip', () => {
     expect(r.perPerson).toBeCloseTo(57.5, 5);
   });
 
+  it('clamps negative bill to zero', () => {
+    const r = calculateTip({bill: -50, tipPct: 18, people: 2});
+    expect(r.bill).toBe(0);
+    expect(r.tipAmount).toBe(0);
+    expect(r.total).toBe(0);
+    expect(r.perPerson).toBe(0);
+  });
+
   it('handles non-finite inputs gracefully', () => {
     const r = calculateTip({bill: NaN, tipPct: Infinity, people: 'x'});
     expect(r.total).toBe(0);

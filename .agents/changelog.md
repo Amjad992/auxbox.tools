@@ -14,6 +14,31 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-07 - Tip Calculator review-round-1 fixes (S1–S7)
+**What changed:** Applied all 7 findings from the general review round on `feat/tip-calculator`. Round folder: `playground/reviews/review-rounds/general/2026-05-07-tip-calculator/`. Reviewers: Opus subagent (8 findings, 1 major), CodeRabbit (no findings), Copilot (6 findings, 2 major). Codex skipped per standing user instruction.
+
+- **S1 (major) — Lifted `<CurrencySelect>` to `src/components/CurrencySelect.js`.** Shared dropdown with `{id, value, onChange, label?, labelStyle?: 'full'|'code', className?}`. CSS lifted to `src/styles/tools.css` under `.tool-currency-select*`. Both consumers migrated: tip-calculator drops the inline `<select>` + `.tc-currency-select-*` CSS; freelance-rate-calculator's `CurrencyCard` is now a thin layout wrapper around `<CurrencySelect labelStyle="full">` (drops `.frc-currency-select`/`-label` CSS). Co-located 8-test spec covers label rendering, option count, onChange code emission, labelStyle variants, id/className forwarding.
+- **S2 (major) — Always-mounted `aria-live` region.** The result-card live region was inside the `hasBill` branch — screen readers don't announce content of a region mounted simultaneously with its content (WCAG 2.1 SC 4.1.3). Wrapped both branches in a single persistent `<div className="tc-result-region" aria-live="polite" aria-atomic="true">`.
+- **S3 — Negative-bill clamp.** `calculateTip` now `Math.max(0, num(bill))`. Added a unit test asserting negative bill → all outputs zero.
+- **S4 — Validator bounds.** New `BOUNDS` constant in `tip-calculator/constants.js` (TIP_PCT_MIN/MAX, PEOPLE_MIN/MAX). `validateTipCalculatorState` enforces tipPct ∈ [0,30], people integer ∈ [1,20], bill ≥ 0 when present. Slider min/max props now read from the same `BOUNDS` so bounds can't drift between validator and UI.
+- **S5 — Deterministic persistence test.** Replaced the 400 ms wall-clock `setTimeout` with `waitFor` polling on the localStorage key. Removes the wall-clock wait without introducing fake-timer interference with `userEvent.type` (which schedules its own real-timer rAF).
+- **S6 — `canClear` field-by-field compare.** Replaced `JSON.stringify(state) !== JSON.stringify(DEFAULT_STATE)` with explicit per-field comparison; narrows the `useMemo` deps to the four fields that actually matter.
+- **S7 — Headline scaling.** `.tc-result-headline-value` now uses `font-size: clamp(2rem, 8vw, 3rem)` so the per-person value doesn't overflow on 375 px viewports for currencies like JPY.
+
+**Skipped (with reason):**
+- Opus F8 (currency-select alignment polish): reviewer explicitly said opt-in skip.
+- Copilot F5 (sitemap `lastModified` hardcoded): misread of convention — every other tool entry in `src/app/sitemap.js` uses a hardcoded date. Tip-calculator's entry follows the established pattern.
+
+**Why:** Round-one fixes from the local-review-multi-agent process. All findings addressed in one round per the protocol's "no deferral across rounds" rule.
+
+**Impact:** Two tools updated (tip-calculator, freelance-rate-calculator). 84 tests covering both tools and CurrencySelect all pass. 8 net new tests (1 negative-bill + 8 CurrencySelect − 1 changed persistence test). No new dependencies. No regressions in any other tool's tests.
+
+**Files changed:**
+- New: `src/components/CurrencySelect.js`, `src/components/CurrencySelect.test.jsx`.
+- Modified: `src/styles/tools.css` (added `.tool-currency-select*` block); `src/app/tip-calculator/{page,constants,storageUtils,utils,utils.test,page.test,tip-calculator.css}.{js,jsx}`; `src/app/freelance-rate-calculator/components/CurrencyCard.js`; `src/app/freelance-rate-calculator/freelance-rate-calculator.css` (dropped `.frc-currency-{label,select,select:focus}`).
+
+---
+
 ## 2026-05-07 - Tip Calculator: register on home + sitemap (tip-calculator 3/3)
 **What changed:** Added the Tip Calculator tile (🧾) to the home grid and sitemap entry at priority 0.9. Plan archived from `playground/roadmap/` to `playground/roadmap/1-completed/`. HANDOVER updated to reflect the build is awaiting user test pass before merge.
 **Why:** Final wrap-up of the tip-calculator build queue (item #1).

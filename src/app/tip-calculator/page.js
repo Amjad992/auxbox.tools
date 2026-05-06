@@ -4,6 +4,7 @@ import ToolPage from '../../components/ToolPage';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
 import CurrencyInput from '../../components/CurrencyInput';
+import CurrencySelect from '../../components/CurrencySelect';
 import Slider from '../../components/Slider';
 import ToastContainer from '../../components/ToastContainer';
 import {useToast} from '../../hooks/useToast';
@@ -11,9 +12,9 @@ import {useAutoSave} from '../../hooks/useAutoSave';
 import {useHydrateStorage} from '../../hooks/useHydrateStorage';
 import {useCopyToClipboard} from '../../hooks/useCopyToClipboard';
 import {formatCurrency} from '../../lib/format';
-import {CURRENCIES} from '../../lib/currencies';
 import {StorageProvider, useStorageData} from './StorageContext';
 import {
+  BOUNDS,
   DEFAULT_STATE,
   STATE_AUTOSAVE_DEBOUNCE_MS,
   TIP_PRESETS,
@@ -77,8 +78,12 @@ function TipCalculatorContent() {
   };
 
   const canClear = useMemo(
-    () => JSON.stringify(state) !== JSON.stringify(DEFAULT_STATE),
-    [state]
+    () =>
+      state.currency !== DEFAULT_STATE.currency ||
+      state.bill !== DEFAULT_STATE.bill ||
+      state.tipPct !== DEFAULT_STATE.tipPct ||
+      state.people !== DEFAULT_STATE.people,
+    [state.currency, state.bill, state.tipPct, state.people]
   );
 
   const result = useMemo(
@@ -134,26 +139,12 @@ function TipCalculatorContent() {
               }
               placeholder="0.00"
             />
-            <div className="tc-currency-select-wrap">
-              <label
-                htmlFor="tc-currency"
-                className="tc-currency-select-label"
-              >
-                Currency
-              </label>
-              <select
-                id="tc-currency"
-                className="tc-currency-select"
-                value={state.currency}
-                onChange={(e) => update({currency: e.target.value})}
-              >
-                {CURRENCIES.map((c) => (
-                  <option key={c.value} value={c.value}>
-                    {c.value}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <CurrencySelect
+              id="tc-currency"
+              value={state.currency}
+              onChange={(v) => update({currency: v})}
+              labelStyle="code"
+            />
           </div>
         </Card>
 
@@ -163,13 +154,13 @@ function TipCalculatorContent() {
             id="tc-tip-pct"
             label="Tip percent"
             value={state.tipPct}
-            min={0}
-            max={30}
+            min={BOUNDS.TIP_PCT_MIN}
+            max={BOUNDS.TIP_PCT_MAX}
             step={1}
             onChange={(v) => update({tipPct: v})}
             formatValue={(v) => `${v}%`}
-            leftHint="0%"
-            rightHint="30%"
+            leftHint={`${BOUNDS.TIP_PCT_MIN}%`}
+            rightHint={`${BOUNDS.TIP_PCT_MAX}%`}
           />
           <div className="tc-presets">
             {TIP_PRESETS.map((p) => {
@@ -195,76 +186,78 @@ function TipCalculatorContent() {
             id="tc-people"
             label="Number of people"
             value={state.people}
-            min={1}
-            max={20}
+            min={BOUNDS.PEOPLE_MIN}
+            max={BOUNDS.PEOPLE_MAX}
             step={1}
             onChange={(v) => update({people: v})}
             formatValue={(v) => `${v} ${v === 1 ? 'person' : 'people'}`}
-            leftHint="1"
-            rightHint="20"
+            leftHint={`${BOUNDS.PEOPLE_MIN}`}
+            rightHint={`${BOUNDS.PEOPLE_MAX}`}
           />
         </Card>
 
         <Card>
           <h2 className="tc-card-title">Result</h2>
-          {hasBill ? (
-            <div className="tc-result" aria-live="polite">
-              <div className="tc-result-headline">
-                <p className="tc-result-headline-label">Per person</p>
-                <p className="tc-result-headline-value">
-                  {formatCurrency(result.perPerson, state.currency, {
-                    alwaysDecimals: true,
-                  })}
-                </p>
-                <p className="tc-result-headline-sub">
-                  {state.people === 1
-                    ? 'just you'
-                    : `split between ${state.people} people`}
-                </p>
-              </div>
-              <div className="tc-result-line tc-result-line--muted">
-                <span>Subtotal</span>
-                <span className="tc-result-amount">
-                  {formatCurrency(result.bill, state.currency, {
-                    alwaysDecimals: true,
-                  })}
-                </span>
-              </div>
-              <div className="tc-result-line tc-result-line--muted">
-                <span>Tip ({state.tipPct}%)</span>
-                <span className="tc-result-amount">
-                  {formatCurrency(result.tipAmount, state.currency, {
-                    alwaysDecimals: true,
-                  })}
-                </span>
-              </div>
-              <div className="tc-result-divider" />
-              <div className="tc-result-line">
-                <span>
-                  <strong>Total</strong>
-                </span>
-                <span className="tc-result-amount">
-                  <strong>
-                    {formatCurrency(result.total, state.currency, {
+          <div className="tc-result-region" aria-live="polite" aria-atomic="true">
+            {hasBill ? (
+              <div className="tc-result">
+                <div className="tc-result-headline">
+                  <p className="tc-result-headline-label">Per person</p>
+                  <p className="tc-result-headline-value">
+                    {formatCurrency(result.perPerson, state.currency, {
                       alwaysDecimals: true,
                     })}
-                  </strong>
-                </span>
+                  </p>
+                  <p className="tc-result-headline-sub">
+                    {state.people === 1
+                      ? 'just you'
+                      : `split between ${state.people} people`}
+                  </p>
+                </div>
+                <div className="tc-result-line tc-result-line--muted">
+                  <span>Subtotal</span>
+                  <span className="tc-result-amount">
+                    {formatCurrency(result.bill, state.currency, {
+                      alwaysDecimals: true,
+                    })}
+                  </span>
+                </div>
+                <div className="tc-result-line tc-result-line--muted">
+                  <span>Tip ({state.tipPct}%)</span>
+                  <span className="tc-result-amount">
+                    {formatCurrency(result.tipAmount, state.currency, {
+                      alwaysDecimals: true,
+                    })}
+                  </span>
+                </div>
+                <div className="tc-result-divider" />
+                <div className="tc-result-line">
+                  <span>
+                    <strong>Total</strong>
+                  </span>
+                  <span className="tc-result-amount">
+                    <strong>
+                      {formatCurrency(result.total, state.currency, {
+                        alwaysDecimals: true,
+                      })}
+                    </strong>
+                  </span>
+                </div>
+                <div className="tc-result-footer">
+                  <span className="tc-result-chip">
+                    Per-person tip:{' '}
+                    {formatCurrency(result.perPersonTip, state.currency, {
+                      alwaysDecimals: true,
+                    })}
+                  </span>
+                </div>
               </div>
-              <div className="tc-result-footer">
-                <span className="tc-result-chip">
-                  Per-person tip:{' '}
-                  {formatCurrency(result.perPersonTip, state.currency, {
-                    alwaysDecimals: true,
-                  })}
-                </span>
-              </div>
-            </div>
-          ) : (
-            <p className="tc-empty">
-              Enter a bill amount to see the split.
-            </p>
-          )}
+            ) : (
+              <p className="tc-empty">
+                Enter a bill amount to see the split.
+              </p>
+            )}
+          </div>
         </Card>
 
         <div className="tc-actions">

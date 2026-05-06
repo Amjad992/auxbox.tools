@@ -34,40 +34,14 @@
   font-size: 0.8rem;
 }
 
-/* Currency selector */
+/* Currency card layout — the dropdown itself is shared `<CurrencySelect>`. */
 .frc-currency-row {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: center;
-  gap: 0.6rem 1rem;
-}
-
-.frc-currency-label {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.frc-currency-select {
-  background-color: #1f1f1f;
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 9px 12px;
-  font-size: 0.95rem;
-  outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  cursor: pointer;
-  font-family: inherit;
-}
-
-.frc-currency-select:focus {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .frc-currency-note {
-  grid-column: 1 / -1;
   margin: 0;
   font-size: 0.8rem;
   color: var(--text-light);

@@ -1,5 +1,5 @@
 import {describe, it, expect, beforeEach, vi} from 'vitest';
-import {fireEvent, render, screen} from '@testing-library/react';
+import {fireEvent, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 vi.mock('next/script', () => ({
@@ -103,11 +103,14 @@ describe('<TipCalculator /> — page render', () => {
       target: {value: '5'},
     });
 
-    // Wait for the autosave debounce.
-    await new Promise((r) => setTimeout(r, 400));
+    // Wait for the autosave debounce (deterministic poll instead of a
+    // wall-clock setTimeout — slow runners get unbounded retries up to
+    // waitFor's default 1 s, fast runners exit immediately when the
+    // localStorage entry appears).
+    await waitFor(() => {
+      expect(window.localStorage.getItem(STORAGE_KEY)).toBeTruthy();
+    });
     unmount();
-
-    expect(window.localStorage.getItem(STORAGE_KEY)).toBeTruthy();
 
     render(<TipCalculator />);
     expect(screen.getByLabelText(/bill amount/i)).toHaveValue(42);

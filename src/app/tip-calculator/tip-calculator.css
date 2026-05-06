@@ -112,7 +112,9 @@
 
 .tc-result-headline-value {
   margin: 0;
-  font-size: 3rem;
+  /* Scales down on narrow viewports so long values (JPY ¥9,999,999, etc.)
+     don't overflow on a 375 px screen. */
+  font-size: clamp(2rem, 8vw, 3rem);
   font-weight: 700;
   color: var(--primary-color);
   font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas,

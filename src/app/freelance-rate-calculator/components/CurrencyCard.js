@@ -1,26 +1,17 @@
 import PropTypes from 'prop-types';
 import Card from '../../../components/Card';
-import {CURRENCIES} from '../constants';
+import CurrencySelect from '../../../components/CurrencySelect';
 
 export default function CurrencyCard({value, onChange}) {
   return (
     <Card>
       <div className="frc-currency-row">
-        <label htmlFor="frc-currency" className="frc-currency-label">
-          Currency
-        </label>
-        <select
+        <CurrencySelect
           id="frc-currency"
-          className="frc-currency-select"
           value={value}
-          onChange={(e) => onChange(e.target.value)}
-        >
-          {CURRENCIES.map((c) => (
-            <option key={c.value} value={c.value}>
-              {c.label}
-            </option>
-          ))}
-        </select>
+          onChange={onChange}
+          labelStyle="full"
+        />
         <p className="frc-currency-note">
           Display label only — no FX conversion.
         </p>
