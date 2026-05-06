@@ -145,6 +145,14 @@ const TOOLS = [
       'Compute SHA-256, SHA-512, SHA-1 and MD5 hashes for any text or file. Verify checksums in your browser — input never leaves your device.',
     cta: 'Open tool',
   },
+  {
+    href: '/uuid-generator',
+    icon: '🆔',
+    name: 'UUID Generator',
+    description:
+      'Generate UUID v4 (random) or UUID v7 (timestamp-ordered) in bulk. Per-row copy, copy-all, download .txt. Browser-only.',
+    cta: 'Open tool',
+  },
 ];
 
 export default function Home() {

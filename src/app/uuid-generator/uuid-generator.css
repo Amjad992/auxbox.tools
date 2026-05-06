@@ -1,0 +1,109 @@
+/* UUID Generator — local styles. */
+
+.ug-card-title {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.ug-card-hint {
+  margin: 0 0 0.6rem;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+/* Result list */
+.ug-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.ug-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.6rem;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+}
+
+.ug-row-index {
+  color: var(--text-light);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  min-width: 2.5ch;
+  text-align: right;
+}
+
+.ug-row-uuid {
+  color: var(--text-primary);
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas,
+      monospace);
+  font-size: 0.9rem;
+  word-break: break-all;
+  margin: 0;
+}
+
+.ug-empty {
+  margin: 0;
+  padding: 0.75rem 0;
+  color: var(--text-light);
+  font-style: italic;
+  text-align: center;
+}
+
+/* Type radio */
+.ug-types {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ug-type {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.6rem 0.75rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.ug-type:hover {
+  border-color: rgba(255, 107, 107, 0.5);
+}
+
+.ug-type--active {
+  border-color: var(--primary-color);
+  background: rgba(255, 107, 107, 0.10);
+}
+
+.ug-type input[type='radio'] {
+  margin-top: 3px;
+  accent-color: var(--primary-color);
+}
+
+.ug-type-label {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.ug-type-hint {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  margin-top: 2px;
+}
+
+/* Actions */
+.ug-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}

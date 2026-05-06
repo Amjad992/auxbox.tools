@@ -14,6 +14,19 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-07 - Add `/uuid-generator` (UUID v4 + v7 in bulk)
+**What changed:** New `/uuid-generator` route. Generate UUID v4 (random) or UUID v7 (timestamp-ordered) in bulk via a count slider (1–100, presets 1/5/10/25/50/100). Per-row copy + Copy all + Download .txt + Clear actions.
+- **Math (`utils.js`):** `generateV4()` uses `crypto.randomUUID()` natively (with `crypto.getRandomValues` fallback); `generateV7()` is hand-rolled per RFC 9562 (48-bit ms timestamp + version=7 + 12 random bits + variant=10 + 62 random bits). 13 unit tests cover format regexes for both versions, uniqueness over 1000 iterations, timestamp prefix encoding, lexicographic ordering across ms boundaries, batch counts (NaN/negative/fractional/string coercion), and `isValidUuid` rejection of malformed inputs.
+- **UI:** type radio with hint text per option, count slider with chip presets, action row, result list with numbered rows + per-row copy. Empty-state hint reads "Click Generate to create N {VERSION} UUIDs." (function-matcher tests handle the cross-element `<strong>` tag.)
+- **Persistence:** `uuid_generator_state` stores only `{type, count}` via shared `createStorageContext` + `useAutoSave`. Validator strict-keys (whitelist `['type', 'count']`) — generated batches are *not* persisted (no need; regen is one click).
+- **8 page tests:** default render, Generate produces 10 v4s, type-switch wipes batch, count-slider updates the empty-state copy, preset chip 50 + Generate produces 50 v4s, Copy/Download disabled until first Generate, Clear resets state, persistence round-trip.
+- **Home tile:** 🆔 "UUID Generator". Sitemap entry priority 0.9.
+**Why:** Build-queue item #4 from `playground/roadmap/2026-05-06_13-35_tool-backlog/plan.md`. The "smallest possible build" target — small surface, broad demand, zero new deps.
+**Impact:** No new dependencies. 21 new tests (13 math + 8 page), all green. Production build registers `/uuid-generator` as a static route. Reuses every shared primitive.
+**Files changed:** `src/app/uuid-generator/` (new directory: `constants.js`, `utils.js`, `utils.test.js`, `storageUtils.js`, `StorageContext.js`, `layout.js`, `page.js`, `page.test.jsx`, `uuid-generator.css`); `src/app/page.js`; `src/app/sitemap.js`.
+
+---
+
 ## 2026-05-07 - Hash Generator review-round-1 fixes (S1–S10)
 **What changed:** Applied 10 fixes from the general review round on `feat/hash-generator`. Round folder: `playground/reviews/review-rounds/general/2026-05-07-hash-generator/`. Reviewers: Opus (11 findings, 3 major), CodeRabbit (no findings), Copilot (6 findings, 3 major). Codex skipped per standing user instruction.
 
