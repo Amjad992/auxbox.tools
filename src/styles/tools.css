@@ -299,6 +299,40 @@
   font-weight: 700;
 }
 
+/* ═══ Multi-line text input (shared) ════════════
+   Default styling for monospace `<textarea>` inputs used by tools that
+   accept paste/typed text — markdown-preview, wheel-spinner, hash-
+   generator, etc. Per-tool overrides (min-height, autosize via the
+   --autosize modifier) compose on top. */
+.tool-textarea {
+  width: 100%;
+  background: #1f1f1f;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  padding: 12px 14px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tool-textarea:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.15);
+}
+
+/* Auto-grow variant — relies on `field-sizing: content` in modern
+   Chromium/Safari, with consumer-side JS as the fallback. */
+.tool-textarea--autosize {
+  field-sizing: content;
+  resize: none;
+  overflow-y: hidden;
+  overflow-x: auto;
+}
+
 /* ═══ Native select + presets (shared) ═════════
    Default styling for non-currency native <select>s and the
    chip-row presets used across multiple tools (tip percent,

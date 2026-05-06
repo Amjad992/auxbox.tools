@@ -44,24 +44,7 @@
 }
 
 .ws-textarea {
-  width: 100%;
   min-height: 180px;
-  background: #1f1f1f;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  color: var(--text-primary);
-  padding: 12px 14px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 0.95rem;
-  line-height: 1.5;
-  resize: vertical;
-  outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.ws-textarea:focus {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.15);
 }
 
 .ws-hint {

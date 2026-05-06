@@ -24,7 +24,7 @@ export default function ListEditor({text, onChange, parsedCount}) {
       </div>
       <textarea
         id="ws-entries-textarea"
-        className="ws-textarea"
+        className="tool-textarea ws-textarea"
         value={text}
         onChange={(e) => onChange(e.target.value)}
         placeholder={'Alice\nBob\nCharlie\n…'}

@@ -13,27 +13,10 @@
   font-size: 0.85rem;
 }
 
-/* Text mode */
+/* Text mode — base styles come from the shared `.tool-textarea` class.
+   Only tool-specific overrides live here. */
 .hg-textarea {
-  width: 100%;
-  background-color: #1f1f1f;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 12px 14px;
-  color: var(--text-primary);
-  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas,
-      monospace);
-  font-size: 0.9rem;
-  outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  resize: vertical;
   min-height: 6rem;
-  line-height: 1.5;
-}
-
-.hg-textarea:focus {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.15);
 }
 
 /* File mode */

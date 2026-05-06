@@ -121,8 +121,11 @@ describe('<HashGenerator />', () => {
     await waitFor(() => {
       const stored = window.localStorage.getItem(STORAGE_KEY);
       expect(stored).toBeTruthy();
-      // Confirm the persisted state is JUST {mode: 'file'}.
-      expect(JSON.parse(stored).data.mode).toBe('file');
+      // Confirm the persisted state is *exactly* {mode: 'file'} — any
+      // additional key would be a privacy leak (input bytes, etc).
+      const parsed = JSON.parse(stored);
+      expect(Object.keys(parsed.data).sort()).toEqual(['mode']);
+      expect(parsed.data.mode).toBe('file');
     });
     unmount();
 

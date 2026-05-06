@@ -61,4 +61,43 @@ describe('hashBufferWith', () => {
     const buf = new TextEncoder().encode('abc').buffer;
     expect(await hashBufferWith('MD5', buf)).toBe(VECTORS.abc.MD5);
   });
+
+  it('SHA-256 of the FIPS 180-4 multi-block test vector', async () => {
+    // 56 chars; crosses the 64-byte SHA-256 block boundary.
+    const buf = new TextEncoder().encode(
+      'abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq'
+    ).buffer;
+    expect(await hashBufferWith('SHA-256', buf)).toBe(
+      '248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1'
+    );
+  });
+
+  it('MD5 of a buffer with NUL and 0xFF bytes (exercises toHex)', async () => {
+    const buf = new Uint8Array([0x00, 0xff, 0x00, 0xff]).buffer;
+    // Reference: SparkMD5 of [0,255,0,255]
+    const md5 = await hashBufferWith('MD5', buf);
+    expect(md5).toMatch(/^[0-9a-f]{32}$/);
+    // Reference computed via SparkMD5 + verified against the OpenSSL
+    // command-line: `printf '\x00\xff\x00\xff' | md5sum`.
+    expect(md5).toBe('1359083be9f487ff8bf36c4beec20292');
+  });
+
+  it('hashText of a surrogate-pair emoji uses the UTF-8 encoding', async () => {
+    // U+1F600 GRINNING FACE encodes as bytes f0 9f 98 80.
+    const utf8 = new Uint8Array([0xf0, 0x9f, 0x98, 0x80]).buffer;
+    const direct = await hashBufferWith('SHA-256', utf8);
+    const viaText = await hashText('\u{1F600}', ['SHA-256']);
+    expect(viaText['SHA-256']).toBe(direct);
+  });
+
+  it('errors on unknown algorithm — message does NOT include input bytes', async () => {
+    const buf = new TextEncoder().encode('abc').buffer;
+    await expect(hashBufferWith('SHA-NOPE', buf)).rejects.toThrow();
+    try {
+      await hashBufferWith('SHA-NOPE', buf);
+    } catch (e) {
+      // Privacy guarantee: error message must not contain the input.
+      expect(e?.message ?? '').not.toContain('abc');
+    }
+  });
 });

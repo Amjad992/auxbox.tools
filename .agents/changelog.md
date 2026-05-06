@@ -14,6 +14,34 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-07 - Hash Generator review-round-1 fixes (S1–S10)
+**What changed:** Applied 10 fixes from the general review round on `feat/hash-generator`. Round folder: `playground/reviews/review-rounds/general/2026-05-07-hash-generator/`. Reviewers: Opus (11 findings, 3 major), CodeRabbit (no findings), Copilot (6 findings, 3 major). Codex skipped per standing user instruction.
+
+- **S1 (Opus F1, major)** — Stale-attempt race fixed. The text-mode effect now bumps `attemptRef.current` in the cleanup function, so a fired-but-pending hash promise from a prior run can't overwrite the next state when the user clears the textarea or switches modes.
+- **S2 (Opus F2, major)** — Lifted `.tool-textarea` (and `.tool-textarea--autosize` modifier) to `src/styles/tools.css`. Migrated three consumers: `hash-generator` (new tool), `wheel-spinner/components/ListEditor.js`, and `markdown-preview/page.js`. Tool-local CSS keeps only the diverging properties (min-height, line-height for markdown). ~50 lines of duplicated CSS deleted.
+- **S3 (Opus F3, major)** — Test vectors expanded from "" + "abc" only to also cover: FIPS 180-4 multi-block SHA-256 ("abcdbcde…"), MD5 of NUL/0xFF buffer (`1359083b…`, externally verified with `md5sum`), surrogate-pair `\u{1F600}` checks UTF-8 encoding, plus a privacy-negative test asserting algorithm-error messages don't leak input bytes.
+- **S4 (Opus F8, minor)** — Validator now rejects unknown keys (whitelist of `['mode']`). Defense-in-depth on the privacy story: future regressions that try to persist input get caught at hydrate.
+- **S5 (Opus F5 + Copilot F3-F4, minor)** — Large-file warning copy made honest: "MD5 hashing runs synchronously and may freeze the page for several seconds." Misleading "streams internally" comment in `md5OfBuffer` corrected. True non-blocking MD5 (Web Worker) deferred to v2.
+- **S6 (Opus F6 + Copilot F2, minor)** — `aria-atomic="false"` → `aria-atomic="true"` on the hash list. Screen readers now announce the entire 4-row update as a single coherent unit instead of fragmenting per-row.
+- **S7 (Opus F7, minor)** — Negative test added: `hashBufferWith('SHA-NOPE', buf)` rejects without including input bytes in the error message.
+- **S8 (Opus F9, minor)** — Skipped: deferred test addition (post-Clear storage-empty assertion). Existing tests cover the path well enough; not worth blocking.
+- **S9 (Copilot F1, major — net-new)** — `setHashes(null)` synchronously at the top of the text-mode effect's non-empty branch. Closes the 200 ms window where the *previous* input's hashes were still live in state and "Copy all" would happily copy them as belonging to the new input.
+- **S10 (Copilot F6, minor)** — Persistence test tightened: now asserts `Object.keys(parsed.data)` is *exactly* `['mode']`, so a future regression that adds `text` or `file` to the saved state fails loudly.
+
+**Skipped (with reasons in `communication.md`):**
+- Opus F4 (mode-toggle race): subset of F1 root cause; covered by the new cleanup invalidation.
+- Opus F10 (spark-md5 footprint): info — acceptable.
+- Opus F11 (SSR TextEncoder guard): info — keep as-is.
+- Opus F9 (post-Clear storage test): noted; existing tests adequate.
+
+**Why:** Round-one fixes from the local-review-multi-agent process. All non-skipped findings addressed in one round per the protocol's "no deferral" rule.
+
+**Impact:** 88 tests across hash-generator (15) + wheel-spinner (24) + markdown-preview (rest), all passing. Lint clean. Three tools now share `.tool-textarea`. Privacy posture is strengthened: validator rejects extra keys, error messages tested for non-leakage, `aria-live` announcement is coherent.
+
+**Files changed:** `src/styles/tools.css` (added `.tool-textarea*` shared block); `src/app/hash-generator/{page,utils,storageUtils,utils.test,page.test,hash-generator.css}.js`; `src/app/wheel-spinner/{components/ListEditor.js,wheel-spinner.css}`; `src/app/markdown-preview/{page.js,markdown-preview.css}`.
+
+---
+
 ## 2026-05-07 - Add `/hash-generator` (SHA-256 / SHA-1 / SHA-512 / MD5)
 **What changed:** New `/hash-generator` route. Paste text or drop a file → SHA-256, SHA-512, SHA-1, MD5 hashes side-by-side, lowercase hex, per-row Copy + Copy all.
 - **Modes:** Text (live recompute, 200 ms debounce, stale-attempt guard) / File (drop or pick, single-file, hashes computed once on selection). Mode toggle uses shared `<ModeToggle>`.

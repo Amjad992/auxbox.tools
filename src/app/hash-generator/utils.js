@@ -56,7 +56,9 @@ export {formatBytes} from '../../lib/format';
 // ─── helpers ──────────────────────────────────────────────────
 
 function md5OfBuffer(buffer) {
-  // spark-md5 has an ArrayBuffer-friendly API. For large files this
-  // already streams internally; we just hand it the whole buffer.
+  // SparkMD5.ArrayBuffer.hash() is *synchronous*. For files above a few
+  // hundred MB this will block the main thread until MD5 completes. The
+  // page surfaces a freeze warning above LARGE_FILE_WARN_BYTES; a Web
+  // Worker would be needed to make it truly non-blocking (deferred to v2).
   return SparkMD5.ArrayBuffer.hash(buffer);
 }

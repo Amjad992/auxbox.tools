@@ -191,7 +191,7 @@ function MarkdownPreviewContent() {
             <textarea
               ref={editorRef}
               id="mp-editor"
-              className="mp-editor"
+              className="tool-textarea tool-textarea--autosize mp-editor"
               value={source}
               onChange={handleChange}
               placeholder="# Start typing markdown…"

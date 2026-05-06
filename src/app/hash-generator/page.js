@@ -68,8 +68,11 @@ function HashGeneratorContent() {
   });
 
   // Live recompute on text change with debounce. Only fires in text mode.
-  // We track an `attempt` counter so a stale slow hash can't overwrite a
-  // newer one — important when the user types fast.
+  // The `attempt` counter — bumped in cleanup — is the explicit contract
+  // that any in-flight hash from this run is discarded the moment the
+  // input changes (or the user clears, switches mode, unmounts). Forgetting
+  // to bump previously meant a stale "abc" hash could re-appear after the
+  // user wiped the textarea.
   const attemptRef = useRef(0);
   useEffect(() => {
     if (mode !== MODES.TEXT) return undefined;
@@ -79,9 +82,12 @@ function HashGeneratorContent() {
       setError(null);
       return undefined;
     }
+    const myAttempt = ++attemptRef.current;
     setComputing(true);
     setError(null);
-    const myAttempt = ++attemptRef.current;
+    // Clear stale hashes immediately so the Copy buttons can't copy the
+    // *previous* input's digest during the 200 ms debounce window.
+    setHashes(null);
     const handle = setTimeout(async () => {
       try {
         const result = await hashText(text, ALGOS);
@@ -96,7 +102,15 @@ function HashGeneratorContent() {
         }
       }
     }, TEXT_DEBOUNCE_MS);
-    return () => clearTimeout(handle);
+    return () => {
+      // Invalidate this run unconditionally so an already-fired but still
+      // pending hash promise can't overwrite the next state. Mutating
+      // `attemptRef.current` at cleanup is intentional — the lint rule
+      // targets refs that hold DOM nodes, which this isn't.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      attemptRef.current++;
+      clearTimeout(handle);
+    };
   }, [text, mode]);
 
   // File picked → compute once.
@@ -209,7 +223,7 @@ function HashGeneratorContent() {
               </p>
               <textarea
                 aria-label="Text to hash"
-                className="hg-textarea"
+                className="tool-textarea hg-textarea"
                 rows={6}
                 value={text}
                 onChange={(e) => setText(e.target.value)}
@@ -243,7 +257,8 @@ function HashGeneratorContent() {
                   {showLargeWarn && (
                     <p className="hg-file-warning" role="status">
                       This file is over {formatBytes(LARGE_FILE_WARN_BYTES)} —
-                      hashing may take a few seconds.
+                      MD5 hashing runs synchronously and may freeze the page
+                      for several seconds.
                     </p>
                   )}
                   <div className="hg-file-actions">
@@ -262,7 +277,7 @@ function HashGeneratorContent() {
 
         <Card>
           <h2 className="hg-card-title">Hashes</h2>
-          <div className="hg-hashes" aria-live="polite" aria-atomic="false">
+          <div className="hg-hashes" aria-live="polite" aria-atomic="true">
             {error ? (
               <p className="hg-hash-empty" role="alert">
                 {error}
