@@ -59,19 +59,6 @@
   margin-top: 0.5rem;
 }
 
-.jf-error {
-  margin: 0.6rem 0 0;
-  padding: 0.6rem 0.85rem;
-  background: rgba(231, 76, 60, 0.10);
-  border: 1px solid rgba(231, 76, 60, 0.4);
-  color: #ff8b80;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas,
-      monospace);
-  white-space: pre-wrap;
-}
-
 .jf-success {
   margin: 0.6rem 0 0;
   padding: 0.6rem 0.85rem;
