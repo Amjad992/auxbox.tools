@@ -1,11 +1,3 @@
-// CSV ↔ JSON Converter persisted state validator.
-
-export {
-  saveToLocalStorage,
-  loadFromLocalStorage,
-  clearLocalStorage,
-} from '../../lib/storage';
-
 import {DELIMITER_VALUES, DIRECTION_VALUES} from './constants';
 
 const ALLOWED_KEYS = new Set([

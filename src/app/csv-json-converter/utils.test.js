@@ -58,6 +58,30 @@ describe('parseCsv', () => {
       ['1', '', '3'],
     ]);
   });
+
+  // S1 — mid-field stray quote
+  it('handles a stray quote inside an unquoted field', () => {
+    expect(parseCsv("name\nit's a test\nfine", ',')).toEqual([
+      ['name'],
+      ["it's a test"],
+      ['fine'],
+    ]);
+  });
+
+  // S2 — UTF-8 BOM
+  it('strips a leading UTF-8 BOM', () => {
+    const bom = '﻿';
+    const r = parseCsv(`${bom}a,b\n1,2`, ',');
+    expect(r[0][0]).toBe('a');
+  });
+
+  // S12 — blank rows
+  it('filters blank rows (double newline)', () => {
+    expect(parseCsv('a,b\n\n1,2', ',')).toEqual([
+      ['a', 'b'],
+      ['1', '2'],
+    ]);
+  });
 });
 
 describe('detectDelimiter', () => {
@@ -106,6 +130,23 @@ describe('inferType', () => {
     expect(inferType(true)).toBe(true);
     expect(inferType(null)).toBeNull();
   });
+
+  // S3 — leading-zero rejection
+  it('preserves leading-zero strings as strings', () => {
+    expect(inferType('007')).toBe('007');
+    expect(inferType('01')).toBe('01');
+  });
+
+  // S3 — unsafe integer rejection
+  it('preserves unsafe integers as strings', () => {
+    expect(inferType('9007199254740993')).toBe('9007199254740993');
+  });
+
+  // S3 — safe float / scientific notation still coerces
+  it('coerces floats and scientific notation', () => {
+    expect(inferType('3.14')).toBe(3.14);
+    expect(inferType('1e3')).toBe(1000);
+  });
 });
 
 describe('csvToJson', () => {
@@ -139,6 +180,22 @@ describe('csvToJson', () => {
   it('reports the detected delimiter', () => {
     const r = csvToJson('a;b\n1;2');
     expect(r.delimiter).toBe(';');
+  });
+
+  // S9 — duplicate headers
+  it('dedupes duplicate header names with _2, _3 suffixes', () => {
+    const r = csvToJson('a,a,a\n1,2,3');
+    expect(r.ok).toBe(true);
+    expect(r.value[0]).toEqual({a: 1, a_2: 2, a_3: 3});
+    expect(r.warnings.length).toBeGreaterThan(0);
+  });
+
+  // S10 — header-only CSV
+  it('returns empty array and warning for header-only CSV', () => {
+    const r = csvToJson('a,b,c');
+    expect(r.ok).toBe(true);
+    expect(r.value).toEqual([]);
+    expect(r.warnings).toContain('Header row only — no data rows.');
   });
 });
 
@@ -184,6 +241,40 @@ describe('jsonToCsv', () => {
   it('handles empty array', () => {
     const r = jsonToCsv([]);
     expect(r.output).toBe('');
+  });
+
+  // S4 — mixed shape rejection
+  it('rejects mixed arrays and objects', () => {
+    const r = jsonToCsv([[1, 2], {a: 3}]);
+    expect(r.ok).toBe(false);
+    expect(r.error).toMatch(/same shape/i);
+  });
+
+  // S6 — line/column in JSON parse error
+  it('returns line and column for invalid JSON input', () => {
+    const r = jsonToCsv('not json');
+    expect(r.ok).toBe(false);
+    // line and column are either numbers or null (best-effort from locateJsonError)
+    expect(r).toHaveProperty('line');
+    expect(r).toHaveProperty('column');
+  });
+
+  // S11 — NaN/Infinity in JSON→CSV
+  it('replaces NaN and Infinity with empty cells and warns', () => {
+    const r = jsonToCsv([{a: NaN, b: Infinity, c: 1}]);
+    expect(r.ok).toBe(true);
+    // Both non-finite cells become empty
+    expect(r.output).toBe('a,b,c\n,,1');
+    expect(r.warnings.length).toBeGreaterThanOrEqual(2);
+  });
+
+  // S13 — nested objects warn
+  it('serialises nested objects as JSON strings and warns', () => {
+    const r = jsonToCsv([{a: {x: 1}, b: 2}]);
+    expect(r.ok).toBe(true);
+    // The JSON string gets CSV-quoted since it contains double-quotes.
+    expect(r.output).toContain('"{""x"":1}"');
+    expect(r.warnings.some((w) => /nested/i.test(w))).toBe(true);
   });
 });
 

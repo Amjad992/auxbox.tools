@@ -38,18 +38,20 @@ describe('<CsvJsonConverter />', () => {
     render(<CsvJsonConverter />);
     const input = screen.getByLabelText(/input csv/i);
     await user.type(input, 'a,b\n1,2');
-    const output = screen.getByLabelText(/output json/i);
-    expect(output.value).toContain('"a": 1');
-    expect(output.value).toContain('"b": 2');
+    await waitFor(() => {
+      expect(screen.getByLabelText(/output json/i).value).toContain('"a": 1');
+      expect(screen.getByLabelText(/output json/i).value).toContain('"b": 2');
+    });
   });
 
   it('shows a parser error when JSON → CSV input is invalid', async () => {
     const user = userEvent.setup();
     render(<CsvJsonConverter />);
-    // Switch direction to JSON → CSV.
     await user.click(screen.getByRole('radio', {name: /JSON → CSV/i}));
     await user.type(screen.getByLabelText(/input json/i), 'not json');
-    expect(screen.getByRole('alert')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toBeInTheDocument();
+    });
   });
 
   it('converts JSON to CSV', async () => {
@@ -57,10 +59,11 @@ describe('<CsvJsonConverter />', () => {
     render(<CsvJsonConverter />);
     await user.click(screen.getByRole('radio', {name: /JSON → CSV/i}));
     const input = screen.getByLabelText(/input json/i);
-    // Use paste to avoid userEvent.type interpreting `[` as a special key.
     input.focus();
     await user.paste('[{"a":1,"b":2}]');
-    expect(screen.getByLabelText(/output csv/i).value).toBe('a,b\n1,2');
+    await waitFor(() => {
+      expect(screen.getByLabelText(/output csv/i).value).toBe('a,b\n1,2');
+    });
   });
 
   it('reports the auto-detected delimiter for CSV input', async () => {
@@ -69,9 +72,10 @@ describe('<CsvJsonConverter />', () => {
     const input = screen.getByLabelText(/input csv/i);
     input.focus();
     await user.paste('a;b\n1;2');
-    // Hint area uses role="status".
-    const status = screen.getByRole('status');
-    expect(status.textContent).toMatch(/semicolon/i);
+    await waitFor(() => {
+      const status = screen.getByRole('status');
+      expect(status.textContent).toMatch(/semicolon/i);
+    });
   });
 
   it('persists settings (direction + flags) across mounts', async () => {
@@ -86,7 +90,6 @@ describe('<CsvJsonConverter />', () => {
     unmount();
 
     render(<CsvJsonConverter />);
-    // After remount, the input label reflects the persisted direction.
     expect(screen.getByLabelText(/input json/i)).toBeInTheDocument();
   });
 
@@ -98,5 +101,20 @@ describe('<CsvJsonConverter />', () => {
     expect(input.value).not.toBe('');
     await user.click(screen.getByRole('button', {name: /^clear$/i}));
     expect(screen.getByLabelText(/input csv/i).value).toBe('');
+  });
+
+  it('shows swap toast after swapping output to input', async () => {
+    const user = userEvent.setup();
+    render(<CsvJsonConverter />);
+    const input = screen.getByLabelText(/input csv/i);
+    input.focus();
+    await user.paste('name,age\nAlice,30');
+    await waitFor(() => {
+      expect(screen.getByLabelText(/output json/i).value).not.toBe('');
+    });
+    await user.click(screen.getByRole('button', {name: /swap/i}));
+    await waitFor(() => {
+      expect(screen.getByText(/swapped/i)).toBeInTheDocument();
+    });
   });
 });

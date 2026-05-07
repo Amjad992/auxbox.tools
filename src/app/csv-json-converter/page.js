@@ -1,5 +1,5 @@
 'use client';
-import {useEffect, useMemo, useState} from 'react';
+import {useEffect, useState} from 'react';
 import ToolPage from '../../components/ToolPage';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
@@ -18,7 +18,7 @@ import {
   DIRECTION_OPTIONS,
   STATE_AUTOSAVE_DEBOUNCE_MS,
 } from './constants';
-import {csvToJson, detectDelimiter, jsonToCsv} from './utils';
+import {csvToJson, jsonToCsv} from './utils';
 import './csv-json-converter.css';
 
 const SCHEMA = {
@@ -43,6 +43,7 @@ function CsvJsonConverterContent() {
   const [inferTypes, setInferTypes] = useState(DEFAULT_STATE.inferTypes);
   const [prettyJson, setPrettyJson] = useState(DEFAULT_STATE.prettyJson);
   const [input, setInput] = useState('');
+  const [result, setResult] = useState({ok: true, output: '', detectedDelimiter: null});
 
   const hydrated = useHydrateStorage(() => {
     const saved = loadState();
@@ -69,28 +70,51 @@ function CsvJsonConverterContent() {
     debounceMs: STATE_AUTOSAVE_DEBOUNCE_MS,
   });
 
-  // Compute output reactively from input + settings.
-  const result = useMemo(() => {
-    if (input.trim() === '') return {ok: true, output: '', detectedDelimiter: null};
-    if (direction === DIRECTIONS.CSV_TO_JSON) {
-      const r = csvToJson(input, {delimiter, hasHeader, inferTypes});
-      if (!r.ok) return {ok: false, error: r.error || 'Invalid CSV.'};
-      const indent = prettyJson ? 2 : 0;
-      const output = JSON.stringify(r.value, null, indent);
-      return {ok: true, output, detectedDelimiter: r.delimiter};
-    }
-    // JSON → CSV: delimiter "auto" doesn't make sense; fall back to comma.
-    const outDelim = delimiter === DELIMITER_AUTO ? ',' : delimiter;
-    const r = jsonToCsv(input, {delimiter: outDelim});
-    if (!r.ok) return {ok: false, error: r.error};
-    return {ok: true, output: r.output, detectedDelimiter: outDelim};
+  // Debounced reactive computation — 300 ms to avoid main-thread jank mid-typing.
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      if (input.trim() === '') {
+        setResult({ok: true, output: '', detectedDelimiter: null});
+        return;
+      }
+      if (direction === DIRECTIONS.CSV_TO_JSON) {
+        const r = csvToJson(input, {delimiter, hasHeader, inferTypes});
+        if (!r.ok) {
+          setResult({ok: false, error: r.error || 'Invalid CSV.'});
+          return;
+        }
+        const indent = prettyJson ? 2 : 0;
+        const output = JSON.stringify(r.value, null, indent);
+        setResult({
+          ok: true,
+          output,
+          detectedDelimiter: r.delimiter,
+          warnings: r.warnings,
+        });
+        return;
+      }
+      // JSON → CSV: delimiter "auto" doesn't make sense; fall back to comma.
+      const outDelim = delimiter === DELIMITER_AUTO ? ',' : delimiter;
+      const r = jsonToCsv(input, {delimiter: outDelim});
+      if (!r.ok) {
+        const errMsg =
+          r.line && r.column
+            ? `Line ${r.line}, column ${r.column}: ${r.error}`
+            : r.error;
+        setResult({ok: false, error: errMsg});
+        return;
+      }
+      setResult({ok: true, output: r.output, detectedDelimiter: null, warnings: r.warnings});
+    }, 300);
+    return () => clearTimeout(handle);
   }, [input, direction, delimiter, hasHeader, inferTypes, prettyJson]);
 
-  const detectedDelimiterLabel = useMemo(() => {
+  const detectedDelimiterLabel = (() => {
+    if (direction !== DIRECTIONS.CSV_TO_JSON) return null;
     if (delimiter !== DELIMITER_AUTO || !result.detectedDelimiter) return null;
     const d = DELIMITERS.find((x) => x.value === result.detectedDelimiter);
     return d ? d.label : result.detectedDelimiter;
-  }, [delimiter, result.detectedDelimiter]);
+  })();
 
   const handleClear = () => {
     setInput('');
@@ -100,6 +124,7 @@ function CsvJsonConverterContent() {
     setHasHeader(DEFAULT_STATE.hasHeader);
     setInferTypes(DEFAULT_STATE.inferTypes);
     setPrettyJson(DEFAULT_STATE.prettyJson);
+    setResult({ok: true, output: '', detectedDelimiter: null});
     markClean();
     showToast('Cleared', 'success');
   };
@@ -113,6 +138,7 @@ function CsvJsonConverterContent() {
         : DIRECTIONS.CSV_TO_JSON
     );
     markDirty();
+    showToast('Swapped — input replaced with previous output', 'success');
   };
 
   const copy = useCopyToClipboard({
@@ -121,6 +147,22 @@ function CsvJsonConverterContent() {
   });
 
   const isCsvToJson = direction === DIRECTIONS.CSV_TO_JSON;
+
+  // When switching to JSON→CSV, coerce "auto" to comma so the select
+  // doesn't point at a filtered-out option.
+  const handleDirectionChange = (next) => {
+    markDirty();
+    setDirection(next);
+    if (next === DIRECTIONS.JSON_TO_CSV && delimiter === DELIMITER_AUTO) {
+      setDelimiter(',');
+    }
+  };
+
+  const visibleDelimiters = isCsvToJson
+    ? DELIMITERS
+    : DELIMITERS.filter((d) => d.value !== DELIMITER_AUTO);
+
+  const warnings = result.warnings ?? [];
 
   return (
     <ToolPage
@@ -139,10 +181,7 @@ function CsvJsonConverterContent() {
             ariaLabel="Conversion direction"
             options={DIRECTION_OPTIONS}
             value={direction}
-            onChange={(next) => {
-              markDirty();
-              setDirection(next);
-            }}
+            onChange={handleDirectionChange}
           />
         </Card>
 
@@ -161,7 +200,7 @@ function CsvJsonConverterContent() {
                   setDelimiter(e.target.value);
                 }}
               >
-                {DELIMITERS.map((d) => (
+                {visibleDelimiters.map((d) => (
                   <option key={d.value} value={d.value}>
                     {d.label}
                   </option>
@@ -218,6 +257,7 @@ function CsvJsonConverterContent() {
             aria-label={isCsvToJson ? 'Input CSV' : 'Input JSON'}
             className="tool-textarea cjc-textarea-input"
             value={input}
+            // Input text is intentionally NOT persisted — privacy invariant.
             onChange={(e) => setInput(e.target.value)}
             placeholder={
               isCsvToJson
@@ -235,7 +275,7 @@ function CsvJsonConverterContent() {
             </Button>
           </div>
           {!result.ok && (
-            <p className="cjc-error" role="alert">
+            <p className="tool-error" role="alert">
               {result.error}
             </p>
           )}
@@ -244,6 +284,11 @@ function CsvJsonConverterContent() {
               Detected delimiter: <code>{detectedDelimiterLabel}</code>
             </p>
           )}
+          {result.ok && warnings.map((w, i) => (
+            <p key={i} className="cjc-hint" role="status" aria-live="polite">
+              {w}
+            </p>
+          ))}
         </Card>
 
         <Card>

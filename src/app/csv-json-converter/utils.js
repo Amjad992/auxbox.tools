@@ -1,5 +1,3 @@
-// CSV ↔ JSON Converter — pure helpers.
-//
 // Hand-rolled CSV parser supporting:
 //   - quoted fields (double-quotes), with `""` as escape.
 //   - common delimiters: `,`, `;`, `\t`, `|`.
@@ -7,6 +5,8 @@
 //
 // JSON output supports two shapes (with and without header) and an
 // optional type-inference pass that turns "42" → 42, "true" → true, etc.
+
+import {locateJsonError} from '../../lib/json';
 
 const DELIM_CANDIDATES = [',', ';', '\t', '|'];
 
@@ -54,7 +54,7 @@ function countOutsideQuotes(line, delim) {
 }
 
 /**
- * Parse CSV text → array of row arrays. RFC 4180-ish:
+ * Parse CSV text → array of row arrays. Common-CSV (LF row endings; quoted fields):
  *   - quoted fields wrap with `"`.
  *   - escape: `""` → `"`.
  *   - delimiter must be a single character.
@@ -62,6 +62,8 @@ function countOutsideQuotes(line, delim) {
  */
 export function parseCsv(text, delimiter) {
   if (typeof text !== 'string' || text === '') return [];
+  // Strip UTF-8 BOM if present.
+  if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
   const rows = [];
   let row = [];
   let field = '';
@@ -82,7 +84,13 @@ export function parseCsv(text, delimiter) {
       continue;
     }
     if (ch === '"') {
-      inQuotes = true;
+      // Only enter quoted mode when the field buffer is empty; otherwise
+      // treat the quote as a literal character (mid-field stray quote).
+      if (field === '') {
+        inQuotes = true;
+      } else {
+        field += ch;
+      }
       continue;
     }
     if (ch === delimiter) {
@@ -112,10 +120,14 @@ export function parseCsv(text, delimiter) {
     row.push(field);
     rows.push(row);
   }
-  return rows;
+  // Drop blank rows (double-newline / trailing newline → single-field empty row).
+  return rows.filter((r) => !(r.length === 1 && r[0] === ''));
 }
 
-/** Coerce a string to a typed value (number / boolean / null) when sensible. */
+/**
+ * Coerce a string to a typed value (number / boolean / null) when sensible.
+ * @remarks ASCII numerics only; "1.234,56" (EU locale) is left as a string.
+ */
 export function inferType(value) {
   if (typeof value !== 'string') return value;
   const trimmed = value.trim();
@@ -123,10 +135,15 @@ export function inferType(value) {
   if (trimmed === 'true') return true;
   if (trimmed === 'false') return false;
   if (trimmed === 'null') return null;
+  // Reject leading-zero numerics (preserves ZIP codes, "007", etc.).
+  if (/^-?0\d/.test(trimmed)) return value;
   // Numeric: integer or float, optional sign.
   if (/^-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?$/.test(trimmed)) {
     const n = Number(trimmed);
-    if (Number.isFinite(n)) return n;
+    if (!Number.isFinite(n)) return value;
+    // For integers, only coerce when representable exactly.
+    if (Number.isInteger(n) && !Number.isSafeInteger(n)) return value;
+    return n;
   }
   return value;
 }
@@ -136,6 +153,7 @@ export function inferType(value) {
  * - When `hasHeader`, first row becomes property names → array of objects.
  * - Without header, returns array of arrays.
  * - When `inferTypes`, every cell goes through `inferType`.
+ * - Duplicate header names are deduped: second occurrence → `name_2`, third → `name_3`, etc.
  */
 export function csvToJson(text, {delimiter, hasHeader = true, inferTypes = true} = {}) {
   const d = delimiter && delimiter !== 'auto' ? delimiter : detectDelimiter(text);
@@ -152,30 +170,41 @@ export function csvToJson(text, {delimiter, hasHeader = true, inferTypes = true}
     };
   }
   const [header, ...body] = rows;
+  const warnings = [];
+
+  // Header-only CSV with no data rows.
+  if (body.length === 0) {
+    warnings.push('Header row only — no data rows.');
+    return {ok: true, value: [], delimiter: d, warnings};
+  }
+
+  // Build deduped header keys.
+  const keyCount = new Map();
+  const keys = header.map((h) => {
+    const base = h || `col${header.indexOf(h) + 1}`;
+    const count = (keyCount.get(base) ?? 0) + 1;
+    keyCount.set(base, count);
+    if (count > 1) {
+      warnings.push(`Duplicate header "${base}" renamed to "${base}_${count}".`);
+      return `${base}_${count}`;
+    }
+    return base;
+  });
+
   const value = body.map((r) => {
     const obj = {};
-    for (let i = 0; i < header.length; i++) {
-      obj[header[i] || `col${i + 1}`] = maybeInfer(r[i] ?? '');
+    for (let i = 0; i < keys.length; i++) {
+      obj[keys[i]] = maybeInfer(r[i] ?? '');
     }
     return obj;
   });
-  return {ok: true, value, delimiter: d};
-}
-
-/** Quote a field for CSV output if it contains delimiter, quote, or newline. */
-function escapeCell(value, delimiter) {
-  if (value === null || value === undefined) return '';
-  const s = typeof value === 'string' ? value : JSON.stringify(value);
-  const needsQuote =
-    s.includes(delimiter) || s.includes('"') || s.includes('\n') || s.includes('\r');
-  if (!needsQuote) return s;
-  return `"${s.replaceAll('"', '""')}"`;
+  return {ok: true, value, delimiter: d, warnings};
 }
 
 /**
  * JSON → CSV.
  * Accepts either a JSON string or a parsed value (array of objects, or
- * array of arrays). Returns `{ok, output, error?}`.
+ * array of arrays). Returns `{ok, output, error?, line?, column?, warnings?}`.
  *
  * - For array-of-objects: header row built from union of keys (preserves
  *   first-seen order).
@@ -187,7 +216,8 @@ export function jsonToCsv(input, {delimiter = ','} = {}) {
     try {
       parsed = JSON.parse(input);
     } catch (e) {
-      return {ok: false, error: e?.message || 'Invalid JSON.'};
+      const {line, column, message} = locateJsonError(input, e);
+      return {ok: false, error: message, line, column};
     }
   }
   if (!Array.isArray(parsed)) {
@@ -197,11 +227,42 @@ export function jsonToCsv(input, {delimiter = ','} = {}) {
     return {ok: true, output: ''};
   }
   const isArrayOfArrays = parsed.every((r) => Array.isArray(r));
+  // Reject mixed shapes.
+  if (!isArrayOfArrays && parsed.some((r) => Array.isArray(r))) {
+    return {ok: false, error: 'All rows must be the same shape (all objects or all arrays).'};
+  }
+
+  const warnings = [];
+
+  // Escape a cell value; track non-finite numbers and nested objects as warnings.
+  function escapeCellWithWarnings(value) {
+    if (value === null || value === undefined) return '';
+    if (typeof value === 'number' && !Number.isFinite(value)) {
+      // NaN / Infinity cannot be represented in CSV; emit empty string.
+      warnings.push(`Non-finite number (${value}) replaced with empty cell.`);
+      return '';
+    }
+    if (typeof value === 'object') {
+      // Nested object/array: JSON-stringify and warn.
+      warnings.push('Nested object or array serialised as JSON string in CSV cell.');
+      const s = JSON.stringify(value);
+      const needsQuote =
+        s.includes(delimiter) || s.includes('"') || s.includes('\n') || s.includes('\r');
+      if (!needsQuote) return s;
+      return `"${s.replaceAll('"', '""')}"`;
+    }
+    const s = typeof value === 'string' ? value : String(value);
+    const needsQuote =
+      s.includes(delimiter) || s.includes('"') || s.includes('\n') || s.includes('\r');
+    if (!needsQuote) return s;
+    return `"${s.replaceAll('"', '""')}"`;
+  }
+
   if (isArrayOfArrays) {
     const lines = parsed.map((r) =>
-      r.map((c) => escapeCell(c, delimiter)).join(delimiter)
+      r.map((c) => escapeCellWithWarnings(c)).join(delimiter)
     );
-    return {ok: true, output: lines.join('\n')};
+    return {ok: true, output: lines.join('\n'), warnings};
   }
   // Build header in first-seen order.
   const header = [];
@@ -220,11 +281,11 @@ export function jsonToCsv(input, {delimiter = ','} = {}) {
       }
     }
   }
-  const lines = [header.map((h) => escapeCell(h, delimiter)).join(delimiter)];
+  const lines = [header.map((h) => escapeCellWithWarnings(h)).join(delimiter)];
   for (const obj of parsed) {
     lines.push(
-      header.map((k) => escapeCell(obj[k], delimiter)).join(delimiter)
+      header.map((k) => escapeCellWithWarnings(obj[k])).join(delimiter)
     );
   }
-  return {ok: true, output: lines.join('\n')};
+  return {ok: true, output: lines.join('\n'), warnings};
 }

@@ -1,5 +1,3 @@
-// CSV ↔ JSON Converter constants.
-
 export const STORAGE_VERSION = '1.0.0';
 export const STORAGE_KEY = 'csv_json_converter_state';
 export const STATE_AUTOSAVE_DEBOUNCE_MS = 300;

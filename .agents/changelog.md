@@ -14,6 +14,33 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-07 - CSV ↔ JSON Converter review-round-1 fixes (S1-S19)
+**What changed:** Applied all 19 review findings to `src/app/csv-json-converter/` and shared infrastructure.
+- **S1:** `parseCsv` only enters quoted mode when field buffer is empty; stray mid-field `"` is now a literal character. Test added.
+- **S2:** `parseCsv` strips leading UTF-8 BOM (U+FEFF). Test added.
+- **S3:** `inferType` rejects leading-zero numerics (`/^-?0\d/`) and unsafe integers (`!Number.isSafeInteger`). Tests for `"007"`, `"9007199254740993"`, `"3.14"`, `"1e3"`.
+- **S4:** `jsonToCsv` rejects mixed arrays/objects with a clear error. Test added.
+- **S5:** Computation moved from `useMemo` to `useEffect + setTimeout(300ms)`, mirroring json-formatter. `result` is now in `useState`. Page tests updated to use `waitFor`.
+- **S6:** Lifted `locateJsonError` from `json-formatter/utils.js` to `src/lib/json.js`. `json-formatter/utils.js` now imports+re-exports it. `jsonToCsv` returns `{line, column}` on JSON parse failure; page renders `Line N, column M: …`.
+- **S7:** "Auto-detect" option hidden from delimiter select in JSON→CSV mode. Switching direction auto-coerces `auto` → `,`. Detected delimiter hint not shown in JSON→CSV.
+- **S8:** `handleSwap` shows toast `'Swapped — input replaced with previous output'`. Page test added.
+- **S9:** `csvToJson` dedupes duplicate header names (`name`, `name_2`, `name_3`); returns `warnings[]` surfaced as `cjc-hint` lines.
+- **S10:** Header-only CSV (no data rows) returns empty array and pushes `'Header row only — no data rows.'` warning.
+- **S11:** `jsonToCsv` detects non-finite numbers in cells (NaN/Infinity), emits empty string, adds to `warnings[]`.
+- **S12:** `parseCsv` filters blank rows (`r.length === 1 && r[0] === ''`). Test added.
+- **S13:** `jsonToCsv` warns when a nested object/array is JSON-stringified into a cell. Test added.
+- **S14:** `inferType` JSDoc gains locale caveat remark about EU `"1.234,56"` style.
+- **S15:** `@media (max-width: 480px)` block added to `csv-json-converter.css` stacking `.cjc-toggle-row` and `.cjc-controls`.
+- **S16:** Privacy invariant comment added to `setInput` `onChange` handler.
+- **S17:** `.tool-error` shared rule added to `src/styles/tools.css`. Local `.cjc-error` and `.jf-error` rules removed; both pages now use `className="tool-error"`.
+- **S18:** Removed dead `detectDelimiter` import from `page.js`. Removed unused `saveToLocalStorage`/`loadFromLocalStorage`/`clearLocalStorage` re-exports from `storageUtils.js`.
+- **S19:** Stripped what-comments (file-level descriptive headers) from `constants.js` and `storageUtils.js`.
+**Why:** Review-round-1 findings: correctness (S1-S4), UX/debounce (S5), DX/error messages (S6), UI correctness (S7), UX (S8-S11), robustness (S12-S13), code quality (S14-S19).
+**Impact:** +13 new tests (219 total in scope, all green). `src/lib/json.js` added as shared utility. No new dependencies.
+**Files changed:** `src/app/csv-json-converter/{utils,utils.test,storageUtils,constants,page,page.test,csv-json-converter}.{js,jsx,css}`, `src/app/json-formatter/{utils,page,json-formatter}.{js,css}`, `src/styles/tools.css`, `src/lib/json.js` (new).
+
+---
+
 ## 2026-05-07 - Add `/csv-json-converter` (CSV ↔ JSON)
 **What changed:** New `/csv-json-converter` route. Convert CSV to JSON or JSON to CSV in the browser.
 - **Logic (`utils.js`):** `parseCsv` (RFC 4180-style with quoted fields, CR/LF/CRLF row endings, `""` escape), `formatCsv` via `jsonToCsv`, `csvToJson`, `detectDelimiter` (counts `, ; \t |` outside quotes), `inferType` (numbers / booleans / null). 29 unit tests including round-trip.

@@ -260,7 +260,7 @@ function JsonFormatterContent() {
             </Button>
           </div>
           {errorLabel && (
-            <p className="jf-error" role="alert">
+            <p className="tool-error" role="alert">
               {errorLabel}
             </p>
           )}
