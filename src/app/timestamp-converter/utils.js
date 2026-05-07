@@ -34,11 +34,13 @@ export function parseAny(raw) {
     const abs = Math.abs(n);
     // Heuristic: 13+ digits is ms; 10 or fewer is seconds. (10 digits =
     // up to 9999999999 = year 2286, comfortably the second range.)
-    const looksLikeMs = abs >= 1e12;
+    const looksLikeMs = abs >= 1e11;
     const dt = looksLikeMs
       ? DateTime.fromMillis(n)
       : DateTime.fromSeconds(n);
-    return dt.isValid ? dt : null;
+    if (!dt.isValid) return null;
+    if (dt.year < -9999 || dt.year > 9999) return null;
+    return dt;
   }
 
   // ISO branch.

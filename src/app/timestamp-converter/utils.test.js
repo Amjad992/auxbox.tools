@@ -52,6 +52,49 @@ describe('parseAny', () => {
     const dt = parseAny(1700000000);
     expect(toUnixSeconds(dt)).toBe(1700000000);
   });
+
+  // Magnitude boundary tests (S1).
+  it('11-digit value (1e10) stays in seconds range — year 5138', () => {
+    // 99999999999 < 1e11, so treated as seconds → year 5138.
+    const dt = parseAny('99999999999');
+    expect(dt).not.toBeNull();
+    expect(dt.year).toBe(5138);
+  });
+
+  it('12-digit value (1e11) crosses into ms — year 1973', () => {
+    // 100000000000 >= 1e11, so treated as ms → 1973-03-03.
+    const dt = parseAny('100000000000');
+    expect(dt).not.toBeNull();
+    expect(dt.year).toBe(1973);
+  });
+
+  it('13-digit value stays ms — year 2023', () => {
+    const dt = parseAny('1700000000000');
+    expect(dt).not.toBeNull();
+    expect(dt.year).toBe(2023);
+  });
+
+  // S7: sub-second ISO round-trip.
+  it('parses ISO with millisecond precision and round-trips losslessly', () => {
+    const input = '2024-01-15T12:34:56.789Z';
+    const dt = parseAny(input);
+    expect(dt).not.toBeNull();
+    expect(toUnixMillis(dt)).toBe(
+      DateTime.fromISO(input, {setZone: true}).toMillis()
+    );
+    // Verify the sub-second component is preserved.
+    expect(dt.millisecond).toBe(789);
+  });
+
+  // S7: numeric float treated as fractional Unix seconds.
+  it('accepts a numeric float as Unix seconds with fractional precision', () => {
+    const dt = parseAny(1700000000.5);
+    expect(dt).not.toBeNull();
+    // The integer second part must match.
+    expect(toUnixSeconds(dt)).toBe(1700000000);
+    // The fractional part gives us sub-second resolution.
+    expect(dt.millisecond).toBe(500);
+  });
 });
 
 describe('toIso / toUnixSeconds / toUnixMillis', () => {

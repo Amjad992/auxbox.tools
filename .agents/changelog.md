@@ -14,6 +14,26 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-07 - Timestamp Converter review-round-1 fixes (S1-S8)
+**What changed:** Applied 8 fixes from the general review round on `feat/timestamp-converter`. Round folder: `playground/reviews/review-rounds/general/2026-05-07-timestamp-converter/`. Reviewers: Opus #1 + Opus #2 + CodeRabbit.
+
+- **S1 (major — Opus#1 F2 + Opus#2 F1)** — `parseAny` magnitude boundary tightened from `abs >= 1e12` to `abs >= 1e11` (≥ 12 digits → ms). Added sanity cap: reject any parsed DateTime whose year falls outside −9999..9999. Three boundary-pinning tests added (11-digit stays seconds → year 5138; 12-digit becomes ms → year 1973; 13-digit stays ms → year 2023).
+- **S2 (major — Opus#1 F1 + Opus#2 F4)** — Lifted `.tc-field-input` to `.tool-field-input` (shared) + new `.tool-field-input--mono` modifier in `src/styles/tools.css`. Dropped `.tc-field-input` and `.tc-field-input:focus` blocks from local CSS. Lifted `.tc-field-label` → `.tool-field-label` (shared). Local `.tc-field-input--readonly` kept (no shared equivalent).
+- **S3 (major — Opus#1 F3)** — When the user clears any editable field, all other fields are cleared immediately (instead of leaving stale values). Signals "start over" and prevents partial/misleading state.
+- **S4 (minor — CR1 + Opus#2 F2)** — Removed dangling `aria-describedby="tc-human-hint"` from the Human read-only input (no matching element existed).
+- **S5 (minor — CR2)** — Renamed test from `'Clear wipes all fields and resets the zone'` to `'Clear wipes all fields'` — the original name claimed zone reset but the test didn't assert it.
+- **S6 (minor — Opus#2 F5)** — Zone-change rebuild now fires if ANY of iso/seconds/millis has a value (previously only fired when `iso` was non-empty). Source preference: millis → seconds → iso (most to least precise). Predicate uses explicit `!== ''` checks to avoid falsiness trap on `"0"`.
+- **S7 (minor — Opus#2 F8/F9)** — Added two utils tests: ISO with millisecond precision round-trips losslessly (`.789Z`); numeric float input (`1700000000.5`) is treated as fractional Unix seconds with the sub-second component preserved.
+- **S8 (minor — Opus#1 F4)** — Added 200 ms debounce on the cross-field update in `handleField` via `useRef` timer. Source field updates immediately; the other fields wait for the debounce to settle, eliminating partial-keystroke thrash (e.g., typing "170" no longer briefly shows year-1970-ish values). Empty-field clear bypasses the debounce and runs immediately. Cleanup `useEffect` clears the timer on unmount.
+
+**Skipped:** Opus#1 F5 (handleClear re-save dance — correct via getDefault short-circuit, low value), F6 (aria-live for cross-field updates — would fire per keystroke, sighted users see updates immediately), F7 (zone whitelist silent fallback — Luxon default-to-local is sane), F8 (ISO date-only undocumented — works, tests cover the T-bearing form). Opus#2 F3 (role="alert" flashes per keystroke) folded into S8 — debounce eliminates the per-keystroke noise.
+
+**Why:** Round-one fixes from the local-review-multi-agent process. All 3 majors + 5 minors addressed.
+**Impact:** 26 tests (18 utils + 8 page), all green. No new dependencies.
+**Files changed:** `src/app/timestamp-converter/{utils.js,utils.test.js,page.js,page.test.jsx,timestamp-converter.css}`; `src/styles/tools.css`.
+
+---
+
 ## 2026-05-07 - Add `/timestamp-converter` (Unix epoch ↔ ISO ↔ human)
 **What changed:** New `/timestamp-converter` route. Four coupled fields — ISO 8601, Unix seconds, Unix milliseconds, human-readable local time — editing any one updates the rest. Time-zone selector (15 curated zones + Local + UTC), Now button, Copy-each + Copy-all + Clear actions.
 - **Math (`utils.js`):** `parseAny` (auto-detects 10-digit seconds vs 13-digit ms, accepts ISO 8601), `toUnixSeconds`, `toUnixMillis`, `toIso`, `toHumanLocal`, `buildAllRepresentations`. 13 unit tests cover empty/null input, magnitude detection, negative seconds (pre-1970), ISO round-trip, zone preservation, invalid input rejection.

@@ -1,5 +1,5 @@
 'use client';
-import {useEffect, useMemo, useState} from 'react';
+import {useEffect, useMemo, useRef, useState} from 'react';
 import {DateTime} from 'luxon';
 import ToolPage from '../../components/ToolPage';
 import Card from '../../components/Card';
@@ -78,22 +78,44 @@ function TimestampConverterContent() {
     setError(null);
   };
 
+  // Debounce timer for cross-field updates (S8).
+  const debounceRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
+
   const handleField = (source, raw) => {
+    // Update the source field immediately.
     if (source === 'iso') setIso(raw);
     if (source === 'seconds') setSeconds(raw);
     if (source === 'millis') setMillis(raw);
     if (source === 'human') setHuman(raw);
 
+    // Cancel any pending debounced update.
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
     if (raw.trim() === '') {
+      // User is starting over — clear all other fields immediately (S3).
+      if (source !== 'iso') setIso('');
+      if (source !== 'seconds') setSeconds('');
+      if (source !== 'millis') setMillis('');
+      if (source !== 'human') setHuman('');
       setError(null);
       return;
     }
-    const dt = parseAny(raw);
-    if (dt) {
-      apply(dt, source);
-    } else {
-      setError('Could not parse this value.');
-    }
+
+    // Debounce cross-field updates to avoid partial-keystroke thrash (S8).
+    debounceRef.current = setTimeout(() => {
+      const dt = parseAny(raw);
+      if (dt) {
+        apply(dt, source);
+      } else {
+        setError('Could not parse this value.');
+      }
+    }, 200);
   };
 
   const handleNow = () => {
@@ -116,9 +138,11 @@ function TimestampConverterContent() {
   const handleZoneChange = (next) => {
     markDirty();
     setZone(next);
-    // Re-render the existing instant in the new zone (if we have one).
-    if (iso) {
-      const dt = parseAny(iso);
+    // Re-render the existing instant in the new zone if any field has a value.
+    // Prefer the most-precise non-empty source: millis → seconds → iso (S6).
+    if (millis !== '' || seconds !== '' || iso !== '') {
+      const source = millis !== '' ? millis : seconds !== '' ? seconds : iso;
+      const dt = parseAny(source);
       if (dt) {
         // Use updated zone immediately. apply() reads `zone` from closure
         // which is still the old one, so manually rebuild here.
@@ -175,7 +199,7 @@ function TimestampConverterContent() {
         <Card>
           <h2 className="tc-card-title">Time zone</h2>
           <div className="tc-zone-row">
-            <label htmlFor="tc-zone" className="tc-field-label">
+            <label htmlFor="tc-zone" className="tool-field-label">
               Zone
             </label>
             <select
@@ -197,13 +221,13 @@ function TimestampConverterContent() {
           <h2 className="tc-card-title">Values</h2>
           <div className="tc-fields">
             <div className="tc-field-row">
-              <label htmlFor="tc-iso" className="tc-field-label">
+              <label htmlFor="tc-iso" className="tool-field-label">
                 ISO 8601
               </label>
               <input
                 id="tc-iso"
                 type="text"
-                className="tc-field-input"
+                className="tool-field-input tool-field-input--mono"
                 value={iso}
                 onChange={(e) => handleField('iso', e.target.value)}
                 placeholder="2024-01-15T12:34:56.000Z"
@@ -222,14 +246,14 @@ function TimestampConverterContent() {
             </div>
 
             <div className="tc-field-row">
-              <label htmlFor="tc-seconds" className="tc-field-label">
+              <label htmlFor="tc-seconds" className="tool-field-label">
                 Unix seconds
               </label>
               <input
                 id="tc-seconds"
                 type="text"
                 inputMode="numeric"
-                className="tc-field-input"
+                className="tool-field-input tool-field-input--mono"
                 value={seconds}
                 onChange={(e) => handleField('seconds', e.target.value)}
                 placeholder="1700000000"
@@ -246,14 +270,14 @@ function TimestampConverterContent() {
             </div>
 
             <div className="tc-field-row">
-              <label htmlFor="tc-millis" className="tc-field-label">
+              <label htmlFor="tc-millis" className="tool-field-label">
                 Unix ms
               </label>
               <input
                 id="tc-millis"
                 type="text"
                 inputMode="numeric"
-                className="tc-field-input"
+                className="tool-field-input tool-field-input--mono"
                 value={millis}
                 onChange={(e) => handleField('millis', e.target.value)}
                 placeholder="1700000000000"
@@ -270,17 +294,16 @@ function TimestampConverterContent() {
             </div>
 
             <div className="tc-field-row">
-              <label htmlFor="tc-human" className="tc-field-label">
+              <label htmlFor="tc-human" className="tool-field-label">
                 Human
               </label>
               <input
                 id="tc-human"
                 type="text"
-                className="tc-field-input tc-field-input--readonly"
+                className="tool-field-input tool-field-input--mono tc-field-input--readonly"
                 value={human}
                 readOnly
                 placeholder="—"
-                aria-describedby="tc-human-hint"
               />
               <Button
                 variant="neutral"

@@ -90,7 +90,7 @@ describe('<TimestampConverter />', () => {
     });
   });
 
-  it('Clear wipes all fields and resets the zone', async () => {
+  it('Clear wipes all fields', async () => {
     const user = userEvent.setup();
     render(<TimestampConverter />);
     await user.click(screen.getByRole('button', {name: /^now$/i}));
