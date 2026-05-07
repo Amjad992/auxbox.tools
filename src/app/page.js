@@ -217,6 +217,14 @@ const TOOLS = [
       'Convert CSV to JSON or JSON to CSV. Auto-detects delimiter, optional type inference, header row toggle, pretty/minified JSON. Browser-only.',
     cta: 'Open tool',
   },
+  {
+    href: '/favicon-generator',
+    icon: '⭐',
+    name: 'Favicon Generator',
+    description:
+      'Upload one image → favicon-16, 32, 180 (Apple touch), 192, 512 (Android), and a multi-resolution favicon.ico. Download as a single zip.',
+    cta: 'Open tool',
+  },
 ];
 
 export default function Home() {
