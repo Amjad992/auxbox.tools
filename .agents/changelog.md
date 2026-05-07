@@ -14,6 +14,20 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-07 - S4: Timezone search combobox + full IANA list
+**What changed:**
+- Extended `src/lib/timezones.js` with `getAllZones()` (full IANA list via `Intl.supportedValuesOf`, fallback to curated list) and `searchZones(query, limit)` (searches by IANA name, city segment, common abbreviations: GMT/UTC/BST/ET/EST/JST/etc., and region keywords: Eastern/Pacific/Japan/etc.). Ranking: exact > prefix > contains.
+- New `src/components/Combobox.js` — accessible searchable combobox (text input + filtered listbox popover, arrow-key nav, Enter/Escape/Tab, outside-click close). CSS in tools.css. Lifted to shared from day one per place-it-right convention.
+- Updated `src/app/timezone-converter/page.js`: replaced both zone `<select>` elements with `<Combobox>`. Anchor zone picker searches all IANA zones; add-target picker also searches all IANA zones (minus already-added ones). Auto-adds zone on selection (no separate button needed).
+- Updated `src/app/timezone-converter/timezone-converter.css`: `.tz-add-row` layout simplified; `.tz-zone-option` + `.tz-zone-option-name` added.
+- Updated `src/app/timezone-converter/page.test.jsx`: rewrote all 9 tests to work with combobox (text input + option click) instead of `<select>`.
+- 19 tests total in `src/lib/timezones.test.js` (11 new for `getAllZones`/`searchZones`).
+**Why:** The old curated 20-zone `<select>` required knowing the exact zone name. Users can now type "London", "BST", "Eastern", or "Asia/Tokyo" and get relevant results from the full IANA list.
+**Impact:** `ZONE_OPTIONS` / `ZONE_VALUES` still exported for other tools (timestamp-converter, etc.) that use the curated list. `Combobox` is a new shared component. timezone-converter behavior and storage unchanged; UI updated.
+**Files changed:** `src/lib/timezones.js`, `src/lib/timezones.test.js`, `src/components/Combobox.js` (new), `src/styles/tools.css`, `src/app/timezone-converter/page.js`, `src/app/timezone-converter/timezone-converter.css`, `src/app/timezone-converter/page.test.jsx`.
+
+---
+
 ## 2026-05-07 - S3: In-page ColorPicker + contrast-checker integration
 **What changed:**
 - Added `hsvToRgb` and `rgbToHsv` helpers to `src/lib/color.js` (lib-first per convention).

@@ -1,9 +1,10 @@
 'use client';
-import {useEffect, useMemo, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import {DateTime} from 'luxon';
 import ToolPage from '../../components/ToolPage';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
+import Combobox from '../../components/Combobox';
 import ToastContainer from '../../components/ToastContainer';
 import {useToast} from '../../hooks/useToast';
 import {useAutoSave} from '../../hooks/useAutoSave';
@@ -13,8 +14,8 @@ import {
   DEFAULT_STATE,
   MAX_TARGETS,
   STATE_AUTOSAVE_DEBOUNCE_MS,
-  ZONE_OPTIONS,
 } from './constants';
+import {getAllZones} from '../../lib/timezones';
 import {
   buildZoneRow,
   nowInZone,
@@ -45,7 +46,6 @@ function TimezoneConverterContent() {
   const [anchorInput, setAnchorInput] = useState(() =>
     toLocalInput(nowInZone(DEFAULT_STATE.anchorZone))
   );
-  const [pickerZone, setPickerZone] = useState('');
 
   const hydrated = useHydrateStorage(() => {
     const saved = loadState();
@@ -82,8 +82,6 @@ function TimezoneConverterContent() {
       const inNewZone = anchorDt.setZone(resolveZone(next));
       setAnchorInput(toLocalInput(inNewZone));
     }
-    // S4: clear stale pickerZone when it matches the new anchor zone.
-    if (pickerZone === next) setPickerZone('');
     // S4: remove from targets if the user picks an existing target as the anchor.
     if (targets.includes(next)) {
       markDirty();
@@ -97,20 +95,22 @@ function TimezoneConverterContent() {
     showToast('Set to now', 'success');
   };
 
-  const handleAddTarget = () => {
-    if (!pickerZone) return;
-    if (targets.includes(pickerZone)) {
-      showToast('Zone already added', 'error');
-      return;
-    }
-    if (targets.length >= MAX_TARGETS) {
-      showToast(`Maximum ${MAX_TARGETS} target zones`, 'error');
-      return;
-    }
-    markDirty();
-    setTargets([...targets, pickerZone]);
-    setPickerZone('');
-  };
+  const handleAddTarget = useCallback(
+    (zone) => {
+      if (!zone) return;
+      if (targets.includes(zone)) {
+        showToast('Zone already added', 'error');
+        return;
+      }
+      if (targets.length >= MAX_TARGETS) {
+        showToast(`Maximum ${MAX_TARGETS} target zones`, 'error');
+        return;
+      }
+      markDirty();
+      setTargets((prev) => [...prev, zone]);
+    },
+    [targets, showToast, markDirty]
+  );
 
   const handleRemoveTarget = (zone) => {
     markDirty();
@@ -137,11 +137,17 @@ function TimezoneConverterContent() {
     showToast('Reset to defaults', 'success');
   };
 
-  // Available picker options exclude already-added zones + the anchor.
-  const pickerOptions = useMemo(() => {
+  // Full IANA zone list as combobox options — used by both pickers.
+  const allZoneOptions = useMemo(() => {
+    const zones = getAllZones();
+    return zones.map((z) => ({value: z, label: z}));
+  }, []);
+
+  // Add-target picker: exclude already-added zones + the anchor.
+  const addTargetOptions = useMemo(() => {
     const used = new Set([anchorZone, ...targets]);
-    return ZONE_OPTIONS.filter((z) => !used.has(z.value));
-  }, [anchorZone, targets]);
+    return allZoneOptions.filter((z) => !used.has(z.value));
+  }, [allZoneOptions, anchorZone, targets]);
 
   const targetRows = useMemo(
     () => targets.map((z) => buildZoneRow(anchorDt, z)),
@@ -180,23 +186,18 @@ function TimezoneConverterContent() {
               />
             </div>
 
-            <div className="tool-field">
-              <label htmlFor="tz-anchor-zone" className="tool-field-label">
-                Zone
-              </label>
-              <select
-                id="tz-anchor-zone"
-                className="tool-select"
-                value={anchorZone}
-                onChange={(e) => handleAnchorZoneChange(e.target.value)}
-              >
-                {ZONE_OPTIONS.map((z) => (
-                  <option key={z.value} value={z.value}>
-                    {z.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <Combobox
+              label="Zone"
+              placeholder="Search timezone…"
+              options={allZoneOptions}
+              onSelect={(opt) => handleAnchorZoneChange(opt.value)}
+              maxVisible={20}
+              renderOption={(opt) => (
+                <span className="tz-zone-option">
+                  <span className="tz-zone-option-name">{opt.value}</span>
+                </span>
+              )}
+            />
 
             <Button variant="primary" onClick={handleNow}>
               Now
@@ -228,8 +229,7 @@ function TimezoneConverterContent() {
           ) : (
             <div className="tz-target-list">
               {targetRows.map((row, idx) => {
-                const z = ZONE_OPTIONS.find((o) => o.value === row.zone);
-                const label = z?.label || row.zone;
+                const label = row.zone;
                 return (
                   <div key={row.zone} className="tz-target-row">
                     <div className="tz-target-info">
@@ -275,27 +275,20 @@ function TimezoneConverterContent() {
           )}
 
           <div className="tz-add-row">
-            <select
-              aria-label="Add target zone"
-              className="tool-select"
-              value={pickerZone}
-              onChange={(e) => setPickerZone(e.target.value)}
-              disabled={targets.length >= MAX_TARGETS || pickerOptions.length === 0}
-            >
-              <option value="">— pick a zone —</option>
-              {pickerOptions.map((z) => (
-                <option key={z.value} value={z.value}>
-                  {z.label}
-                </option>
-              ))}
-            </select>
-            <Button
-              variant="primary"
-              onClick={handleAddTarget}
-              disabled={!pickerZone}
-            >
-              + Add
-            </Button>
+            <Combobox
+              label="Add target zone"
+              labelHidden
+              placeholder="Search timezone to add…"
+              options={addTargetOptions}
+              onSelect={(opt) => handleAddTarget(opt.value)}
+              disabled={targets.length >= MAX_TARGETS}
+              maxVisible={20}
+              renderOption={(opt) => (
+                <span className="tz-zone-option">
+                  <span className="tz-zone-option-name">{opt.value}</span>
+                </span>
+              )}
+            />
           </div>
           {targets.length >= MAX_TARGETS && (
             <p className="tz-hint">Maximum {MAX_TARGETS} zones reached.</p>

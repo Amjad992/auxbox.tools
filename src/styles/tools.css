@@ -1528,3 +1528,79 @@
   border: 1px solid var(--border-color);
   background-color: var(--cp-color, #ff0000);
 }
+
+/* ═══ Combobox ═════════════════════════════════
+   Searchable combobox with dropdown list. Used by Combobox.js.
+   Used by timezone-converter and any future tool that needs a search-
+   driven zone/option picker. */
+.tool-combobox {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.tool-combobox-label {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.tool-combobox-input-wrap {
+  position: relative;
+}
+
+.tool-combobox-input {
+  width: 100%;
+  background-color: #1f1f1f;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px 14px;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tool-combobox-input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.15);
+}
+
+.tool-combobox-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tool-combobox-list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 0.3rem;
+  list-style: none;
+  background: #1f1f1f;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  max-height: 280px;
+  overflow-y: auto;
+  z-index: 200;
+}
+
+.tool-combobox-option {
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  transition: background-color 0.1s ease;
+}
+
+.tool-combobox-option--active,
+.tool-combobox-option:hover {
+  background-color: rgba(255, 107, 107, 0.12);
+  color: var(--text-primary);
+}
