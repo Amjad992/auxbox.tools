@@ -14,6 +14,20 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-07 - Add `/favicon-generator` (one image → full favicon set + ICO)
+**What changed:** New `/favicon-generator` route. Upload one image, download a zip with PNGs at 16/32/180/192/512 plus an optional multi-resolution `favicon.ico` (16/32/48).
+- **Pipeline (`pipeline.js`):** `generateFavicons(file, {background, includeIco})` → resizes via `createImageBitmap` + canvas `cover` + centre-crop. Reuses `MAX_PIXELS`, `canvasToBlob`, `isSupportedImage` from `src/lib/image.js`. EXIF orientation honoured (`{imageOrientation: 'from-image'}`). Bitmap closed in `try/finally`.
+- **ICO (`ico.js`):** Hand-rolled ICO container with PNG-encoded entries. ~50 lines; no `png-to-ico` dependency. Three tests for header layout, size cap, and mime.
+- **UI:** Reuses `<DropZone>`. Background select (transparent / white / black). Include-ICO toggle. Tile grid previews each generated PNG; checkered backdrop on previews. "Download zip" via JSZip.
+- **Persistence:** `favicon_generator_state` stores `{includeIco, background}`. Strict-keys validator + enum membership. Source image / output blobs never persisted.
+- **Tests:** 4 pipeline + 3 ICO + 3 storage + 2 page = 12 new tests.
+- **Home tile:** ⭐ "Favicon Generator". Sitemap entry added.
+**Why:** Build-queue item #13. Common need; saves a trip to a third-party site.
+**Impact:** +1 dependency (`jszip ^3.10.1`). +12 tests. Hand-rolled ICO encoder keeps the dep count small.
+**Files changed:** `src/app/favicon-generator/{constants,pipeline,pipeline.test,ico,ico.test,storageUtils,storageUtils.test,StorageContext,layout,page,page.test,favicon-generator.css}.{js,jsx,css}` (new), `src/app/page.js`, `src/app/sitemap.js`, `package.json`, `package-lock.json`.
+
+---
+
 ## 2026-05-07 - CSV ↔ JSON Converter review-round-1 fixes (S1-S19)
 **What changed:** Applied all 19 review findings to `src/app/csv-json-converter/` and shared infrastructure.
 - **S1:** `parseCsv` only enters quoted mode when field buffer is empty; stray mid-field `"` is now a literal character. Test added.
