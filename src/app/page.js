@@ -169,6 +169,14 @@ const TOOLS = [
       'Convert between ISO 8601, Unix seconds, Unix milliseconds, and human-readable local time. Time-zone selector, Now button. Browser-only.',
     cta: 'Open tool',
   },
+  {
+    href: '/pdf-splitter',
+    icon: '✂️',
+    name: 'PDF Splitter',
+    description:
+      'Drop a PDF and pick page ranges (e.g. 1-3,5,7-9) to download a new PDF with just those pages. Files never leave your browser.',
+    cta: 'Open tool',
+  },
 ];
 
 export default function Home() {

@@ -14,6 +14,20 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-07 - Add `/pdf-splitter` (extract PDF pages) + lift `parsePageRange` to shared lib
+**What changed:** New `/pdf-splitter` route. Drop a single PDF, pick page ranges (`1-3,5,7-9` or empty for all), download a new PDF containing just those pages.
+- **Math (`pipeline.js`):** `parsePdfMetadata` and `extractPages(arrayBuffer, indices)` using `pdf-lib`. 6 unit tests.
+- **Shared lift:** `parsePageRange` lifted from `pdf-merger/utils.js` to `src/lib/pageRange.js` (with new `formatPageRange` helper). pdf-merger now re-exports for backwards-compat. 13 new tests for the shared lib.
+- **UI:** DropZone (single file, ≤100 MB), file info card, page-range InputField with `.tool-field-input--mono`, dynamic primary button label.
+- **Persistence:** `pdf_splitter_state` stores only `{mode}`; the file/buffer/range are session-state. Validator strict-keys.
+- **2 page tests** (empty render + page-range card hidden without file).
+- **Home tile:** ✂️ "PDF Splitter".
+**Why:** Build-queue item #7. Direct complement to PDF Merger; reuses pdf-lib pipeline, DropZone, and now the shared parsePageRange.
+**Impact:** No new dependencies. 21 new tests; pdf-merger's 71 tests stay green via the re-export.
+**Files changed:** `src/lib/pageRange.js` + `src/lib/pageRange.test.js` (new); `src/app/pdf-merger/utils.js`; `src/app/pdf-splitter/` (new directory); `src/app/page.js`; `src/app/sitemap.js`.
+
+---
+
 ## 2026-05-07 - Timestamp Converter review-round-1 fixes (S1-S8)
 **What changed:** Applied 8 fixes from the general review round on `feat/timestamp-converter`. Round folder: `playground/reviews/review-rounds/general/2026-05-07-timestamp-converter/`. Reviewers: Opus #1 + Opus #2 + CodeRabbit.
 

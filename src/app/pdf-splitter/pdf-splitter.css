@@ -1,0 +1,80 @@
+/* PDF Splitter — local styles. */
+
+.ps-card-title {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.ps-card-hint {
+  margin: 0 0 0.75rem;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.ps-file-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.2rem;
+  align-items: baseline;
+  margin-top: 0.75rem;
+  padding: 0.6rem 0.9rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+}
+
+.ps-file-name {
+  margin: 0;
+  color: var(--text-primary);
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.ps-file-size,
+.ps-file-pages {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.ps-file-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.ps-range-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.ps-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+.ps-error,
+.ps-warn {
+  margin: 0.6rem 0 0;
+  padding: 0.6rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.ps-error {
+  background: rgba(231, 76, 60, 0.10);
+  border: 1px solid rgba(231, 76, 60, 0.4);
+  color: #ff8b80;
+}
+
+.ps-warn {
+  background: rgba(255, 193, 7, 0.08);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  color: #ffc107;
+}

@@ -128,5 +128,11 @@ export default function sitemap() {
       changeFrequency: 'monthly',
       priority: 0.9,
     },
+    {
+      url: `${baseUrl}/pdf-splitter`,
+      lastModified: new Date('2026-05-07'),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+    },
   ];
 }
