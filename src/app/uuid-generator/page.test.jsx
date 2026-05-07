@@ -20,6 +20,17 @@ beforeEach(() => {
   window.localStorage.clear();
 });
 
+// The empty-state copy contains an inline `<strong>Generate</strong>`,
+// so the text is split across nodes. Match against the parent <p>'s
+// full textContent.
+function findEmptyState(n) {
+  return screen.getByText(
+    (_, el) =>
+      el?.tagName === 'P' &&
+      new RegExp(`to create ${n}\\b`, 'i').test(el.textContent ?? '')
+  );
+}
+
 describe('<UuidGenerator />', () => {
   it('renders heading, type radios, count slider, and the empty state', () => {
     render(<UuidGenerator />);
@@ -29,12 +40,7 @@ describe('<UuidGenerator />', () => {
     expect(screen.getByLabelText(/uuid v4/i)).toBeChecked();
     expect(screen.getByLabelText(/uuid v7/i)).not.toBeChecked();
     expect(screen.getByLabelText(/^count$/i)).toBeInTheDocument();
-    expect(
-      screen.getByText((_, el) =>
-        el?.tagName === 'P' &&
-        /to create 10\b/i.test(el.textContent ?? '')
-      )
-    ).toBeInTheDocument();
+    expect(findEmptyState(10)).toBeInTheDocument();
   });
 
   it('count slider updates the empty-state message', async () => {
@@ -42,12 +48,7 @@ describe('<UuidGenerator />', () => {
     fireEvent.change(screen.getByLabelText(/^count$/i), {
       target: {value: '25'},
     });
-    expect(
-      screen.getByText((_, el) =>
-        el?.tagName === 'P' &&
-        /to create 25\b/i.test(el.textContent ?? '')
-      )
-    ).toBeInTheDocument();
+    expect(findEmptyState(25)).toBeInTheDocument();
   });
 
   it('Generate populates the list with 10 v4 UUIDs by default', async () => {
@@ -77,12 +78,7 @@ describe('<UuidGenerator />', () => {
         /[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/
       ).length
     ).toBe(0);
-    expect(
-      screen.getByText((_, el) =>
-        el?.tagName === 'P' &&
-        /to create 10\b/i.test(el.textContent ?? '')
-      )
-    ).toBeInTheDocument();
+    expect(findEmptyState(10)).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', {name: /^generate$/i}));
     expect(
@@ -121,12 +117,7 @@ describe('<UuidGenerator />', () => {
 
     await user.click(screen.getByRole('button', {name: /^clear$/i}));
     expect(screen.getByLabelText(/uuid v4/i)).toBeChecked();
-    expect(
-      screen.getByText((_, el) =>
-        el?.tagName === 'P' &&
-        /to create 10\b/i.test(el.textContent ?? '')
-      )
-    ).toBeInTheDocument();
+    expect(findEmptyState(10)).toBeInTheDocument();
   });
 
   it('persists type + count across remounts', async () => {
@@ -148,11 +139,6 @@ describe('<UuidGenerator />', () => {
 
     render(<UuidGenerator />);
     expect(screen.getByLabelText(/uuid v7/i)).toBeChecked();
-    expect(
-      screen.getByText((_, el) =>
-        el?.tagName === 'P' &&
-        /to create 5\b/i.test(el.textContent ?? '')
-      )
-    ).toBeInTheDocument();
+    expect(findEmptyState(5)).toBeInTheDocument();
   });
 });

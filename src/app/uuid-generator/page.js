@@ -40,6 +40,10 @@ function UuidGeneratorContent() {
   const [type, setType] = useState(DEFAULT_STATE.type);
   const [count, setCount] = useState(DEFAULT_STATE.count);
   const [uuids, setUuids] = useState([]);
+  // Status announcement for screen readers; updated only on action
+  // (Generate / Clear) so the result list itself doesn't need a noisy
+  // aria-live with up to 100 hex strings replaced at once.
+  const [status, setStatus] = useState('');
 
   const hydrated = useHydrateStorage(() => {
     const saved = loadState();
@@ -63,7 +67,20 @@ function UuidGeneratorContent() {
   });
 
   const handleGenerate = () => {
-    setUuids(generateBatch(type, count));
+    try {
+      const batch = generateBatch(type, count);
+      setUuids(batch);
+      setStatus(
+        `Generated ${batch.length} UUID ${type.toUpperCase()} ${
+          batch.length === 1 ? 'value' : 'values'
+        }.`
+      );
+    } catch (e) {
+      const msg =
+        e?.message || 'Could not generate UUIDs in this environment.';
+      showToast(msg, 'error');
+      setStatus('Generation failed.');
+    }
   };
 
   const handleClear = () => {
@@ -72,6 +89,7 @@ function UuidGeneratorContent() {
     setType(DEFAULT_STATE.type);
     setCount(DEFAULT_STATE.count);
     markClean();
+    setStatus('');
     showToast('Cleared', 'success');
   };
 
@@ -80,6 +98,7 @@ function UuidGeneratorContent() {
     setType(next);
     // Wipe the previous batch — its IDs are the wrong version.
     setUuids([]);
+    setStatus('');
   };
 
   const handleCount = (next) => {
@@ -133,7 +152,7 @@ function UuidGeneratorContent() {
               const hint =
                 opt.value === TYPES.V4
                   ? '128 random bits. The everyday default — collision-resistant, no ordering guarantee.'
-                  : 'Unix-ms timestamp + random tail. Lexicographically ordered → great as a database primary key.';
+                  : 'Unix-ms timestamp + random tail. Sort lexicographically across generations; within a single batch IDs share a timestamp and order randomly.';
               return (
                 <label
                   key={opt.value}
@@ -215,9 +234,16 @@ function UuidGeneratorContent() {
           </Button>
         </div>
 
+        {/* Hidden status summary — announces only the action outcome,
+            not the entire UUID list (which can be up to 100 lines of
+            hex). The visible list below is *not* a live region. */}
+        <span role="status" aria-live="polite" className="tool-sr-only">
+          {status}
+        </span>
+
         <Card>
           <h2 className="ug-card-title">Result</h2>
-          <div className="ug-list" aria-live="polite" aria-atomic="false">
+          <div className="ug-list">
             {uuids.length === 0 ? (
               <p className="ug-empty">
                 Click <strong>Generate</strong> to create {count}{' '}

@@ -83,6 +83,28 @@ describe('generateBatch', () => {
   });
 });
 
+describe('randomBytes (via generateV4) — fails loud when crypto.getRandomValues is missing', () => {
+  it('throws if crypto.getRandomValues is unavailable', () => {
+    const original = globalThis.crypto;
+    // Force the missing-crypto branch.
+    Object.defineProperty(globalThis, 'crypto', {
+      value: undefined,
+      configurable: true,
+    });
+    try {
+      // generateV4's primary path uses randomUUID; force the secondary
+      // path by also pretending randomUUID is missing.
+      expect(() => generateV4()).toThrow(/crypto\.getRandomValues/i);
+      expect(() => generateV7()).toThrow(/crypto\.getRandomValues/i);
+    } finally {
+      Object.defineProperty(globalThis, 'crypto', {
+        value: original,
+        configurable: true,
+      });
+    }
+  });
+});
+
 describe('isValidUuid', () => {
   it('accepts well-formed v4 and v7', () => {
     expect(isValidUuid(generateV4())).toBe(true);

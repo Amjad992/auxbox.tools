@@ -14,6 +14,24 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-07 - UUID Generator review-round-1 fixes (S1–S4)
+**What changed:** Applied 4 fixes from the general review round on `feat/uuid-generator`. Round folder: `playground/reviews/review-rounds/general/2026-05-07-uuid-generator/`. Reviewers: Opus subagent (11 findings, 2 major), CodeRabbit (clean), Copilot (skipped — coordinator proceeded with Opus + CR per "let's have finished" pace).
+
+- **S1 (Opus F1, major)** — Removed the `Math.random()` fallback in `randomBytes`. Silently downgrading to non-cryptographic random violated the project's randomness rubric. Now throws a clear error when `crypto.getRandomValues` is missing; `handleGenerate` catches and surfaces via the existing toast infrastructure. New unit test asserts the throw on both `generateV4` and `generateV7`.
+- **S2 (Opus F2, major)** — Replaced `aria-live="polite" aria-atomic="false"` on the result list with a separate sr-only `role="status" aria-live="polite"` summary region. Previous setup announced up to 100 hex strings on every Generate. Now SR users hear "Generated 10 UUID V4 values." on action, not the entire list.
+- **S3 (Opus F3, minor)** — Clarified v7 hint copy to flag the within-batch ordering caveat (RFC 9562 §6.2 monotonic counter is not implemented; multiple v7s in the same ms tick share a timestamp and shuffle by random tail).
+- **S4 (Opus F8, minor)** — Extracted `findEmptyState(n)` helper in `page.test.jsx`; replaced 5 copies of the cross-`<strong>` function-matcher with a single helper call.
+
+**Skipped:** Opus F4 (persistence-shape note), F5 (validator clean), F6 (radio-card pattern is one-occurrence), F7 (visible radio intentional), F9 (defensive checks harmless), F10/F11 (info — `crypto.subtle` correctly unused; SEO clean).
+
+**Why:** Round-one fixes from the local-review-multi-agent process. Two ship-blockers + minor polish.
+
+**Impact:** 22 tests across uuid-generator (14 math + 8 page), all passing.
+
+**Files changed:** `src/app/uuid-generator/{utils,page,page.test,utils.test}.{js,jsx}`.
+
+---
+
 ## 2026-05-07 - Add `/uuid-generator` (UUID v4 + v7 in bulk)
 **What changed:** New `/uuid-generator` route. Generate UUID v4 (random) or UUID v7 (timestamp-ordered) in bulk via a count slider (1–100, presets 1/5/10/25/50/100). Per-row copy + Copy all + Download .txt + Clear actions.
 - **Math (`utils.js`):** `generateV4()` uses `crypto.randomUUID()` natively (with `crypto.getRandomValues` fallback); `generateV7()` is hand-rolled per RFC 9562 (48-bit ms timestamp + version=7 + 12 random bits + variant=10 + 62 random bits). 13 unit tests cover format regexes for both versions, uniqueness over 1000 iterations, timestamp prefix encoding, lexicographic ordering across ms boundaries, batch counts (NaN/negative/fractional/string coercion), and `isValidUuid` rejection of malformed inputs.

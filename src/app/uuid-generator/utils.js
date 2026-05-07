@@ -70,15 +70,16 @@ export function isValidUuid(str) {
 // ─── helpers ────────────────────────────────────────────────────
 
 function randomBytes(n) {
-  const buf = new Uint8Array(n);
-  if (typeof globalThis.crypto?.getRandomValues === 'function') {
-    globalThis.crypto.getRandomValues(buf);
-    return buf;
+  if (typeof globalThis.crypto?.getRandomValues !== 'function') {
+    // The whole point of the tool is cryptographically random IDs;
+    // silently downgrading to Math.random would produce predictable
+    // UUIDs at scale. Better to fail loud than ship a footgun.
+    throw new Error(
+      'crypto.getRandomValues is not available in this environment.'
+    );
   }
-  // Final fallback (very old runtimes): Math.random() — not
-  // cryptographically strong, but UUID v4/v7 collision probability is
-  // dominated by the 122 random bits, not RNG quality.
-  for (let i = 0; i < n; i++) buf[i] = Math.floor(Math.random() * 256);
+  const buf = new Uint8Array(n);
+  globalThis.crypto.getRandomValues(buf);
   return buf;
 }
 
