@@ -225,6 +225,14 @@ const TOOLS = [
       'Upload one image → favicon-16, 32, 180 (Apple touch), 192, 512 (Android), and a multi-resolution favicon.ico. Download as a single zip.',
     cta: 'Open tool',
   },
+  {
+    href: '/palette-from-image',
+    icon: '🎨',
+    name: 'Palette from Image',
+    description:
+      'Upload an image → extract its dominant colors via median-cut quantization. Output as hex, RGB, or nearest Tailwind class.',
+    cta: 'Open tool',
+  },
 ];
 
 export default function Home() {

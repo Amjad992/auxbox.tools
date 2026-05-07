@@ -28,6 +28,20 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-07 - Add `/palette-from-image` (median-cut color palette extractor)
+**What changed:** New `/palette-from-image` route. Upload an image → extract N dominant colors via median-cut quantization. Output as hex, RGB, or nearest Tailwind class.
+- **Quantizer (`quantize.js`):** Hand-rolled median-cut. Skips fully-transparent pixels, picks widest-channel split, returns palette sorted by frequency descending. `extractPixels` downsamples large bitmaps to ≤50 000 sample pixels via canvas. 7 unit tests.
+- **Tailwind matcher (`tailwind.js`):** Embedded Tailwind v3.4 default palette (slate / gray / zinc / red / orange / amber / yellow / lime / green / emerald / teal / cyan / sky / blue / indigo / violet / purple / fuchsia / pink / rose, 50–950 + black/white). Nearest-neighbour by squared RGB distance. 5 unit tests.
+- **UI:** Reuses `<DropZone>`. Colour-count input (2–16, default 6) + format select. Swatch grid; click any swatch to copy. "Copy all" copies the full palette as newline-separated text. `aria-busy` on the source card. Source filename + dimensions displayed.
+- **Persistence:** `palette_from_image_state` stores `{colourCount, format}`. Strict-keys validator + range/enum membership. Source image / extracted palette never persisted.
+- **Tests:** 7 quantizer + 5 tailwind + 5 utils + 5 storage + 1 page = 23 new tests.
+- **Home tile:** 🎨 "Palette from Image". Sitemap entry added.
+**Why:** Build-queue item #14. Common need for designers + devs.
+**Impact:** No new dependencies. Hand-rolled quantizer + embedded Tailwind palette keep the dep count flat.
+**Files changed:** `src/app/palette-from-image/{constants,quantize,quantize.test,tailwind,tailwind.test,utils,utils.test,storageUtils,storageUtils.test,StorageContext,layout,page,page.test,palette-from-image.css}.{js,jsx,css}` (new), `src/app/page.js`, `src/app/sitemap.js`.
+
+---
+
 ## 2026-05-07 - Favicon Generator review-round-1 fixes (S1-S19)
 **What changed:** Applied all 19 review findings to `src/app/favicon-generator/`.
 - **S1:** Filenames updated to universal `WIDTHxHEIGHT` form in `constants.js` (e.g. `favicon-16x16.png`, `android-chrome-192x192.png`).
