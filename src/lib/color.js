@@ -164,6 +164,61 @@ export function contrastRatio(fg, bg) {
   return (lighter + 0.05) / (darker + 0.05);
 }
 
+/**
+ * Convert HSV (hue 0–360, saturation 0–1, value 0–1) to {r, g, b} (0–255).
+ * Standard HSV→RGB formula. Used by ColorPicker.
+ */
+export function hsvToRgb(h, s, v) {
+  const hh = ((h % 360) + 360) % 360;
+  const i = Math.floor(hh / 60);
+  const f = hh / 60 - i;
+  const p = v * (1 - s);
+  const q = v * (1 - f * s);
+  const t = v * (1 - (1 - f) * s);
+  let r, g, b;
+  switch (i % 6) {
+    case 0: r = v; g = t; b = p; break;
+    case 1: r = q; g = v; b = p; break;
+    case 2: r = p; g = v; b = t; break;
+    case 3: r = p; g = q; b = v; break;
+    case 4: r = t; g = p; b = v; break;
+    case 5: r = v; g = p; b = q; break;
+    default: r = 0; g = 0; b = 0;
+  }
+  return {
+    r: Math.round(r * 255),
+    g: Math.round(g * 255),
+    b: Math.round(b * 255),
+  };
+}
+
+/**
+ * Convert {r, g, b} (0–255) to HSV (hue 0–360, saturation 0–1, value 0–1).
+ * Used by ColorPicker to initialise from a parsed hex/rgb/hsl value.
+ */
+export function rgbToHsv({r, g, b}) {
+  const rn = r / 255;
+  const gn = g / 255;
+  const bn = b / 255;
+  const max = Math.max(rn, gn, bn);
+  const min = Math.min(rn, gn, bn);
+  const delta = max - min;
+  let h = 0;
+  if (delta !== 0) {
+    if (max === rn) {
+      h = 60 * (((gn - bn) / delta) % 6);
+    } else if (max === gn) {
+      h = 60 * ((bn - rn) / delta + 2);
+    } else {
+      h = 60 * ((rn - gn) / delta + 4);
+    }
+  }
+  h = ((h % 360) + 360) % 360;
+  const s = max === 0 ? 0 : delta / max;
+  const v = max;
+  return {h, s, v};
+}
+
 /** Format an {r,g,b} (alpha optional) to lowercase 6-digit hex. */
 export function rgbToHex({r, g, b}) {
   const h = (n) => clampByte(n).toString(16).padStart(2, '0');

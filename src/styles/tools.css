@@ -1348,3 +1348,183 @@
   font-size: 0.8rem;
   line-height: 1.3;
 }
+
+/* ═══ ColorPicker ══════════════════════════════
+   In-page color picker popover. Used by ColorPicker.js. */
+
+/* Trigger: a square swatch button */
+.cp-swatch-btn {
+  width: 3rem;
+  height: 2.4rem;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background-image:
+    linear-gradient(45deg, #404040 25%, transparent 25%),
+    linear-gradient(-45deg, #404040 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #404040 75%),
+    linear-gradient(-45deg, transparent 75%, #404040 75%),
+    linear-gradient(var(--cp-color, #ff0000), var(--cp-color, #ff0000));
+  background-size: 12px 12px, 12px 12px, 12px 12px, 12px 12px, 100% 100%;
+  background-position: 0 0, 0 6px, 6px -6px, -6px 0px, 0 0;
+  cursor: pointer;
+  padding: 0;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  flex-shrink: 0;
+}
+
+.cp-swatch-btn:focus-visible {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.3);
+}
+
+/* Popover panel */
+.cp-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 300;
+  background: #1f1f1f;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55);
+  padding: 0.75rem;
+  width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+/* SV (saturation/value) gradient area */
+.cp-sv-area {
+  position: relative;
+  width: 100%;
+  height: 140px;
+  border-radius: 6px;
+  background-color: var(--cp-hue-color, #ff0000);
+  cursor: crosshair;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* White (left-right) gradient overlay */
+.cp-sv-white {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right, #fff, transparent);
+}
+
+/* Black (top-bottom) gradient overlay */
+.cp-sv-black {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent, #000);
+}
+
+/* Cursor handle */
+.cp-sv-cursor {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6), 0 2px 6px rgba(0, 0, 0, 0.4);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* Hue slider row */
+.cp-hue-row {
+  width: 100%;
+}
+
+.cp-hue-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 12px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    hsl(0, 100%, 50%),
+    hsl(30, 100%, 50%),
+    hsl(60, 100%, 50%),
+    hsl(90, 100%, 50%),
+    hsl(120, 100%, 50%),
+    hsl(150, 100%, 50%),
+    hsl(180, 100%, 50%),
+    hsl(210, 100%, 50%),
+    hsl(240, 100%, 50%),
+    hsl(270, 100%, 50%),
+    hsl(300, 100%, 50%),
+    hsl(330, 100%, 50%),
+    hsl(360, 100%, 50%)
+  );
+  outline: none;
+  cursor: pointer;
+  border: 1px solid var(--border-color);
+}
+
+.cp-hue-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid rgba(0, 0, 0, 0.3);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+}
+
+.cp-hue-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid rgba(0, 0, 0, 0.3);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+}
+
+/* Hex input row */
+.cp-hex-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cp-hex-label {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.cp-hex-input {
+  flex: 1;
+  min-width: 0;
+  background: #2a2a2a;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+  font-size: 0.85rem;
+  padding: 6px 8px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cp-hex-input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.15);
+}
+
+.cp-hex-preview {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  background-color: var(--cp-color, #ff0000);
+}

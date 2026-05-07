@@ -3,6 +3,7 @@ import {useEffect, useMemo, useState} from 'react';
 import ToolPage from '../../components/ToolPage';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
+import ColorPicker from '../../components/ColorPicker';
 import ToastContainer from '../../components/ToastContainer';
 import {useToast} from '../../hooks/useToast';
 import {useAutoSave} from '../../hooks/useAutoSave';
@@ -145,7 +146,7 @@ function ContrastCheckerContent() {
             Accepts <code>#abc</code>, <code>#aabbcc</code>,{' '}
             <code>rgb(...)</code>, <code>rgba(...)</code>,{' '}
             <code>hsl(...)</code>, <code>hsla(...)</code>. Click the swatch
-            for the OS color picker.
+            to open the in-page color picker.
           </p>
 
           <div className="cc-color-row">
@@ -167,24 +168,14 @@ function ContrastCheckerContent() {
               autoComplete="off"
               autoCapitalize="off"
             />
-            <span
-              className="cc-swatch"
-              style={{
-                '--cc-swatch-color': fgParsed ? rgbToCss(fgParsed) : 'transparent',
+            <ColorPicker
+              value={fgParsed ? fgPickerHex : '#000000'}
+              onChange={(hex) => {
+                markDirty();
+                setFg(hex);
               }}
-            >
-              <input
-                type="color"
-                className="cc-color-picker"
-                value={fgPickerHex}
-                onChange={(e) => {
-                  markDirty();
-                  setFg(e.target.value);
-                }}
-                aria-label="Foreground color picker"
-                tabIndex={-1}
-              />
-            </span>
+              label="Foreground color picker"
+            />
           </div>
 
           <div className="cc-swap-row">
@@ -212,24 +203,14 @@ function ContrastCheckerContent() {
               autoComplete="off"
               autoCapitalize="off"
             />
-            <span
-              className="cc-swatch"
-              style={{
-                '--cc-swatch-color': bgParsed ? rgbToCss(bgParsed) : 'transparent',
+            <ColorPicker
+              value={bgParsed ? bgPickerHex : '#ffffff'}
+              onChange={(hex) => {
+                markDirty();
+                setBg(hex);
               }}
-            >
-              <input
-                type="color"
-                className="cc-color-picker"
-                value={bgPickerHex}
-                onChange={(e) => {
-                  markDirty();
-                  setBg(e.target.value);
-                }}
-                aria-label="Background color picker"
-                tabIndex={-1}
-              />
-            </span>
+              label="Background color picker"
+            />
           </div>
         </Card>
 

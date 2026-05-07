@@ -182,3 +182,60 @@ describe('compositeOver', () => {
     expect(compositeOver(white, null)).toBeNull();
   });
 });
+
+// ─── hsvToRgb ───────────────────────────────────────────────────────────────
+import { hsvToRgb, rgbToHsv } from './color';
+
+describe('hsvToRgb', () => {
+  it('red: h=0, s=1, v=1 => {r:255, g:0, b:0}', () => {
+    expect(hsvToRgb(0, 1, 1)).toEqual({r: 255, g: 0, b: 0});
+  });
+  it('green: h=120, s=1, v=1 => {r:0, g:255, b:0}', () => {
+    expect(hsvToRgb(120, 1, 1)).toEqual({r: 0, g: 255, b: 0});
+  });
+  it('blue: h=240, s=1, v=1 => {r:0, g:0, b:255}', () => {
+    expect(hsvToRgb(240, 1, 1)).toEqual({r: 0, g: 0, b: 255});
+  });
+  it('white: s=0, v=1 => {r:255, g:255, b:255}', () => {
+    expect(hsvToRgb(0, 0, 1)).toEqual({r: 255, g: 255, b: 255});
+  });
+  it('black: v=0 => {r:0, g:0, b:0}', () => {
+    expect(hsvToRgb(0, 0, 0)).toEqual({r: 0, g: 0, b: 0});
+  });
+  it('wraps hue > 360', () => {
+    expect(hsvToRgb(360, 1, 1)).toEqual(hsvToRgb(0, 1, 1));
+  });
+});
+
+describe('rgbToHsv', () => {
+  it('red => h=0, s=1, v=1', () => {
+    const {h, s, v} = rgbToHsv({r: 255, g: 0, b: 0});
+    expect(h).toBeCloseTo(0, 1);
+    expect(s).toBeCloseTo(1, 5);
+    expect(v).toBeCloseTo(1, 5);
+  });
+  it('green => h=120, s=1, v=1', () => {
+    const {h, s, v} = rgbToHsv({r: 0, g: 255, b: 0});
+    expect(h).toBeCloseTo(120, 1);
+    expect(s).toBeCloseTo(1, 5);
+    expect(v).toBeCloseTo(1, 5);
+  });
+  it('white => s=0, v=1', () => {
+    const {s, v} = rgbToHsv({r: 255, g: 255, b: 255});
+    expect(s).toBeCloseTo(0, 5);
+    expect(v).toBeCloseTo(1, 5);
+  });
+  it('black => s=0, v=0', () => {
+    const {s, v} = rgbToHsv({r: 0, g: 0, b: 0});
+    expect(s).toBeCloseTo(0, 5);
+    expect(v).toBeCloseTo(0, 5);
+  });
+  it('round-trip: hsvToRgb(rgbToHsv(rgb)) ≈ rgb for mid-blue', () => {
+    const original = {r: 30, g: 100, b: 220};
+    const {h, s, v} = rgbToHsv(original);
+    const back = hsvToRgb(h, s, v);
+    expect(Math.abs(back.r - original.r)).toBeLessThanOrEqual(1);
+    expect(Math.abs(back.g - original.g)).toBeLessThanOrEqual(1);
+    expect(Math.abs(back.b - original.b)).toBeLessThanOrEqual(1);
+  });
+});

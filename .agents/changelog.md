@@ -14,6 +14,20 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-07 - S3: In-page ColorPicker + contrast-checker integration
+**What changed:**
+- Added `hsvToRgb` and `rgbToHsv` helpers to `src/lib/color.js` (lib-first per convention).
+- New `src/components/ColorPicker.js` — popover-based in-page color picker. Shows a 2D SV area + hue strip slider + hex input. Click-outside closes; Escape closes. Returns hex via `onChange`.
+- CSS in `src/styles/tools.css`: `.cp-swatch-btn`, `.cp-popover`, `.cp-sv-area`, `.cp-sv-white/black/cursor`, `.cp-hue-row`, `.cp-hue-slider`, `.cp-hex-row`, `.cp-hex-input`, `.cp-hex-preview`.
+- Replaced the OS-native `<input type="color">` swatch overlay in `src/app/contrast-checker/page.js` with `<ColorPicker>` for both fg and bg. Updated card hint copy. Removed dead `.cc-swatch` and `.cc-color-picker` CSS from `contrast-checker.css`.
+- 10 tests in `src/components/ColorPicker.test.jsx` (open/close/Escape/outside-click/hex round-trip/prop sync).
+- 11 new tests for `hsvToRgb`/`rgbToHsv` added to `src/lib/color.test.js`.
+**Why:** Replace the native OS color picker (broken on mobile, inconsistent across OSes) with a consistent in-page picker.
+**Impact:** `src/lib/color.js` gains two new exports (non-breaking). ColorPicker is a new shared component. contrast-checker visual changes; functionality unchanged.
+**Files changed:** `src/lib/color.js`, `src/lib/color.test.js`, `src/components/ColorPicker.js` (new), `src/components/ColorPicker.test.jsx` (new), `src/styles/tools.css`, `src/app/contrast-checker/page.js`, `src/app/contrast-checker/contrast-checker.css`.
+
+---
+
 ## 2026-05-07 - S2: Palette-from-image controls alignment fix
 **What changed:** `.pfi-controls` in `src/app/palette-from-image/palette-from-image.css` changed from `align-items: end` to `align-items: flex-start`. The "Colours" and "Format" labels now align at the top of the control row.
 **Why:** User-reported visual misalignment — the Colours label appeared higher than Format because `end` aligns to the bottom of the flex line.
