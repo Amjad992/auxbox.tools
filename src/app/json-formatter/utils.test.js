@@ -1,6 +1,7 @@
 import {describe, it, expect} from 'vitest';
 import {
   formatJson,
+  locateJsonError,
   minifyJson,
   sortObjectKeys,
   validateJson,
@@ -42,15 +43,13 @@ describe('formatJson', () => {
     // location is best-effort.
   });
 
-  it('extracts position from SpiderMonkey-style line/column error', () => {
-    // Synthesize an error message that matches the SpiderMonkey shape so
-    // our regex path is exercised regardless of the host engine.
-    const fakeError = new SyntaxError(
-      'JSON.parse: expected , or } at line 3 column 1 of the JSON data'
-    );
-    // Calling locateJsonError directly via a tiny helper isn't worth the
-    // extra plumbing — just test through formatJson by mocking.
-    expect(fakeError.message).toMatch(/line 3 column 1/);
+  it('round-trips __proto__ keys when sortKeys is true', () => {
+    const r = formatJson('{"__proto__":{"x":1},"a":1}', {indent: '2', sortKeys: true});
+    expect(r.ok).toBe(true);
+    const parsed = JSON.parse(r.output);
+    expect(parsed).toHaveProperty('__proto__');
+    expect(parsed.__proto__).toEqual({x: 1});
+    expect(parsed.a).toBe(1);
   });
 
   it('rejects empty input', () => {
@@ -62,6 +61,31 @@ describe('formatJson', () => {
     const original = {a: [1, 2, 3], b: {c: 'hi'}, d: null, e: true};
     const r = formatJson(JSON.stringify(original), {indent: '2'});
     expect(JSON.parse(r.output)).toEqual(original);
+  });
+});
+
+describe('locateJsonError', () => {
+  it('extracts V8-legacy "position N"', () => {
+    const r = locateJsonError('xxxx\nbroken', new SyntaxError('Unexpected token at position 5'));
+    expect(r.line).toBe(2);
+    expect(r.column).toBe(1);
+  });
+
+  it('extracts SpiderMonkey "line X column Y"', () => {
+    const r = locateJsonError('any', new SyntaxError('JSON.parse: expected , at line 3 column 7 of the JSON data'));
+    expect(r.line).toBe(3);
+    expect(r.column).toBe(7);
+  });
+
+  it('bisects modern V8 messages without position', () => {
+    const text = '{"a":1,\n"b":}';
+    let err;
+    try { JSON.parse(text); } catch (e) { err = e; }
+    const r = locateJsonError(text, err);
+    // Some line/column should come back; bisection finds at least the
+    // failing prefix.
+    expect(r.line).toBeGreaterThanOrEqual(1);
+    expect(r.column).toBeGreaterThanOrEqual(1);
   });
 });
 
@@ -102,6 +126,15 @@ describe('validateJson', () => {
 });
 
 describe('sortObjectKeys', () => {
+  it('sorts numeric-string keys in natural order', () => {
+    const r = formatJson('{"10":"a","2":"b"}', {indent: '2', sortKeys: true});
+    expect(r.ok).toBe(true);
+    const parsed = JSON.parse(r.output);
+    const keys = Object.keys(parsed);
+    // "2" must precede "10" in numeric-aware sort.
+    expect(keys.indexOf('2')).toBeLessThan(keys.indexOf('10'));
+  });
+
   it('sorts a flat object', () => {
     expect(Object.keys(sortObjectKeys({c: 1, a: 2, b: 3}))).toEqual([
       'a',

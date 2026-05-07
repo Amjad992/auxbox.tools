@@ -17,7 +17,7 @@ import {
   MODE_OPTIONS,
   STATE_AUTOSAVE_DEBOUNCE_MS,
 } from './constants';
-import {formatJson, minifyJson} from './utils';
+import {formatJson, minifyJson, validateJson} from './utils';
 import './json-formatter.css';
 
 const SCHEMA = {
@@ -43,6 +43,8 @@ function JsonFormatterContent() {
   const [input, setInput] = useState('');
   const [output, setOutput] = useState('');
   const [error, setError] = useState(null);
+  // Sentinel for Validate mode — tracks whether the last validation passed.
+  const [valid, setValid] = useState(false);
 
   const hydrated = useHydrateStorage(() => {
     const saved = loadState();
@@ -71,6 +73,19 @@ function JsonFormatterContent() {
     if (text.trim() === '') {
       setOutput('');
       setError(null);
+      setValid(false);
+      return;
+    }
+    if (mode === MODES.VALIDATE) {
+      const r = validateJson(text);
+      setOutput('');
+      if (r.ok) {
+        setError(null);
+        setValid(true);
+      } else {
+        setError({message: r.error, line: r.line, column: r.column});
+        setValid(false);
+      }
       return;
     }
     const r =
@@ -80,6 +95,7 @@ function JsonFormatterContent() {
     if (r.ok) {
       setOutput(r.output);
       setError(null);
+      setValid(false);
     } else {
       setOutput('');
       setError({
@@ -87,13 +103,16 @@ function JsonFormatterContent() {
         line: r.line,
         column: r.column,
       });
+      setValid(false);
     }
   };
 
-  // Re-run on input or option change when live mode is on.
+  // Re-run on input or option change when live mode is on. Debounced to
+  // avoid main-thread jank on large inputs and screen-reader spam mid-typing.
   useEffect(() => {
-    if (!liveFormat) return;
-    compute(input);
+    if (!liveFormat) return undefined;
+    const handle = setTimeout(() => compute(input), 300);
+    return () => clearTimeout(handle);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [input, mode, indent, sortKeys, liveFormat]);
 
@@ -134,7 +153,7 @@ function JsonFormatterContent() {
     return error.message;
   }, [error]);
 
-  const isValid = !error && output !== '';
+  const isValid = !error && (mode === MODES.VALIDATE ? valid : output !== '');
 
   return (
     <ToolPage
@@ -194,7 +213,7 @@ function JsonFormatterContent() {
                     setSortKeys(e.target.checked);
                   }}
                 />
-                Sort keys alphabetically
+                Sort keys (numeric-aware)
               </label>
               <label className="jf-toggle">
                 <input
@@ -217,6 +236,8 @@ function JsonFormatterContent() {
             aria-label="Input JSON"
             className="tool-textarea jf-textarea-input"
             value={input}
+            // Input text is intentionally NOT persisted — privacy invariant.
+            // Do not call markDirty() in setInput; only settings hit storage.
             onChange={(e) => setInput(e.target.value)}
             placeholder='{"hello":"world"}'
             spellCheck={false}
@@ -227,7 +248,11 @@ function JsonFormatterContent() {
           <div className="jf-actions">
             {!liveFormat && (
               <Button variant="primary" onClick={handleApply}>
-                {mode === MODES.MINIFY ? 'Minify' : 'Format'}
+                {mode === MODES.MINIFY
+                  ? 'Minify'
+                  : mode === MODES.VALIDATE
+                    ? 'Validate'
+                    : 'Format'}
               </Button>
             )}
             <Button variant="neutral" onClick={handleClear}>
@@ -235,7 +260,7 @@ function JsonFormatterContent() {
             </Button>
           </div>
           {errorLabel && (
-            <p className="jf-error" role="alert" aria-live="polite">
+            <p className="jf-error" role="alert">
               {errorLabel}
             </p>
           )}
@@ -246,34 +271,36 @@ function JsonFormatterContent() {
           )}
         </Card>
 
-        <Card>
-          <h2 className="jf-card-title">Output</h2>
-          <textarea
-            aria-label="Output JSON"
-            className="tool-textarea jf-textarea-output"
-            value={output}
-            readOnly
-            placeholder="Pretty-printed or minified JSON will appear here."
-            spellCheck={false}
-          />
-          <div className="jf-actions">
-            <Button
-              variant="primary"
-              onClick={() => copy(output)}
-              disabled={!output}
-            >
-              Copy
-            </Button>
-            <Button
-              variant="neutral"
-              onClick={handleSwap}
-              disabled={!output}
-              title="Move the output back into the input"
-            >
-              ↑ Use as input
-            </Button>
-          </div>
-        </Card>
+        {mode !== MODES.VALIDATE && (
+          <Card>
+            <h2 className="jf-card-title">Output</h2>
+            <textarea
+              aria-label="Output JSON"
+              className="tool-textarea jf-textarea-output"
+              value={output}
+              readOnly
+              placeholder="Pretty-printed or minified JSON will appear here."
+              spellCheck={false}
+            />
+            <div className="jf-actions">
+              <Button
+                variant="primary"
+                onClick={() => copy(output)}
+                disabled={!output}
+              >
+                Copy
+              </Button>
+              <Button
+                variant="neutral"
+                onClick={handleSwap}
+                disabled={!output}
+                title="Move the output back into the input"
+              >
+                ↑ Use as input
+              </Button>
+            </div>
+          </Card>
+        )}
       </div>
     </ToolPage>
   );

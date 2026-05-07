@@ -7,12 +7,17 @@ function indentToReplacer(indent) {
   return Number.isFinite(n) && n > 0 ? n : 2;
 }
 
-/** Recursively sort object keys alphabetically. Arrays preserve order. */
+/** Recursively sort object keys (numeric-aware). Arrays preserve order. */
 export function sortObjectKeys(value) {
   if (Array.isArray(value)) return value.map(sortObjectKeys);
   if (value && typeof value === 'object') {
-    const keys = Object.keys(value).sort();
-    const out = {};
+    const keys = Object.keys(value).sort((a, b) =>
+      a.localeCompare(b, undefined, {numeric: true})
+    );
+    // Use a null-prototype accumulator so that assigning a key named
+    // "__proto__" creates an own data property rather than invoking the
+    // Object.prototype setter.
+    const out = Object.create(null);
     for (const k of keys) out[k] = sortObjectKeys(value[k]);
     return out;
   }
@@ -39,6 +44,26 @@ export function locateJsonError(text, error) {
       column: parseInt(lineMatch[2], 10),
       message: msg,
     };
+  }
+  // Modern V8 (≥21) omits position from the error message. When we still
+  // have the source text and it is small enough, binary-search the first
+  // prefix that fails parsing to recover an approximate line/column.
+  if (text.length <= 1_000_000) {
+    let lo = 0;
+    let hi = text.length;
+    while (lo < hi) {
+      const mid = Math.floor((lo + hi) / 2);
+      try {
+        JSON.parse(text.slice(0, mid));
+        lo = mid + 1;
+      } catch {
+        hi = mid;
+      }
+    }
+    // hi is the length of the shortest prefix that fails; the last character
+    // of that prefix (index hi-1) is the first offending byte.
+    const pos = Math.max(0, hi - 1);
+    return {...lineCol(text, pos), message: msg};
   }
   return {line: null, column: null, message: msg};
 }

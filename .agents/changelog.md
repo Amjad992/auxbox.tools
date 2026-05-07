@@ -14,6 +14,26 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-07 - JSON Formatter review-round-1 fixes (S1–S6)
+**What changed:** Applied 6 fixes from the general review round on `feat/json-formatter`. Round folder: `playground/reviews/review-rounds/general/2026-05-07-json-formatter/`. Reviewers: Opus #1 + Opus #2 (converging on the same 4 majors); CodeRabbit clean.
+
+- **S1 (major)** — `sortObjectKeys` now builds its accumulator with `Object.create(null)` so assigning a key named `"__proto__"` creates an own data property instead of invoking the prototype setter. Previous `{}` accumulator silently dropped `__proto__` keys and corrupted the result's prototype. Regression test added.
+- **S2 (major)** — Added `MODES.VALIDATE` as a third discrete mode (`constants.js`). `compute()` in `page.js` branches to `validateJson()` in this mode, sets no output, and uses a `valid` sentinel state. The Output card is hidden when mode is VALIDATE; the success ribbon reads "Valid JSON." in all modes. Page test added.
+- **S3 (major)** — `locateJsonError` now falls back to a binary-search scan (bisect shortest failing prefix → `lineCol`) when neither V8-legacy "position N" nor SpiderMonkey "line X column Y" matches. Capped at 1 MB inputs; larger inputs get `{line:null, column:null}`. Replaced the bogus SpiderMonkey test (it only regex-asserted a literal message) with three real tests that call `locateJsonError` directly.
+- **S4 (major)** — Live-compute `useEffect` wrapped in `setTimeout(..., 300)` with `clearTimeout` cleanup, eliminating per-keystroke jank on large inputs and screen-reader spam. Dropped `aria-live="polite"` from `role="alert"` (`role="alert"` already implies assertive; the redundant attribute was contradictory per spec).
+- **S5 (minor)** — `sortObjectKeys` sort comparator changed from lexicographic `Array.prototype.sort()` to `localeCompare(undefined, {numeric:true})`, so numeric-string keys sort in natural order (`"2"` before `"10"`). Toggle label updated to "Sort keys (numeric-aware)". Unit test added.
+- **S6 (minor)** — Added inline comment near textarea `onChange` documenting the privacy invariant: input text is intentionally not persisted; `markDirty()` must not be called here.
+
+**Skipped:** Opus#1 F5 (engine message bytes in DOM — browser-only, no leak path), Opus#2 F5 (compute closure + eslint-disable — deps are correct today), Opus#2 F8 (handleClear re-save dance — correct via `getDefault` short-circuit), Opus#2 F10 (OG/Twitter images — matches every sibling tool's layout.js pattern).
+
+**Why:** Round-one fixes from the local-review-multi-agent process. All 4 majors + 2 high-value minors addressed.
+
+**Impact:** 29 tests across json-formatter (20 utils + 9 page), all green. No new dependencies.
+
+**Files changed:** `src/app/json-formatter/{constants,utils,utils.test,page,page.test}.{js,jsx}`.
+
+---
+
 ## 2026-05-07 - Add `/json-formatter` (pretty-print, minify, validate)
 **What changed:** New `/json-formatter` route. Paste JSON → pretty-print, minify, or validate. Inline error reporting (line/column when the host engine exposes it). Sort-keys-alphabetically toggle, indent picker (2 / 4 / tab), live-format toggle.
 - **Math (`utils.js`):** `formatJson`, `minifyJson`, `validateJson`, `sortObjectKeys`, `locateJsonError`. Pure helpers; 16 unit tests cover indent variants, sort-keys (flat + nested + arrays-preserved), parse-error reporting, empty-input rejection, and minify-strips-whitespace round-trip. Modern Node V8 dropped "position N" from `JSON.parse` errors; the locator now best-effort-degrades to null when no position is exposed (the error message itself is the load-bearing surface).

@@ -71,7 +71,7 @@ describe('<JsonFormatter />', () => {
   it('Sort keys checkbox alphabetises nested keys', async () => {
     const user = userEvent.setup();
     render(<JsonFormatter />);
-    await user.click(screen.getByLabelText(/sort keys alphabetically/i));
+    await user.click(screen.getByLabelText(/sort keys/i));
     await user.type(
       screen.getByLabelText(/input json/i),
       '{{"b":2,"a":1}'
@@ -118,6 +118,21 @@ describe('<JsonFormatter />', () => {
     await user.click(screen.getByRole('button', {name: /^clear$/i}));
     expect(screen.getByLabelText(/input json/i)).toHaveValue('');
     expect(screen.getByLabelText(/output json/i)).toHaveValue('');
+  });
+
+  it('Validate mode shows success ribbon and hides the Output card', async () => {
+    const user = userEvent.setup();
+    render(<JsonFormatter />);
+    await user.click(screen.getByRole('radio', {name: /validate/i}));
+    await user.type(screen.getByLabelText(/input json/i), '{{"a":1}');
+
+    await waitFor(
+      () => {
+        expect(screen.getByRole('status').textContent).toMatch(/valid json/i);
+      },
+      {timeout: 600},
+    );
+    expect(screen.queryByLabelText(/output json/i)).not.toBeInTheDocument();
   });
 
   it('Use as input swaps the output into the input', async () => {

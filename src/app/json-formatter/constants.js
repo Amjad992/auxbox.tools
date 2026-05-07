@@ -7,11 +7,13 @@ export const STATE_AUTOSAVE_DEBOUNCE_MS = 300;
 export const MODES = {
   FORMAT: 'format',
   MINIFY: 'minify',
+  VALIDATE: 'validate',
 };
-export const MODE_VALUES = [MODES.FORMAT, MODES.MINIFY];
+export const MODE_VALUES = [MODES.FORMAT, MODES.MINIFY, MODES.VALIDATE];
 export const MODE_OPTIONS = [
   {value: MODES.FORMAT, label: 'Format'},
   {value: MODES.MINIFY, label: 'Minify'},
+  {value: MODES.VALIDATE, label: 'Validate'},
 ];
 
 export const INDENT_OPTIONS = [
