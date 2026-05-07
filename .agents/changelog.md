@@ -14,6 +14,19 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-07 - Add `/csv-json-converter` (CSV ↔ JSON)
+**What changed:** New `/csv-json-converter` route. Convert CSV to JSON or JSON to CSV in the browser.
+- **Logic (`utils.js`):** `parseCsv` (RFC 4180-style with quoted fields, CR/LF/CRLF row endings, `""` escape), `formatCsv` via `jsonToCsv`, `csvToJson`, `detectDelimiter` (counts `, ; \t |` outside quotes), `inferType` (numbers / booleans / null). 29 unit tests including round-trip.
+- **UI:** ModeToggle for direction (CSV → JSON / JSON → CSV). Delimiter select with auto-detect + comma/semicolon/tab/pipe. Toggles for header row, type inference, pretty-print. Two textareas (input/output) with Copy + Swap. Detected delimiter displayed inline when auto.
+- **Persistence:** `csv_json_converter_state` stores `{direction, delimiter, hasHeader, inferTypes, prettyJson}`. Strict-keys validator on shape + enum membership. Input text is intentionally NOT persisted (privacy invariant).
+- **7 page tests** + 29 utils tests.
+- **Home tile:** 🔄 "CSV ↔ JSON Converter". Sitemap entry added.
+**Why:** Build-queue item #12. Common dev / data utility; obvious gap in the toolset.
+**Impact:** +36 tests. No new dependencies. Hand-rolled CSV parser to avoid Papa-parse for a 200-line tool.
+**Files changed:** `src/app/csv-json-converter/{constants,utils,utils.test,storageUtils,StorageContext,layout,page,page.test,csv-json-converter.css}.{js,jsx,css}` (new), `src/app/page.js`, `src/app/sitemap.js`.
+
+---
+
 ## 2026-05-07 - Timezone Converter review-round-1 fixes (S1-S12)
 **What changed:** Applied all 12 review findings to `src/app/timezone-converter/` and lifted shared zone data to `src/lib/timezones.js`.
 - **S1:** Lifted `ZONE_OPTIONS` / `ZONE_VALUES` to `src/lib/timezones.js` (20-entry canonical list). `Asia/Riyadh` label updated to `(AST · Arabia)` (disambiguation). Both `timezone-converter` and `timestamp-converter` constants now import from the lib. Timestamp-converter spreads `ZONE_LOCAL` special before the shared list; gains 6 zones (Denver, Sao Paulo, Lagos, Cairo, Hong Kong, Auckland). Added `src/lib/timezones.test.js` (5 tests: count, shape, no-dupes, Arabia label).

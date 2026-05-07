@@ -209,6 +209,14 @@ const TOOLS = [
       'One anchor moment, many zones. Pick a date/time + source zone, see the same instant in any number of others. Add up to 12 zones; reorder with up/down.',
     cta: 'Open tool',
   },
+  {
+    href: '/csv-json-converter',
+    icon: '🔄',
+    name: 'CSV ↔ JSON Converter',
+    description:
+      'Convert CSV to JSON or JSON to CSV. Auto-detects delimiter, optional type inference, header row toggle, pretty/minified JSON. Browser-only.',
+    cta: 'Open tool',
+  },
 ];
 
 export default function Home() {
