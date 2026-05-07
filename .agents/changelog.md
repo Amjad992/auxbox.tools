@@ -14,6 +14,19 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-07 - Add `/image-converter` (PNG ↔ JPEG ↔ WebP)
+**What changed:** New `/image-converter` route. Drop a single PNG/JPEG/WebP, pick a target format, optionally tune quality, convert and download.
+- **Math (`pipeline.js`):** `convertImage(file, {target, quality})` decodes via `createImageBitmap`, paints to a `<canvas>` (with white fill for non-PNG targets so transparent PNG → JPEG/WebP doesn't go black), encodes via `canvas.toBlob`. Pixel-cap at 60 MP. `mimeForFile` + `isSupportedImage` helpers. 5 unit tests for the helpers.
+- **UI:** DropZone (single file, ≤25 MB), file-info pill, three-button format picker (PNG / JPEG / WebP), quality slider that auto-hides for PNG (lossless). Result card shows source vs output bytes + dimensions + size-change percent.
+- **Persistence:** `image_converter_state` stores `{target, quality}` only; file is session-state. Validator strict-keys.
+- **3 page tests** for empty render, PNG-hides / JPEG-shows quality slider, persistence round-trip.
+- **Home tile:** 🔄 "Image Format Converter".
+**Why:** Build-queue item #8. Reuses the canvas pipeline pattern from image-compressor. PNG transparency handling is the only real twist.
+**Impact:** No new dependencies. 8 new tests, all green.
+**Files changed:** `src/app/image-converter/` (new directory); `src/app/page.js`; `src/app/sitemap.js`.
+
+---
+
 ## 2026-05-07 - PDF Splitter review-round-1 fixes (S1-S8)
 **What changed:** Applied 8 fixes from the general review round on `feat/pdf-splitter`. Round folder: `playground/reviews/review-rounds/general/2026-05-07-pdf-splitter/`.
 

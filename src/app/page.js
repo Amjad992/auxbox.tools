@@ -177,6 +177,14 @@ const TOOLS = [
       'Drop a PDF and pick page ranges (e.g. 1-3,5,7-9) to download a new PDF with just those pages. Files never leave your browser.',
     cta: 'Open tool',
   },
+  {
+    href: '/image-converter',
+    icon: '🔄',
+    name: 'Image Format Converter',
+    description:
+      'Convert between PNG, JPEG, and WebP entirely in your browser. Pick quality, see the size change, download. No upload.',
+    cta: 'Open tool',
+  },
 ];
 
 export default function Home() {
