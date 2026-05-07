@@ -14,6 +14,19 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-07 - Add `/regex-tester` (live regex match highlighting + capture groups)
+**What changed:** New `/regex-tester` route. Pattern + flags + test text → live match highlighting and capture-group display.
+- **Math (`utils.js`):** `compileRegex(pattern, flags)`, `findMatches(regex, text)` (zero-width-loop guard, named-group capture), `buildHighlightSegments(text, matches)`. 15 unit tests.
+- **UI:** `/pattern/flags` styled slot with `<input>` between primary-color slashes and a flag display. Five flag checkboxes (`g`, `i`, `m`, `s`, `u`) — `y` (sticky) excluded. Five preset chips (Email, URL, IPv4, Hex color, ISO date). Test-text textarea using shared `.tool-textarea`. Live-highlighted preview inside a `<mark>`-decorated pre block. Match table (cap 100 rows) with index + groups.
+- **Persistence:** `regex_tester_state` stores `{pattern, flags, test}`. Validator strict-keys + flag-letter whitelist + dedup.
+- **7 page tests** for default render, match-count + highlight rendering, error rendering, flag toggle, preset application, Clear, persistence.
+- **Home tile:** 🔍 "Regex Tester".
+**Why:** Build-queue item #10. Universal dev tool; standard JS regex semantics so users know what they get.
+**Impact:** No new dependencies. 22 new tests, all green.
+**Files changed:** `src/app/regex-tester/` (new directory); `src/app/page.js`; `src/app/sitemap.js`.
+
+---
+
 ## 2026-05-07 - Contrast Checker review-round-1 fixes (S1-S8)
 **What changed:** S1: removed `aria-hidden` from swatch spans, added `tabIndex={-1}` on picker inputs to fix ghost keyboard focus. S2: lifted `parseColor`, `relativeLuminance`, `contrastRatio`, `compositeOver`, `rgbToHex`, `rgbToCss` to `src/lib/color.js`; `utils.js` now re-exports; full unit tests in `src/lib/color.test.js`. S3+S5: extended rgb regex to accept percentage channels and percentage alpha. S4: added tests for 4-digit hex, percentage rgb, space-syntax with percent alpha. S6: `Grade` shows neutral `—` state instead of Fail when ratio is 0 (no valid input); added `cc-grade--neutral` CSS. S7: JSDoc on `parseColor` noting rgb channel clamping. S8: inline comment on WCAG-2.x `0.03928` threshold constant. S9 deferred: `useAutoSave` gates on `dirtyRef`, so `markDirty()` calls in `onChange` handlers are required for persistence.
 **Why:** Review-round-1 findings — accessibility blocker, shared-lib lift for reuse by future Color Palette tool, improved color parsing coverage.

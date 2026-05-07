@@ -193,6 +193,14 @@ const TOOLS = [
       'WCAG 2.1 contrast ratio for any foreground/background pair. AA + AAA pass/fail for normal and large text. Hex, RGB, HSL accepted.',
     cta: 'Open tool',
   },
+  {
+    href: '/regex-tester',
+    icon: '🔍',
+    name: 'Regex Tester',
+    description:
+      'Live regex match highlighting + capture-group display. JS regex flags, common-pattern presets (email, URL, IPv4, hex color, ISO date).',
+    cta: 'Open tool',
+  },
 ];
 
 export default function Home() {
