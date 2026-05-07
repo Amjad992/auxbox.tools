@@ -45,4 +45,28 @@ describe('buildIcoFromPngBlobs', () => {
     const ico = await buildIcoFromPngBlobs([fakePng(16)]);
     expect(ico.type).toBe('image/x-icon');
   });
+
+  // S15: dwBytesInRes and dwImageOffset assertions for 3-entry ICO.
+  // Entries: 8 bytes, 16 bytes, 32 bytes.
+  // Header = 6 + 16*3 = 54 bytes.
+  // Offsets: entry0 = 54, entry1 = 54+8 = 62, entry2 = 62+16 = 78.
+  it('records correct dwBytesInRes for each entry', async () => {
+    const ico = await buildIcoFromPngBlobs([fakePng(16, 8), fakePng(32, 16), fakePng(48, 32)]);
+    const buf = new Uint8Array(await ico.arrayBuffer());
+    const dv = new DataView(buf.buffer);
+    // dwBytesInRes is at entryOffset+8 (uint32, LE)
+    expect(dv.getUint32(6 + 0 * 16 + 8, true)).toBe(8);
+    expect(dv.getUint32(6 + 1 * 16 + 8, true)).toBe(16);
+    expect(dv.getUint32(6 + 2 * 16 + 8, true)).toBe(32);
+  });
+
+  it('records correct dwImageOffset for each entry', async () => {
+    const ico = await buildIcoFromPngBlobs([fakePng(16, 8), fakePng(32, 16), fakePng(48, 32)]);
+    const buf = new Uint8Array(await ico.arrayBuffer());
+    const dv = new DataView(buf.buffer);
+    // dwImageOffset is at entryOffset+12 (uint32, LE)
+    expect(dv.getUint32(6 + 0 * 16 + 12, true)).toBe(54); // 6 + 16*3 = 54
+    expect(dv.getUint32(6 + 1 * 16 + 12, true)).toBe(62); // 54 + 8 = 62
+    expect(dv.getUint32(6 + 2 * 16 + 12, true)).toBe(78); // 62 + 16 = 78
+  });
 });

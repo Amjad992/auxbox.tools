@@ -28,6 +28,33 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-07 - Favicon Generator review-round-1 fixes (S1-S19)
+**What changed:** Applied all 19 review findings to `src/app/favicon-generator/`.
+- **S1:** Filenames updated to universal `WIDTHxHEIGHT` form in `constants.js` (e.g. `favicon-16x16.png`, `android-chrome-192x192.png`).
+- **S2:** `handleDownloadZip` now adds `site.webmanifest` to the zip; a manifest tile is shown in the result grid.
+- **S3:** Race-condition guard via `genIdRef = useRef(0)`; stale drops are silently discarded; URLs are built into a temp array and only committed to `previewUrlsRef.current` after freshness check.
+- **S4:** `setResult(null)` called immediately after `releasePreviews()` before the try block; a `staleNotice` state shows "Settings changed — re-drop the image to regenerate." when `background` or `includeIco` change after a result exists.
+- **S5:** Replaced `className="cjc-hint"` with `className="fg-hint"`; added `.fg-hint` rule to `favicon-generator.css`.
+- **S6:** HTML `<link>` snippet rendered in a `<pre className="fg-snippet">` with a "Copy HTML snippet" button using `useCopyToClipboard`; ICO and manifest lines omitted when `includeIco` is off.
+- **S7:** `handleDownloadZip` wrapped in try/catch; success shows "Zip downloaded" toast, error shows error toast.
+- **S8:** Blob URL revoke timeout bumped from 1000 ms → 60_000 ms.
+- **S9:** Source card shows upscale hint when `min(width,height) < 512`.
+- **S10:** Source filename and dimensions (`NxM`) displayed after drop.
+- **S11:** JPEG/non-transparent sources downgrade `'transparent'` background to `'white'` for that generation only; an info toast explains the change.
+- **S12:** `JSZip` lazy-imported inside `handleDownloadZip`; top-level import removed.
+- **S13:** Cleanup-effect comment updated to "unmount only".
+- **S14:** New pipeline tests: centre-crop offset assertions for 1000×500 input (`sx=250, sy=0`); `fillRect` called for white/black, NOT called for transparent.
+- **S15:** New ICO tests: `dwBytesInRes` and `dwImageOffset` assertions for a 3-entry ICO with 8/16/32-byte payloads; offsets verified as 54/62/78.
+- **S16:** `aria-busy={busy}` on source card content div; "Generating…" status paragraph moved above the result card.
+- **S17:** Imports moved above `beforeAll` in `pipeline.test.js` and `ico.test.js`.
+- **S18:** Removed unused `userEvent` import from `page.test.jsx`; added tests for unsupported-file error and settings-changed-after-result hint.
+- **S19:** One-line comment in `ico.js` explaining `planes=1, bpp=32` for PNG-encoded entries.
+**Why:** Review-round-1 findings. Correctness, UX, accessibility, and bundle-size improvements.
+**Impact:** 19 tests added (total 19 favicon-generator tests). `jszip` now lazy-loaded. No new dependencies.
+**Files changed:** `src/app/favicon-generator/{constants,page,page.test,pipeline.test,ico,ico.test,favicon-generator.css}.{js,jsx,css}`.
+
+---
+
 ## 2026-05-07 - CSV ↔ JSON Converter review-round-1 fixes (S1-S19)
 **What changed:** Applied all 19 review findings to `src/app/csv-json-converter/` and shared infrastructure.
 - **S1:** `parseCsv` only enters quoted mode when field buffer is empty; stray mid-field `"` is now a literal character. Test added.

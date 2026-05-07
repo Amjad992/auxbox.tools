@@ -73,6 +73,32 @@
   color: var(--text-secondary);
 }
 
+.fg-hint {
+  margin: 0.6rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.fg-snippet-wrap {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.fg-snippet {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.8rem;
+  background: var(--surface-2, rgba(255, 255, 255, 0.04));
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+  border-radius: 6px;
+  padding: 0.6rem 0.75rem;
+  overflow-x: auto;
+  white-space: pre;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
 @media (max-width: 480px) {
   .fg-controls {
     flex-direction: column;

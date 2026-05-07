@@ -41,6 +41,7 @@ export async function buildIcoFromPngBlobs(entries) {
     out[entryOffset + 1] = sizeByte; // height
     out[entryOffset + 2] = 0; // palette colours (0 = none)
     out[entryOffset + 3] = 0; // reserved
+    // PNG payload: planes=1, bpp=32 — preserved by Windows Explorer / browsers.
     dv.setUint16(entryOffset + 4, 1, true); // colour planes
     dv.setUint16(entryOffset + 6, 32, true); // bits per pixel
     dv.setUint32(entryOffset + 8, e.bytes.byteLength, true);
