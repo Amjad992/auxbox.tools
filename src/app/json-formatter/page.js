@@ -4,6 +4,7 @@ import ToolPage from '../../components/ToolPage';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
 import ModeToggle from '../../components/ModeToggle';
+import Checkbox from '../../components/Checkbox';
 import ToastContainer from '../../components/ToastContainer';
 import {useToast} from '../../hooks/useToast';
 import {useAutoSave} from '../../hooks/useAutoSave';
@@ -204,28 +205,16 @@ function JsonFormatterContent() {
               </div>
             )}
             <div className="jf-toggle-row">
-              <label className="jf-toggle">
-                <input
-                  type="checkbox"
-                  checked={sortKeys}
-                  onChange={(e) => {
-                    markDirty();
-                    setSortKeys(e.target.checked);
-                  }}
-                />
-                Sort keys (numeric-aware)
-              </label>
-              <label className="jf-toggle">
-                <input
-                  type="checkbox"
-                  checked={liveFormat}
-                  onChange={(e) => {
-                    markDirty();
-                    setLiveFormat(e.target.checked);
-                  }}
-                />
-                Live (re-run on input change)
-              </label>
+              <Checkbox
+                label="Sort keys (numeric-aware)"
+                checked={sortKeys}
+                onChange={(v) => { markDirty(); setSortKeys(v); }}
+              />
+              <Checkbox
+                label="Live (re-run on input change)"
+                checked={liveFormat}
+                onChange={(v) => { markDirty(); setLiveFormat(v); }}
+              />
             </div>
           </div>
         </Card>

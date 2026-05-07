@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import Checkbox from '../../../components/Checkbox';
 
 const CLASS_TOGGLES = [
   {key: 'upper', label: 'Uppercase (A–Z)'},
@@ -35,15 +36,13 @@ export default function ClassToggles({settings, onToggle}) {
             settings[key] &&
             enabledClassCount === 1;
           return (
-            <label key={key} className="pw-toggle">
-              <input
-                type="checkbox"
-                checked={!!settings[key]}
-                disabled={isLastEnabled}
-                onChange={(e) => onToggle(key, e.target.checked)}
-              />
-              <span>{label}</span>
-            </label>
+            <Checkbox
+              key={key}
+              label={label}
+              checked={!!settings[key]}
+              disabled={isLastEnabled}
+              onChange={(v) => onToggle(key, v)}
+            />
           );
         })}
       </div>

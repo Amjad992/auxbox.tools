@@ -4,6 +4,7 @@ import ToolPage from '../../components/ToolPage';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
 import DropZone from '../../components/DropZone';
+import Checkbox from '../../components/Checkbox';
 import ToastContainer from '../../components/ToastContainer';
 import {useToast} from '../../hooks/useToast';
 import {useAutoSave} from '../../hooks/useAutoSave';
@@ -281,17 +282,11 @@ function FaviconGeneratorContent() {
                 ))}
               </select>
             </div>
-            <label className="fg-toggle">
-              <input
-                type="checkbox"
-                checked={includeIco}
-                onChange={(e) => {
-                  markDirty();
-                  setIncludeIco(e.target.checked);
-                }}
-              />
-              Include favicon.ico (16/32/48 multi-resolution)
-            </label>
+            <Checkbox
+              label="Include favicon.ico (16/32/48 multi-resolution)"
+              checked={includeIco}
+              onChange={(v) => { markDirty(); setIncludeIco(v); }}
+            />
           </div>
         </Card>
 

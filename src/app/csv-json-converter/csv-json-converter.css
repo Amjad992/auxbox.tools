@@ -15,19 +15,6 @@
   align-items: center;
 }
 
-.cjc-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  cursor: pointer;
-}
-
-.cjc-toggle input {
-  accent-color: var(--primary-color);
-}
-
 .cjc-textarea-input,
 .cjc-textarea-output {
   min-height: 240px;

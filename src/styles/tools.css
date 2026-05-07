@@ -1267,3 +1267,84 @@
   --rdp-accent-background-color: rgba(255, 107, 107, 0.12);
   --rdp-today-color: var(--primary-color);
 }
+
+/* ═══ Checkbox ═════════════════════════════════
+   Accessible custom checkbox. Used by Checkbox.js.
+   The real <input> is visually hidden but kept in the a11y tree.
+   The custom .tool-checkbox-box is the visible styled square. */
+.tool-checkbox {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  cursor: pointer;
+  user-select: none;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.tool-checkbox--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Visually hide the native input while keeping it in the a11y tree */
+.tool-checkbox-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.tool-checkbox-box {
+  flex-shrink: 0;
+  width: 17px;
+  height: 17px;
+  border-radius: 3px;
+  border: 1.5px solid var(--border-color);
+  background: #1f1f1f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0.1em; /* align with cap-height of first line */
+  transition: border-color 0.15s ease, background-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.tool-checkbox-box--checked {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+/* Focus ring: show on the custom box when the hidden input is focused */
+.tool-checkbox-input:focus-visible + .tool-checkbox-box {
+  box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.3);
+  border-color: var(--primary-color);
+}
+
+.tool-checkbox-check {
+  width: 12px;
+  height: 10px;
+  display: block;
+}
+
+.tool-checkbox-label-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.tool-checkbox-label {
+  color: var(--text-secondary);
+}
+
+.tool-checkbox-description {
+  color: var(--text-light);
+  font-size: 0.8rem;
+  line-height: 1.3;
+}

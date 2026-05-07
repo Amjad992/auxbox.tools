@@ -32,19 +32,6 @@
   align-items: center;
 }
 
-.jf-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  cursor: pointer;
-}
-
-.jf-toggle input {
-  accent-color: var(--primary-color);
-}
-
 .jf-actions {
   display: flex;
   flex-wrap: wrap;

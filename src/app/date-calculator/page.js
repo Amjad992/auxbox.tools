@@ -6,6 +6,7 @@ import Card from '../../components/Card';
 import Button from '../../components/Button';
 import ModeToggle from '../../components/ModeToggle';
 import DatePicker from '../../components/DatePicker';
+import Checkbox from '../../components/Checkbox';
 import ResultCard from '../../components/ResultCard';
 import ToastContainer from '../../components/ToastContainer';
 import {useToast} from '../../hooks/useToast';
@@ -161,9 +162,9 @@ function DateCalculatorContent() {
     setMode(next);
   };
 
-  const handleWorkingToggle = (e) => {
+  const handleWorkingToggle = (checked) => {
     dirtyRef.current = true;
-    setIncludeWorkingDays(e.target.checked);
+    setIncludeWorkingDays(checked);
   };
 
   const handleClear = () => {
@@ -245,14 +246,11 @@ function DateCalculatorContent() {
           </div>
 
           <div className="dc-options-row">
-            <label className="dc-toggle">
-              <input
-                type="checkbox"
-                checked={includeWorkingDays}
-                onChange={handleWorkingToggle}
-              />
-              Working days only (Mon–Fri · 8 hrs/day)
-            </label>
+            <Checkbox
+              label="Working days only (Mon–Fri · 8 hrs/day)"
+              checked={includeWorkingDays}
+              onChange={handleWorkingToggle}
+            />
             <div className="dc-actions">
               <Button
                 variant="neutral"

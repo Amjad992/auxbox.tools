@@ -3,6 +3,7 @@ import ToolPage from '../../components/ToolPage';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
 import DropZone from '../../components/DropZone';
+import Checkbox from '../../components/Checkbox';
 import QualityControl from './components/QualityControl';
 import DimensionInputs from './components/DimensionInputs';
 import FileRow from './components/FileRow';
@@ -86,18 +87,12 @@ export default function ImageCompressor() {
               largestOriginalHeight={largestOriginalHeight}
             />
             <div>
-              <label className="ic-toggle">
-                <input
-                  type="checkbox"
-                  checked={convertPngToWebp}
-                  onChange={(e) => setConvertPngToWebp(e.target.checked)}
-                />
-                Convert PNG to WebP
-              </label>
-              <p className="ic-toggle-hint">
-                Off keeps PNGs lossless. On re-encodes PNGs as WebP using the
-                quality slider — usually much smaller, with minor visual loss.
-              </p>
+              <Checkbox
+                label="Convert PNG to WebP"
+                description="Off keeps PNGs lossless. On re-encodes PNGs as WebP using the quality slider — usually much smaller, with minor visual loss."
+                checked={convertPngToWebp}
+                onChange={setConvertPngToWebp}
+              />
             </div>
           </div>
         </Card>

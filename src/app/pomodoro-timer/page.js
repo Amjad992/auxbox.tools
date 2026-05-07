@@ -5,6 +5,7 @@ import ToolPage from '../../components/ToolPage';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
 import Slider from '../../components/Slider';
+import Checkbox from '../../components/Checkbox';
 import ToastContainer from '../../components/ToastContainer';
 import {useToast} from '../../hooks/useToast';
 import {useDisplayTick} from '../../hooks/useDisplayTick';
@@ -292,9 +293,9 @@ function PomodoroContent() {
   }, [markDirty, notificationsSupported, permission, settings.notifyEnabled, requestNotification, updateSettings, showToast]);
 
   const handleToggleMute = useCallback(
-    (e) => {
+    (checked) => {
       markDirty();
-      updateSettings({muted: e.target.checked});
+      updateSettings({muted: checked});
     },
     [markDirty, updateSettings]
   );
@@ -467,15 +468,11 @@ function PomodoroContent() {
           </div>
 
           <div className="pt-settings-row">
-            <label className="pt-mute-checkbox">
-              <input
-                type="checkbox"
-                checked={settings.muted}
-                onChange={handleToggleMute}
-                aria-label="Mute sound cue"
-              />
-              <span>Mute sound</span>
-            </label>
+            <Checkbox
+              label="Mute sound"
+              checked={settings.muted}
+              onChange={handleToggleMute}
+            />
 
             {/*
               Notification toggle — four states (only when API is supported):

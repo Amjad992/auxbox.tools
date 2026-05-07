@@ -4,6 +4,7 @@ import ToolPage from '../../components/ToolPage';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
 import ModeToggle from '../../components/ModeToggle';
+import Checkbox from '../../components/Checkbox';
 import ToastContainer from '../../components/ToastContainer';
 import {useToast} from '../../hooks/useToast';
 import {useAutoSave} from '../../hooks/useAutoSave';
@@ -210,39 +211,21 @@ function CsvJsonConverterContent() {
             <div className="cjc-toggle-row">
               {isCsvToJson && (
                 <>
-                  <label className="cjc-toggle">
-                    <input
-                      type="checkbox"
-                      checked={hasHeader}
-                      onChange={(e) => {
-                        markDirty();
-                        setHasHeader(e.target.checked);
-                      }}
-                    />
-                    First row is header
-                  </label>
-                  <label className="cjc-toggle">
-                    <input
-                      type="checkbox"
-                      checked={inferTypes}
-                      onChange={(e) => {
-                        markDirty();
-                        setInferTypes(e.target.checked);
-                      }}
-                    />
-                    Infer types (numbers, booleans, null)
-                  </label>
-                  <label className="cjc-toggle">
-                    <input
-                      type="checkbox"
-                      checked={prettyJson}
-                      onChange={(e) => {
-                        markDirty();
-                        setPrettyJson(e.target.checked);
-                      }}
-                    />
-                    Pretty-print JSON
-                  </label>
+                  <Checkbox
+                    label="First row is header"
+                    checked={hasHeader}
+                    onChange={(v) => { markDirty(); setHasHeader(v); }}
+                  />
+                  <Checkbox
+                    label="Infer types (numbers, booleans, null)"
+                    checked={inferTypes}
+                    onChange={(v) => { markDirty(); setInferTypes(v); }}
+                  />
+                  <Checkbox
+                    label="Pretty-print JSON"
+                    checked={prettyJson}
+                    onChange={(v) => { markDirty(); setPrettyJson(v); }}
+                  />
                 </>
               )}
             </div>

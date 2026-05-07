@@ -30,29 +30,6 @@
   gap: 1.25rem;
 }
 
-.ic-toggle {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  color: var(--text-primary);
-  font-size: 0.95rem;
-  cursor: pointer;
-  user-select: none;
-}
-
-.ic-toggle input[type='checkbox'] {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--primary-color);
-  cursor: pointer;
-}
-
-.ic-toggle-hint {
-  color: var(--text-light);
-  font-size: 0.8rem;
-  margin: 0.25rem 0 0 1.6rem;
-}
-
 /* ── Dimension inputs ─────────────────────── */
 .ic-dims {
   display: grid;

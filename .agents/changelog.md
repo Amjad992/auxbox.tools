@@ -14,6 +14,18 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-07 - S1: Shared `<Checkbox>` primitive + migrate all consumers
+**What changed:** New `src/components/Checkbox.js` — an accessible, custom-styled checkbox primitive. Visually-hidden native `<input type="checkbox">` for a11y; custom styled box with checked indicator SVG; focus-visible ring; disabled state. CSS in `src/styles/tools.css` as `.tool-checkbox`, `.tool-checkbox-box`, `.tool-checkbox-label`, etc.
+- Migrated all consumer pages: `pomodoro-timer`, `csv-json-converter`, `date-calculator`, `favicon-generator`, `json-formatter`, `image-compressor`, `password-generator/components/ClassToggles.js`.
+- Removed now-dead local checkbox CSS rules from each tool's CSS file.
+- `regex-tester`'s `.rt-flag` pill is intentionally NOT migrated — it is a chip toggle, not a checkbox row, and migration would regress the visual.
+- Tests: 12 tests in `src/components/Checkbox.test.jsx`.
+**Why:** Native `<input type="checkbox">` was unstyled in all tools. Lifted to a shared primitive per reuse-first convention.
+**Impact:** No API or behavior change. All consumers call `onChange(boolean)` via the new interface (handlers updated to receive boolean directly instead of `e.target.checked`).
+**Files changed:** `src/components/Checkbox.js` (new), `src/components/Checkbox.test.jsx` (new), `src/styles/tools.css` (checkbox rules added), CSS for `pomodoro-timer`, `csv-json-converter`, `date-calculator`, `favicon-generator`, `json-formatter`, `image-compressor`, `password-generator` (dead checkbox rules removed), JS for same tools (Checkbox import + usage).
+
+---
+
 ## 2026-05-07 - Add `/favicon-generator` (one image → full favicon set + ICO)
 **What changed:** New `/favicon-generator` route. Upload one image, download a zip with PNGs at 16/32/180/192/512 plus an optional multi-resolution `favicon.ico` (16/32/48).
 - **Pipeline (`pipeline.js`):** `generateFavicons(file, {background, includeIco})` → resizes via `createImageBitmap` + canvas `cover` + centre-crop. Reuses `MAX_PIXELS`, `canvasToBlob`, `isSupportedImage` from `src/lib/image.js`. EXIF orientation honoured (`{imageOrientation: 'from-image'}`). Bitmap closed in `try/finally`.
