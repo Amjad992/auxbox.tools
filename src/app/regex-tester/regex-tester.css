@@ -176,6 +176,23 @@
   font-size: 0.9rem;
 }
 
+/* S9: horizontal scroll wrapper for the match table on narrow screens */
+.rt-matches-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* S12: warning chip for truncation notices */
+.rt-warn {
+  margin: 0.6rem 0 0;
+  padding: 0.5rem 0.85rem;
+  background: rgba(255, 193, 7, 0.10);
+  border: 1px solid rgba(255, 193, 7, 0.4);
+  color: #ffc107;
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
 /* Pattern slashes — visual cue around the input. */
 .rt-pattern-slot {
   display: flex;

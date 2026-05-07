@@ -37,6 +37,14 @@ function RegexTesterContent() {
   const [flags, setFlags] = useState(DEFAULT_STATE.flags);
   const [test, setTest] = useState(DEFAULT_STATE.test);
 
+  // S4: debounce the test string so catastrophic backtracking doesn't freeze
+  // the UI on every keystroke.
+  const [debouncedTest, setDebouncedTest] = useState(test);
+  useEffect(() => {
+    const handle = setTimeout(() => setDebouncedTest(test), 200);
+    return () => clearTimeout(handle);
+  }, [test]);
+
   const hydrated = useHydrateStorage(() => {
     const saved = loadState();
     if (saved && typeof saved === 'object') {
@@ -60,13 +68,16 @@ function RegexTesterContent() {
   });
 
   const compiled = useMemo(() => compileRegex(pattern, flags), [pattern, flags]);
-  const matches = useMemo(() => {
-    if (!compiled.ok) return [];
-    return findMatches(compiled.regex, test);
-  }, [compiled, test]);
+
+  // S3: findMatches now returns {results, truncated}.
+  const {results: matches, truncated} = useMemo(() => {
+    if (!compiled.ok) return {results: [], truncated: false};
+    return findMatches(compiled.regex, debouncedTest);
+  }, [compiled, debouncedTest]);
+
   const segments = useMemo(
-    () => buildHighlightSegments(test, matches),
-    [test, matches]
+    () => buildHighlightSegments(debouncedTest, matches),
+    [debouncedTest, matches]
   );
 
   const toggleFlag = (flag) => {
@@ -97,8 +108,17 @@ function RegexTesterContent() {
     showToast('Cleared', 'success');
   };
 
-  const hasInput = pattern !== '' && test !== '';
+  const hasInput = pattern !== '' && debouncedTest !== '';
   const isError = pattern !== '' && !compiled.ok;
+
+  // S5: derive a concise status string for the sr-only live region.
+  const statusText = isError
+    ? 'Invalid pattern'
+    : hasInput && compiled.ok
+      ? matches.length === 0
+        ? 'No matches'
+        : `${matches.length} ${matches.length === 1 ? 'match' : 'matches'}`
+      : '';
 
   return (
     <ToolPage
@@ -109,6 +129,11 @@ function RegexTesterContent() {
       errorMessage="There was an error loading the regex tester. Please refresh the page."
     >
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+
+      {/* S5: separate sr-only live region for match-count announcements */}
+      <span role="status" aria-live="polite" className="tool-sr-only">
+        {statusText}
+      </span>
 
       <div className="tool-stack">
         <Card>
@@ -174,6 +199,7 @@ function RegexTesterContent() {
                 key={p.label}
                 className="rt-preset"
                 onClick={() => applyPreset(p)}
+                title="Applies the preset's pattern + flags (replaces your current pattern + flags)."
               >
                 {p.label}
               </button>
@@ -209,9 +235,9 @@ function RegexTesterContent() {
                 </span>
                 <span className="rt-stat-chip">{flags || 'no flags'}</span>
               </div>
+              {/* S5: no aria-live here — the sr-only span above handles announcements */}
               <div
                 className="rt-highlight"
-                aria-live="polite"
                 aria-label="Highlighted matches"
               >
                 {segments.length === 0 ? (
@@ -233,35 +259,53 @@ function RegexTesterContent() {
         {matches.length > 0 && (
           <Card>
             <h2 className="rt-card-title">Matches ({matches.length})</h2>
-            <table className="rt-matches-table">
-              <thead>
-                <tr>
-                  <th scope="col">#</th>
-                  <th scope="col">Match</th>
-                  <th scope="col">Index</th>
-                  <th scope="col">Groups</th>
-                </tr>
-              </thead>
-              <tbody>
-                {matches.slice(0, 100).map((m, i) => (
-                  <tr key={`${m.index}-${i}`}>
-                    <td>{i + 1}</td>
-                    <td>{m.match || '∅'}</td>
-                    <td>{m.index}</td>
-                    <td>
-                      {m.groups.length === 0
-                        ? '—'
-                        : m.groups
-                            .map((g, gi) => `$${gi + 1}=${g ?? ''}`)
-                            .join(', ')}
-                    </td>
+            {/* S9: wrap table for horizontal scroll on narrow screens */}
+            <div className="rt-matches-scroll">
+              <table className="rt-matches-table">
+                <thead>
+                  <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Match</th>
+                    <th scope="col">Index</th>
+                    <th scope="col">Groups</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {matches.slice(0, 100).map((m, i) => {
+                    // S7: build groups string including named groups.
+                    let groupsStr = '—';
+                    const positional = m.groups.map(
+                      (g, gi) => `$${gi + 1}=${g ?? ''}`
+                    );
+                    const named = m.namedGroups
+                      ? Object.entries(m.namedGroups).map(
+                          ([name, val]) => `${name}=${val ?? ''}`
+                        )
+                      : [];
+                    const allGroups = [...positional, ...named];
+                    if (allGroups.length > 0) groupsStr = allGroups.join(', ');
+                    return (
+                      <tr key={`${m.index}-${i}`}>
+                        <td>{i + 1}</td>
+                        <td>{m.match || '∅'}</td>
+                        <td>{m.index}</td>
+                        <td>{groupsStr}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            {/* S12: use .rt-warn chip for display truncation (table shows first 100) */}
             {matches.length > 100 && (
-              <p className="rt-empty">
+              <p className="rt-warn">
                 Showing first 100 of {matches.length} matches.
+              </p>
+            )}
+            {/* S3 + S12: engine-level truncation warning */}
+            {truncated && (
+              <p className="rt-warn">
+                Match limit reached (100 000 iterations). Results may be incomplete.
               </p>
             )}
           </Card>

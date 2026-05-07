@@ -19,10 +19,13 @@ export function compileRegex(pattern, flags) {
 /**
  * Run a regex against `text` and return all matches.
  *
- * Returns an array of `{match, index, groups, namedGroups}`. Each match
- * is the full match string; `groups` is the array of capture groups (in
- * order, 1-based stored as 0-indexed); `namedGroups` is the (?<name>...)
- * map.
+ * Returns `{results, truncated}` where `results` is an array of
+ * `{match, index, groups, namedGroups}` and `truncated` is true when the
+ * safety cap (100 000 iterations) was hit.
+ *
+ * Each match's `match` is the full match string; `groups` is the array of
+ * capture groups (in order, 1-based stored as 0-indexed); `namedGroups` is
+ * the (?<name>...) map.
  *
  * If `g` flag is absent, returns at most one match (consistent with
  * `String.prototype.match`).
@@ -30,7 +33,7 @@ export function compileRegex(pattern, flags) {
  * Guards against infinite loops on zero-width matches.
  */
 export function findMatches(regex, text) {
-  if (!regex || typeof text !== 'string') return [];
+  if (!regex || typeof text !== 'string') return {results: [], truncated: false};
   const out = [];
   if (!regex.global) {
     const m = regex.exec(text);
@@ -42,7 +45,7 @@ export function findMatches(regex, text) {
         namedGroups: m.groups || null,
       });
     }
-    return out;
+    return {results: out, truncated: false};
   }
   // Reset lastIndex so we always start from the beginning.
   regex.lastIndex = 0;
@@ -56,11 +59,15 @@ export function findMatches(regex, text) {
       namedGroups: m.groups || null,
     });
     // Advance past zero-width matches manually to avoid an infinite loop.
-    if (m.index === regex.lastIndex) regex.lastIndex += 1;
+    // Step by one code point so we don't land mid-surrogate-pair with u flag.
+    if (m.index === regex.lastIndex) {
+      const cp = text.codePointAt(regex.lastIndex);
+      regex.lastIndex += cp !== undefined && cp > 0xffff ? 2 : 1;
+    }
     safety += 1;
     if (safety > 100000) break;
   }
-  return out;
+  return {results: out, truncated: safety > 100000};
 }
 
 /**
@@ -68,7 +75,7 @@ export function findMatches(regex, text) {
  *   [{text, isMatch, index}]
  *
  * Returns an alternating list of plain text and match segments suitable
- * for rendering as `<mark>` spans.
+ * for rendering as `<mark>` spans. Zero-width matches are skipped entirely.
  */
 export function buildHighlightSegments(text, matches) {
   if (!Array.isArray(matches) || matches.length === 0) {
@@ -77,6 +84,9 @@ export function buildHighlightSegments(text, matches) {
   const out = [];
   let cursor = 0;
   for (const m of matches) {
+    // Skip zero-width matches entirely — they produce empty marks and corrupt
+    // the cursor tracking (subsequent slices would re-push the same text).
+    if (m.match.length === 0) continue;
     if (m.index > cursor) {
       out.push({
         text: text.slice(cursor, m.index),
@@ -84,12 +94,8 @@ export function buildHighlightSegments(text, matches) {
         index: cursor,
       });
     }
-    const end = m.index + m.match.length;
-    if (m.match.length > 0) {
-      out.push({text: m.match, isMatch: true, index: m.index});
-      cursor = end;
-    }
-    // Zero-width match: advance cursor by 0; skip to avoid duplicates.
+    out.push({text: m.match, isMatch: true, index: m.index});
+    cursor = m.index + m.match.length;
   }
   if (cursor < text.length) {
     out.push({text: text.slice(cursor), isMatch: false, index: cursor});

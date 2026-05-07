@@ -27,6 +27,26 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-07 - Regex Tester review-round-1 fixes (S1-S12)
+**What changed:** Applied all 12 review findings to `src/app/regex-tester/`.
+- **S1:** `buildHighlightSegments` now skips zero-width matches entirely (early `continue`) to prevent text duplication when zero-width matches appear at index > 0.
+- **S2:** `findMatches` zero-width advance now uses `codePointAt` to step by 2 for surrogate pairs (u flag), preventing mid-surrogate corruption.
+- **S3:** `findMatches` returns `{results, truncated}` instead of a plain array. All callers updated. `truncated: true` triggers a `.rt-warn` chip.
+- **S4:** Test text debounced 200 ms (`debouncedTest` state + `useEffect`) so catastrophic regex backtracking can't freeze the UI on every keystroke.
+- **S5:** Removed `aria-live="polite"` from `.rt-highlight` div; added a separate `<span role="status" aria-live="polite" className="tool-sr-only">` outside the `hasInput` gate, announcing "N matches / No matches / Invalid pattern".
+- **S6:** `page.test.jsx` persistence test replaced `setTimeout(r, 400)` with `waitFor` polling.
+- **S7:** Match table Groups column now includes named groups (`name=value`) alongside positional `$1=value`.
+- **S8:** Preset buttons have a `title` attribute explaining the replace-pattern-and-flags behavior. URL preset test now asserts both `g` and `i` flags are checked.
+- **S9:** Match table wrapped in `<div className="rt-matches-scroll">` with `overflow-x: auto`.
+- **S10:** Test names tightened to match actual assertions; persistence test now asserts flags + test in storage + rehydration.
+- **S11:** Zero-width `findMatches` test uses `r.results.length` and `r.truncated` (S3 shape); assertion tightened to `<= 4`.
+- **S12:** Match-table truncation warning replaced with `.rt-warn` chip (amber bordered chip). Same chip for engine `truncated` warning.
+**Why:** Review-round findings on correctness (S1, S2), API shape (S3), UX safety (S4), a11y (S5), test quality (S6, S10, S11), feature parity (S7), UX clarity (S8), responsive (S9), visual (S12).
+**Impact:** 19 utils tests + 7 page tests = 26 tests, all green. 1139 total tests in repo, all green.
+**Files changed:** `src/app/regex-tester/utils.js`, `src/app/regex-tester/utils.test.js`, `src/app/regex-tester/page.js`, `src/app/regex-tester/page.test.jsx`, `src/app/regex-tester/regex-tester.css`.
+
+---
+
 ## 2026-05-07 - Contrast Checker review-round-1 fixes (S1-S8)
 **What changed:** S1: removed `aria-hidden` from swatch spans, added `tabIndex={-1}` on picker inputs to fix ghost keyboard focus. S2: lifted `parseColor`, `relativeLuminance`, `contrastRatio`, `compositeOver`, `rgbToHex`, `rgbToCss` to `src/lib/color.js`; `utils.js` now re-exports; full unit tests in `src/lib/color.test.js`. S3+S5: extended rgb regex to accept percentage channels and percentage alpha. S4: added tests for 4-digit hex, percentage rgb, space-syntax with percent alpha. S6: `Grade` shows neutral `—` state instead of Fail when ratio is 0 (no valid input); added `cc-grade--neutral` CSS. S7: JSDoc on `parseColor` noting rgb channel clamping. S8: inline comment on WCAG-2.x `0.03928` threshold constant. S9 deferred: `useAutoSave` gates on `dirtyRef`, so `markDirty()` calls in `onChange` handlers are required for persistence.
 **Why:** Review-round-1 findings — accessibility blocker, shared-lib lift for reuse by future Color Palette tool, improved color parsing coverage.
