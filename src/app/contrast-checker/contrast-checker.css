@@ -1,0 +1,211 @@
+/* Color Contrast Checker — local styles. */
+
+.cc-card-title {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.cc-card-hint {
+  margin: 0 0 0.75rem;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.cc-color-row {
+  display: grid;
+  grid-template-columns: 11ch minmax(0, 1fr) auto;
+  gap: 0.6rem;
+  align-items: center;
+  margin-bottom: 0.6rem;
+}
+
+@media (max-width: 640px) {
+  .cc-color-row {
+    grid-template-columns: 1fr 1fr;
+  }
+  .cc-color-row > .cc-swatch {
+    grid-column: 2 / 3;
+    grid-row: 1 / 3;
+    align-self: stretch;
+    min-height: 3.5rem;
+  }
+}
+
+.cc-color-label {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.cc-color-input {
+  width: 100%;
+  background-color: #1f1f1f;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--text-primary);
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas,
+      monospace);
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cc-color-input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.15);
+}
+
+.cc-color-input--error {
+  border-color: #e74c3c;
+}
+
+.cc-swatch {
+  width: 3rem;
+  height: 2.4rem;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background: var(--cc-swatch-bg, #ffffff);
+  background-image: linear-gradient(45deg, #404040 25%, transparent 25%),
+    linear-gradient(-45deg, #404040 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #404040 75%),
+    linear-gradient(-45deg, transparent 75%, #404040 75%);
+  background-size: 12px 12px;
+  background-position: 0 0, 0 6px, 6px -6px, -6px 0px;
+  position: relative;
+  cursor: pointer;
+}
+
+.cc-swatch::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 5px;
+  background: var(--cc-swatch-color, transparent);
+}
+
+.cc-color-picker {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* Preview pane */
+.cc-preview {
+  border-radius: 8px;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid var(--border-color);
+}
+
+.cc-preview-large {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 0 0 0.5rem;
+}
+
+.cc-preview-normal {
+  font-size: 1rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Result */
+.cc-ratio {
+  text-align: center;
+  padding: 0.75rem 0 1rem;
+}
+
+.cc-ratio-label {
+  margin: 0 0 0.4rem;
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.cc-ratio-value {
+  margin: 0;
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas,
+      monospace);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.cc-ratio-suffix {
+  color: var(--text-secondary);
+  font-size: 1.5rem;
+  font-weight: 500;
+  margin-left: 0.4rem;
+}
+
+.cc-grades {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+@media (max-width: 480px) {
+  .cc-grades {
+    grid-template-columns: 1fr;
+  }
+}
+
+.cc-grade {
+  padding: 0.6rem 0.85rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.cc-grade-label {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.cc-grade-status {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.cc-grade--pass {
+  background: rgba(80, 200, 120, 0.08);
+  border-color: rgba(80, 200, 120, 0.4);
+}
+
+.cc-grade--pass .cc-grade-status {
+  color: #6fcf97;
+}
+
+.cc-grade--fail {
+  background: rgba(231, 76, 60, 0.08);
+  border-color: rgba(231, 76, 60, 0.4);
+}
+
+.cc-grade--fail .cc-grade-status {
+  color: #ff8b80;
+}
+
+.cc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+.cc-swap-row {
+  display: flex;
+  justify-content: center;
+  margin: 0.5rem 0;
+}

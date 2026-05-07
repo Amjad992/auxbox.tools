@@ -14,6 +14,20 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-07 - Add `/contrast-checker` (WCAG color contrast)
+**What changed:** New `/contrast-checker` route. Foreground + background → WCAG contrast ratio + AA/AAA pass/fail for normal and large text.
+- **Math (`utils.js`):** `parseColor` accepts hex (3/4/6/8 digit), `rgb()`, `rgba()`, `hsl()`, `hsla()`. `relativeLuminance` per WCAG 2.x sRGB formula. `contrastRatio` returns the canonical `(L1+0.05)/(L2+0.05)` value. `compositeOver` blends a semi-transparent foreground onto the background so the contrast figure reflects what the user sees. `rgbToHex`, `rgbToCss` helpers.
+- **22 unit tests** cover hex variants (3/4/6/8 digit), rgb/rgba/hsl/hsla parsing, garbage rejection, black-on-white = 21:1, symmetry, null-safe ratio, luminance edges, hex padding/clamping, rgba serialization, alpha compositing.
+- **UI:** Two text inputs accepting any CSS color form; native `<input type="color">` swatches behind each text input for OS picker. Always-mounted `aria-live="polite"` result region with the big monospaced ratio + four pass/fail grade rows (AA normal/large, AAA normal/large). Live preview pane with sample text painted in the chosen colors. Swap button. Copy summary, Reset.
+- **Persistence:** `contrast_checker_state` stores only `{fg, bg}`. Validator strict-keys.
+- **6 page tests** for default render, default-pass-on-AAA, typing updates ratio, swap exchanges fg/bg, error styling on garbage, persistence round-trip.
+- **Home tile:** 🌗 "Color Contrast Checker".
+**Why:** Build-queue item #9. WCAG ratio is a small surface but designers/devs reach for a checker constantly.
+**Impact:** No new dependencies. 28 new tests, all green.
+**Files changed:** `src/app/contrast-checker/` (new directory); `src/app/page.js`; `src/app/sitemap.js`.
+
+---
+
 ## 2026-05-07 - Image Converter review-round-1 fixes (S1-S12)
 **What changed:** Applied 12 fixes from the review round on `feat/image-converter`:
 - **S1 — Shared lib:** Created `src/lib/image.js` with `JPEG_MIME`, `PNG_MIME`, `WEBP_MIME`, `SUPPORTED_INPUT_TYPES`, `MAX_PIXELS`, `mimeForFile`, `isSupportedImage`, `extensionForMime`, `savingsPct`, `canvasToBlob`. Added `src/lib/image.test.js` (19 tests). Migrated `image-compressor/utils.js` and `image-converter/pipeline.js` to import from lib.

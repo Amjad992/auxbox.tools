@@ -185,6 +185,14 @@ const TOOLS = [
       'Convert between PNG, JPEG, and WebP entirely in your browser. Pick quality, see the size change, download. No upload.',
     cta: 'Open tool',
   },
+  {
+    href: '/contrast-checker',
+    icon: '🌗',
+    name: 'Color Contrast Checker',
+    description:
+      'WCAG 2.1 contrast ratio for any foreground/background pair. AA + AAA pass/fail for normal and large text. Hex, RGB, HSL accepted.',
+    cta: 'Open tool',
+  },
 ];
 
 export default function Home() {
