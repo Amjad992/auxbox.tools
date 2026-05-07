@@ -1,12 +1,5 @@
 /* Color Contrast Checker — local styles. */
 
-.cc-card-title {
-  margin: 0 0 0.75rem;
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
 .cc-card-hint {
   margin: 0 0 0.75rem;
   color: var(--text-secondary);

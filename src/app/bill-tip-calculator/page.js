@@ -125,7 +125,7 @@ function TipCalculatorContent() {
 
       <div className="tc-stack">
         <Card>
-          <h2 className="tc-card-title">Bill</h2>
+          <h2 className="tool-card-title">Bill</h2>
           <div className="tc-bill-row">
             <CurrencyInput
               id="tc-bill"
@@ -148,7 +148,7 @@ function TipCalculatorContent() {
         </Card>
 
         <Card>
-          <h2 className="tc-card-title">Tip</h2>
+          <h2 className="tool-card-title">Tip</h2>
           <Slider
             id="tc-tip-pct"
             label="Tip percent"
@@ -180,7 +180,7 @@ function TipCalculatorContent() {
         </Card>
 
         <Card>
-          <h2 className="tc-card-title">Split</h2>
+          <h2 className="tool-card-title">Split</h2>
           <Slider
             id="tc-people"
             label="Number of people"
@@ -196,7 +196,7 @@ function TipCalculatorContent() {
         </Card>
 
         <Card>
-          <h2 className="tc-card-title">Result</h2>
+          <h2 className="tool-card-title">Result</h2>
           <div className="tc-result-region" aria-live="polite" aria-atomic="true">
             {hasBill ? (
               <div className="tc-result">

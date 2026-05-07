@@ -165,7 +165,7 @@ function TimezoneConverterContent() {
 
       <div className="tool-stack">
         <Card>
-          <h2 className="tz-card-title">Anchor moment</h2>
+          <h2 className="tool-card-title">Anchor moment</h2>
           <div className="tz-anchor-row">
             <div className="tool-field">
               <label htmlFor="tz-anchor-time" className="tool-field-label">
@@ -222,7 +222,7 @@ function TimezoneConverterContent() {
         </Card>
 
         <Card>
-          <h2 className="tz-card-title">Target zones</h2>
+          <h2 className="tool-card-title">Target zones</h2>
           {targets.length === 0 ? (
             <p className="tz-empty" role="status" aria-live="polite">No target zones yet.</p>
           ) : (

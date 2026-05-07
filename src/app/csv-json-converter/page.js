@@ -176,7 +176,7 @@ function CsvJsonConverterContent() {
 
       <div className="tool-stack">
         <Card>
-          <h2 className="cjc-card-title">Direction</h2>
+          <h2 className="tool-card-title">Direction</h2>
           <ModeToggle
             ariaLabel="Conversion direction"
             options={DIRECTION_OPTIONS}
@@ -250,7 +250,7 @@ function CsvJsonConverterContent() {
         </Card>
 
         <Card>
-          <h2 className="cjc-card-title">
+          <h2 className="tool-card-title">
             {isCsvToJson ? 'Input CSV' : 'Input JSON'}
           </h2>
           <textarea
@@ -280,19 +280,19 @@ function CsvJsonConverterContent() {
             </p>
           )}
           {result.ok && detectedDelimiterLabel && (
-            <p className="cjc-hint" role="status" aria-live="polite">
+            <p className="tool-hint" role="status" aria-live="polite">
               Detected delimiter: <code>{detectedDelimiterLabel}</code>
             </p>
           )}
           {result.ok && warnings.map((w, i) => (
-            <p key={i} className="cjc-hint" role="status" aria-live="polite">
+            <p key={i} className="tool-hint" role="status" aria-live="polite">
               {w}
             </p>
           ))}
         </Card>
 
         <Card>
-          <h2 className="cjc-card-title">
+          <h2 className="tool-card-title">
             {isCsvToJson ? 'Output JSON' : 'Output CSV'}
           </h2>
           <textarea

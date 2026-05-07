@@ -162,7 +162,7 @@ function ImageConverterContent() {
 
       <div className="tool-stack">
         <Card>
-          <h2 className="ic2-card-title">Source image</h2>
+          <h2 className="tool-card-title">Source image</h2>
           <p className="ic2-card-hint">
             Drop a PNG, JPEG, or WebP. Files are decoded locally — never uploaded.
           </p>
@@ -191,7 +191,7 @@ function ImageConverterContent() {
         </Card>
 
         <Card>
-          <h2 className="ic2-card-title">Target format</h2>
+          <h2 className="tool-card-title">Target format</h2>
           <fieldset className="ic2-formats">
             <legend className="tool-sr-only">Target format</legend>
             {TARGET_OPTIONS.map((opt) => {
@@ -237,7 +237,7 @@ function ImageConverterContent() {
         </Card>
 
         <Card>
-          <h2 className="ic2-card-title">Convert</h2>
+          <h2 className="tool-card-title">Convert</h2>
           {!file ? (
             <p className="ic2-empty">Drop an image above to convert.</p>
           ) : (

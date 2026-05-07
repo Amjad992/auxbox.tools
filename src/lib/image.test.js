@@ -1,4 +1,4 @@
-import {describe, it, expect, vi} from 'vitest';
+import {describe, it, expect, vi, beforeEach, afterEach} from 'vitest';
 import {
   JPEG_MIME,
   PNG_MIME,
@@ -10,6 +10,7 @@ import {
   extensionForMime,
   savingsPct,
   canvasToBlob,
+  extractPixels,
 } from './image';
 
 describe('constants', () => {
@@ -99,6 +100,54 @@ describe('savingsPct', () => {
 
   it('returns negative percentage when output is larger', () => {
     expect(savingsPct(1000, 1500)).toBe(-50);
+  });
+});
+
+describe('extractPixels', () => {
+  let origCreateElement;
+
+  function makeFakeCanvas(pixelData) {
+    const w = Math.sqrt(pixelData.length / 4);
+    return {
+      width: 0,
+      height: 0,
+      getContext: vi.fn(() => ({
+        imageSmoothingEnabled: true,
+        imageSmoothingQuality: 'medium',
+        drawImage: vi.fn(),
+        getImageData: vi.fn(() => ({data: pixelData})),
+      })),
+    };
+  }
+
+  beforeEach(() => {
+    origCreateElement = document.createElement.bind(document);
+  });
+
+  afterEach(() => {
+    document.createElement = origCreateElement;
+  });
+
+  it('returns pixel data from the canvas', () => {
+    const fakeData = new Uint8ClampedArray([255, 0, 0, 255, 0, 255, 0, 255]);
+    const fakeCanvas = makeFakeCanvas(fakeData);
+    document.createElement = vi.fn(() => fakeCanvas);
+
+    const bitmap = {width: 100, height: 100};
+    const result = extractPixels(bitmap, 50_000);
+    expect(result).toBe(fakeData);
+  });
+
+  it('throws when 2D context is null', () => {
+    const fakeCanvas = {
+      width: 0,
+      height: 0,
+      getContext: vi.fn(() => null),
+    };
+    document.createElement = vi.fn(() => fakeCanvas);
+
+    const bitmap = {width: 10, height: 10};
+    expect(() => extractPixels(bitmap, 50_000)).toThrow(/2D canvas context/);
   });
 });
 
