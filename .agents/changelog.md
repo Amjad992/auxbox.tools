@@ -14,6 +14,14 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-07 - S2: Palette-from-image controls alignment fix
+**What changed:** `.pfi-controls` in `src/app/palette-from-image/palette-from-image.css` changed from `align-items: end` to `align-items: flex-start`. The "Colours" and "Format" labels now align at the top of the control row.
+**Why:** User-reported visual misalignment — the Colours label appeared higher than Format because `end` aligns to the bottom of the flex line.
+**Impact:** CSS-only change; no logic or API changes.
+**Files changed:** `src/app/palette-from-image/palette-from-image.css`.
+
+---
+
 ## 2026-05-07 - S1: Shared `<Checkbox>` primitive + migrate all consumers
 **What changed:** New `src/components/Checkbox.js` — an accessible, custom-styled checkbox primitive. Visually-hidden native `<input type="checkbox">` for a11y; custom styled box with checked indicator SVG; focus-visible ring; disabled state. CSS in `src/styles/tools.css` as `.tool-checkbox`, `.tool-checkbox-box`, `.tool-checkbox-label`, etc.
 - Migrated all consumer pages: `pomodoro-timer`, `csv-json-converter`, `date-calculator`, `favicon-generator`, `json-formatter`, `image-compressor`, `password-generator/components/ClassToggles.js`.
