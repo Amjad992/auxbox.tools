@@ -11,13 +11,15 @@ import {useAutoSave} from '../../hooks/useAutoSave';
 import {useHydrateStorage} from '../../hooks/useHydrateStorage';
 import {formatBytes} from '../../lib/format';
 import {parsePageRange} from '../../lib/pageRange';
+import {isPdfFile} from '../../lib/pdf';
 import {StorageProvider, useStorageData} from './StorageContext';
 import {
   DEFAULT_STATE,
+  ERR_CORRUPT,
   ERR_NOT_PDF,
   ERR_TOO_LARGE,
+  LARGE_FILE_WARN_BYTES,
   MAX_FILE_BYTES,
-  PDF_MIME,
   STATE_AUTOSAVE_DEBOUNCE_MS,
 } from './constants';
 import {extractPages, parsePdfMetadata} from './pipeline';
@@ -34,16 +36,6 @@ const SCHEMA = {
   operatingSystem: 'Any',
   offers: {'@type': 'Offer', price: '0', priceCurrency: 'USD'},
 };
-
-function isPdfFile(file) {
-  if (!file) return false;
-  if (file.type === PDF_MIME) return true;
-  if (!file.type) {
-    const name = (file.name || '').toLowerCase();
-    return name.endsWith('.pdf');
-  }
-  return false;
-}
 
 function PdfSplitterContent() {
   const {toasts, showToast, dismissToast} = useToast();
@@ -103,8 +95,8 @@ function PdfSplitterContent() {
         setArrayBuffer(buf);
         setPageCount(meta.pageCount);
       }
-    } catch (e) {
-      setParseError(e?.message || 'Could not read this file.');
+    } catch {
+      setParseError(ERR_CORRUPT);
       setArrayBuffer(null);
       setPageCount(0);
     } finally {
@@ -140,8 +132,8 @@ function PdfSplitterContent() {
         }`,
         'success'
       );
-    } catch (e) {
-      setParseError(e?.message || 'Could not extract pages.');
+    } catch {
+      setParseError('Could not extract pages.');
     } finally {
       setBusy(false);
     }
@@ -202,6 +194,11 @@ function PdfSplitterContent() {
                   </span>
                 )}
               </div>
+              {file.size > LARGE_FILE_WARN_BYTES && (
+                <p className="ps-warn">
+                  Files near the cap may freeze the page for several seconds.
+                </p>
+              )}
               <div className="ps-file-actions">
                 <Button variant="neutral" onClick={handleClearFile}>
                   Clear file
@@ -239,6 +236,7 @@ function PdfSplitterContent() {
                 variant="primary"
                 onClick={handleExtract}
                 disabled={!canExtract}
+                aria-label="Download extracted pages"
               >
                 {busy
                   ? 'Working…'

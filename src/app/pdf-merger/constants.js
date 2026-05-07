@@ -14,5 +14,6 @@ export const MERGED_FILENAME = 'merged.pdf';
 export const ERR_TOO_LARGE = `File is larger than 50 MB (max). PDFs above this risk crashing the tab.`;
 export const ERR_TOO_MANY = `Limit of ${MAX_FILES} files reached. Remove a file before adding more.`;
 export const ERR_NOT_PDF = `Not a PDF. This tool only accepts application/pdf files.`;
-export const ERR_ENCRYPTED = `Password-protected PDFs are not supported. Decrypt this file first and try again.`;
-export const ERR_CORRUPT = `Could not read this file. It may be corrupt or not a valid PDF.`;
+// ERR_ENCRYPTED and ERR_CORRUPT are canonical in src/lib/pdf.js.
+// Re-exported here so existing imports in this tool continue to work.
+export {ERR_ENCRYPTED, ERR_CORRUPT} from '../../lib/pdf';

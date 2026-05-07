@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import {formatPageRange, parsePageRange} from './pageRange';
+import {parsePageRange} from './pageRange';
 
 describe('parsePageRange', () => {
   it('treats empty/whitespace input as all pages', () => {
@@ -42,28 +42,5 @@ describe('parsePageRange', () => {
   it('errors when pageCount is invalid', () => {
     expect(parsePageRange('1', 0).error).toMatch(/unknown/i);
     expect(parsePageRange('1', -1).error).toMatch(/unknown/i);
-  });
-});
-
-describe('formatPageRange', () => {
-  it('returns empty for empty input', () => {
-    expect(formatPageRange([])).toBe('');
-    expect(formatPageRange(null)).toBe('');
-  });
-
-  it('formats a contiguous run as a-b', () => {
-    expect(formatPageRange([0, 1, 2, 3])).toBe('1-4');
-  });
-
-  it('formats singletons', () => {
-    expect(formatPageRange([0, 2, 5])).toBe('1,3,6');
-  });
-
-  it('mixes runs and singletons', () => {
-    expect(formatPageRange([0, 1, 2, 4, 6, 7])).toBe('1-3,5,7-8');
-  });
-
-  it('handles a single page', () => {
-    expect(formatPageRange([4])).toBe('5');
   });
 });

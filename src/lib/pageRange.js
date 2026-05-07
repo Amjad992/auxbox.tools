@@ -88,23 +88,3 @@ export function parsePageRange(input, pageCount) {
   return {indices};
 }
 
-/** Format the parsed indices back to a 1-based human-readable string. */
-export function formatPageRange(indices) {
-  if (!Array.isArray(indices) || indices.length === 0) return '';
-  // Collapse contiguous runs into "a-b" while preserving non-contiguous ones.
-  const parts = [];
-  let runStart = indices[0];
-  let runEnd = indices[0];
-  for (let i = 1; i < indices.length; i++) {
-    const cur = indices[i];
-    if (cur === runEnd + 1) {
-      runEnd = cur;
-    } else {
-      parts.push(runStart === runEnd ? `${runStart + 1}` : `${runStart + 1}-${runEnd + 1}`);
-      runStart = cur;
-      runEnd = cur;
-    }
-  }
-  parts.push(runStart === runEnd ? `${runStart + 1}` : `${runStart + 1}-${runEnd + 1}`);
-  return parts.join(',');
-}

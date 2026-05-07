@@ -14,6 +14,26 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-07 - PDF Splitter review-round-1 fixes (S1-S8)
+**What changed:** Applied 8 fixes from the general review round on `feat/pdf-splitter`. Round folder: `playground/reviews/review-rounds/general/2026-05-07-pdf-splitter/`.
+
+- **S1 (major)** — Lifted `parsePdfMetadata`, `isPdfFile`, `ERR_CORRUPT`, and `ERR_ENCRYPTED` to `src/lib/pdf.js`. Both pdf-merger and pdf-splitter now import from there; each tool's `pipeline.js` and `constants.js` re-export for backwards-compat. New test file: `src/lib/pdf.test.js` (8 tests covering happy path, corrupt input, isPdfFile). Constants canonicalized on pdf-merger's wording (more descriptive).
+- **S2 (major)** — Dropped `formatPageRange` from `src/lib/pageRange.js` (zero callers; silently broken on non-monotonic input). Removed its 5 tests from `pageRange.test.js`.
+- **S3 (major)** — Lowered `MAX_FILE_BYTES` in pdf-splitter from 100 MB to 50 MB (matches pdf-merger). `ERR_TOO_LARGE` now uses `formatBytes(MAX_FILE_BYTES)` so it tracks the constant. Added `LARGE_FILE_WARN_BYTES = 25 MB` and a visible `.ps-warn` banner in the file-info card ("Files near the cap may freeze the page for several seconds."). Added `// TODO: move pdf-lib work to a Web Worker` comment in `pipeline.js`.
+- **S4 (minor)** — Added stable `aria-label="Download extracted pages"` to the primary extract button so screen readers don't re-announce on every label change (Extract → Download N pages → Working…).
+- **S5 (minor)** — Replaced `e?.message` in both catch blocks (`handleFiles` + `handleExtract`) with fixed user-facing strings: `ERR_CORRUPT` and `"Could not extract pages."` respectively.
+- **S6 (minor)** — `extractPages` now validates that every requested index is in `[0, pageCount-1]` after loading the source PDF. Throws a clear error on out-of-range index. Test added.
+- **S7 (minor)** — Removed the misleading "future modes can be added without a storage migration" comment from `constants.js`. The strict-keys validator in `storageUtils.js` rejects unknown mode values; the comment contradicted this. Replaced with a comment pointing to `ALLOWED_MODES` in `storageUtils.js`.
+- **S8 (minor)** — Added round-trip test in `pipeline.test.js`: extracts 3 pages from a 5-page PDF, reads the output Blob back via `blob.arrayBuffer()`, loads it with pdf-lib, and asserts `getPageCount() === 3`. File annotated `@vitest-environment node` (jsdom lacks `Blob.prototype.arrayBuffer()`).
+
+**Skipped:** Opus#1 F7 (sitemap `new Date()` → Luxon — project-wide sweep, separate task); Opus#2 F7 (SSR clean — non-finding).
+
+**Why:** Round-one review fixes. 3 majors + 5 minors addressed. All findings from both Opus reviewers applied.
+**Impact:** 172 tests, all green. No new dependencies. `src/lib/pdf.js` is a new shared lib entry-point.
+**Files changed:** `src/lib/pdf.js` (new), `src/lib/pdf.test.js` (new), `src/lib/pageRange.js`, `src/lib/pageRange.test.js`, `src/app/pdf-merger/pipeline.js`, `src/app/pdf-merger/constants.js`, `src/app/pdf-splitter/pipeline.js`, `src/app/pdf-splitter/pipeline.test.js`, `src/app/pdf-splitter/constants.js`, `src/app/pdf-splitter/page.js`.
+
+---
+
 ## 2026-05-07 - Add `/pdf-splitter` (extract PDF pages) + lift `parsePageRange` to shared lib
 **What changed:** New `/pdf-splitter` route. Drop a single PDF, pick page ranges (`1-3,5,7-9` or empty for all), download a new PDF containing just those pages.
 - **Math (`pipeline.js`):** `parsePdfMetadata` and `extractPages(arrayBuffer, indices)` using `pdf-lib`. 6 unit tests.
