@@ -1,5 +1,6 @@
 import {describe, it, expect} from 'vitest';
 import {medianCut} from './quantize';
+// S19: nearestTailwind tests live in tailwind.test.js — we import medianCut single-colour here.
 
 function rgba(r, g, b, a = 255) {
   return [r, g, b, a];
@@ -58,6 +59,25 @@ describe('medianCut', () => {
   it('throws on non-RGBA input', () => {
     const buf = new Uint8ClampedArray([1, 2, 3]);
     expect(() => medianCut(buf, 2)).toThrow(/RGBA/);
+  });
+
+  it('returns single averaged colour for a single-colour input with count=1 (S19)', () => {
+    const pixels = pixelArray(rgba(42, 42, 42), rgba(42, 42, 42), rgba(42, 42, 42));
+    const palette = medianCut(pixels, 1);
+    expect(palette).toHaveLength(1);
+    expect(palette[0]).toEqual({r: 42, g: 42, b: 42});
+  });
+
+  it('returns correct average when requesting more colours than unique pixels (S19)', () => {
+    // 2 unique pixels, asking for 8 — should not exceed 2 results.
+    const pixels = pixelArray(rgba(10, 20, 30), rgba(200, 210, 220));
+    const palette = medianCut(pixels, 8);
+    expect(palette.length).toBeLessThanOrEqual(2);
+    // Both colours should be in the result.
+    const has10 = palette.some((c) => c.r === 10 && c.g === 20 && c.b === 30);
+    const has200 = palette.some((c) => c.r === 200 && c.g === 210 && c.b === 220);
+    expect(has10).toBe(true);
+    expect(has200).toBe(true);
   });
 
   it('orders palette by frequency descending', () => {

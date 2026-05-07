@@ -137,7 +137,7 @@ function RegexTesterContent() {
 
       <div className="tool-stack">
         <Card>
-          <h2 className="rt-card-title">Pattern</h2>
+          <h2 className="tool-card-title">Pattern</h2>
           <div
             className={`rt-pattern-slot${
               isError ? ' rt-pattern-slot--error' : ''
@@ -214,7 +214,7 @@ function RegexTesterContent() {
         </Card>
 
         <Card>
-          <h2 className="rt-card-title">Test text</h2>
+          <h2 className="tool-card-title">Test text</h2>
           <textarea
             aria-label="Test text"
             className="tool-textarea rt-test-area"
@@ -258,7 +258,7 @@ function RegexTesterContent() {
 
         {matches.length > 0 && (
           <Card>
-            <h2 className="rt-card-title">Matches ({matches.length})</h2>
+            <h2 className="tool-card-title">Matches ({matches.length})</h2>
             {/* S9: wrap table for horizontal scroll on narrow screens */}
             <div className="rt-matches-scroll">
               <table className="rt-matches-table">

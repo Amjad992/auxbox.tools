@@ -1,4 +1,4 @@
-import {rgbToHex} from '../../lib/color';
+import {rgbToHex, relativeLuminance} from '../../lib/color';
 import {nearestTailwind} from './tailwind';
 
 export function formatColour(rgb, format) {
@@ -18,15 +18,18 @@ export function paletteToText(palette, format) {
   return palette.map((c) => formatColour(c, format)).join('\n');
 }
 
-export function relativeLuminance({r, g, b}) {
-  const lin = (v) => {
-    const s = v / 255;
-    return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
-  };
-  return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+// S16: render the palette as CSS custom properties.
+// Format respects the current display format (hex / rgb / tailwind name).
+export function paletteToCSSVars(palette, format) {
+  const vars = palette
+    .map((c, i) => `  --color-${i + 1}: ${formatColour(c, format)};`)
+    .join('\n');
+  return `:root {\n${vars}\n}`;
 }
 
 // Pick a label colour that contrasts with the swatch background.
+// S2: WCAG-correct crossover: (L+0.05)^2 = 1.05*0.05 → L ≈ 0.179.
+// The naive 0.5 threshold incorrectly picks white for many mid-tones.
 export function readableTextOn(rgb) {
-  return relativeLuminance(rgb) > 0.5 ? '#000' : '#fff';
+  return relativeLuminance(rgb) > 0.179 ? '#000' : '#fff';
 }

@@ -1,12 +1,5 @@
 /* Time Zone Converter — local styles. */
 
-.tz-card-title {
-  margin: 0 0 0.75rem;
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
 .tz-card-hint {
   margin: 0 0 0.6rem;
   color: var(--text-secondary);

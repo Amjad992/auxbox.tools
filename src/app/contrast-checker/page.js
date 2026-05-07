@@ -140,7 +140,7 @@ function ContrastCheckerContent() {
 
       <div className="tool-stack">
         <Card>
-          <h2 className="cc-card-title">Colors</h2>
+          <h2 className="tool-card-title">Colors</h2>
           <p className="cc-card-hint">
             Accepts <code>#abc</code>, <code>#aabbcc</code>,{' '}
             <code>rgb(...)</code>, <code>rgba(...)</code>,{' '}
@@ -234,7 +234,7 @@ function ContrastCheckerContent() {
         </Card>
 
         <Card>
-          <h2 className="cc-card-title">Preview</h2>
+          <h2 className="tool-card-title">Preview</h2>
           <div
             className="cc-preview"
             style={{
@@ -254,7 +254,7 @@ function ContrastCheckerContent() {
         </Card>
 
         <Card>
-          <h2 className="cc-card-title">Result</h2>
+          <h2 className="tool-card-title">Result</h2>
           <div className="cc-ratio" aria-live="polite" aria-atomic="true">
             <p className="cc-ratio-label">Contrast ratio</p>
             <p className="cc-ratio-value">

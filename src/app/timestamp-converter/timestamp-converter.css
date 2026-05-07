@@ -1,12 +1,5 @@
 /* Timestamp Converter — local styles. */
 
-.tc-card-title {
-  margin: 0 0 0.75rem;
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
 .tc-fields {
   display: flex;
   flex-direction: column;

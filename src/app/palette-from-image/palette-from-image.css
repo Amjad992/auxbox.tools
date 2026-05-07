@@ -1,10 +1,3 @@
-.pfi-card-title {
-  margin: 0 0 0.75rem;
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
 .pfi-controls {
   display: flex;
   flex-wrap: wrap;
@@ -44,23 +37,34 @@
   text-align: left;
   font-family: inherit;
   padding: 0;
+  /* outline instead of box-shadow because overflow:hidden clips box-shadow */
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  transition: outline-color 0.15s ease, transform 0.1s ease;
+}
+
+.pfi-swatch:hover {
+  transform: translateY(-1px);
+}
+
+.pfi-swatch:focus-visible {
+  outline-color: var(--primary-color);
 }
 
 .pfi-swatch-color {
+  /* S6: label lives inside, so give it enough height and flex layout */
   height: 70px;
+  display: flex;
+  align-items: flex-end;
 }
 
 .pfi-swatch-label {
+  width: 100%;
   padding: 0.4rem 0.6rem;
   font-size: 0.85rem;
   font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
-  background: var(--surface-2, rgba(255, 255, 255, 0.04));
-}
-
-.pfi-hint {
-  margin: 0.6rem 0 0;
-  color: var(--text-secondary);
-  font-size: 0.85rem;
+  /* semi-transparent backing so label is readable even when fg contrast is borderline */
+  background: rgba(0, 0, 0, 0.18);
 }
 
 @media (max-width: 480px) {

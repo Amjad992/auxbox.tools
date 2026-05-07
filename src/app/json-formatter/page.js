@@ -167,7 +167,7 @@ function JsonFormatterContent() {
 
       <div className="tool-stack">
         <Card>
-          <h2 className="jf-card-title">Mode</h2>
+          <h2 className="tool-card-title">Mode</h2>
           <ModeToggle
             ariaLabel="Output mode"
             options={MODE_OPTIONS}
@@ -231,7 +231,7 @@ function JsonFormatterContent() {
         </Card>
 
         <Card>
-          <h2 className="jf-card-title">Input JSON</h2>
+          <h2 className="tool-card-title">Input JSON</h2>
           <textarea
             aria-label="Input JSON"
             className="tool-textarea jf-textarea-input"
@@ -273,7 +273,7 @@ function JsonFormatterContent() {
 
         {mode !== MODES.VALIDATE && (
           <Card>
-            <h2 className="jf-card-title">Output</h2>
+            <h2 className="tool-card-title">Output</h2>
             <textarea
               aria-label="Output JSON"
               className="tool-textarea jf-textarea-output"

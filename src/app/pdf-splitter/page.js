@@ -170,7 +170,7 @@ function PdfSplitterContent() {
 
       <div className="tool-stack">
         <Card>
-          <h2 className="ps-card-title">Source PDF</h2>
+          <h2 className="tool-card-title">Source PDF</h2>
           <p className="ps-card-hint">
             Drop a single PDF or click to pick one. Files are read into
             memory locally — never uploaded.
@@ -215,7 +215,7 @@ function PdfSplitterContent() {
 
         {arrayBuffer && pageCount > 0 && (
           <Card>
-            <h2 className="ps-card-title">Pages to extract</h2>
+            <h2 className="tool-card-title">Pages to extract</h2>
             <div className="ps-range-row">
               <InputField
                 id="ps-range"

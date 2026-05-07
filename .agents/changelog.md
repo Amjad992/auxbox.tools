@@ -28,6 +28,34 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-07 - Palette from Image review-round-1 fixes (S1-S21)
+**What changed:** Applied all 21 review findings to `src/app/palette-from-image/` and shared infrastructure.
+- **S1:** `setBusy(false)` in `finally` now guarded with `if (myGen === genIdRef.current)` to prevent stale extractions from clearing the busy flag.
+- **S2:** `readableTextOn` threshold corrected from `> 0.5` to `> 0.179` (WCAG-correct crossover: `(L+0.05)² = 1.05×0.05`).
+- **S3:** `.pfi-swatch` gains `:hover { transform: translateY(-1px) }` and `:focus-visible { outline: 2px solid var(--primary-color) }`. Outline used instead of box-shadow because `overflow:hidden` clips box-shadow.
+- **S4/S18:** `runExtraction` clears `palette`/`sourceInfo` at entry so stale results never show alongside a new (possibly failing) run. Folded S18 into S4.
+- **S5:** `handleFiles` clears `palette`/`sourceInfo` before the unsupported-type early return. `runExtraction` catch path also clears them.
+- **S6:** Label moved inside `.pfi-swatch-color` band with `color: fg`. `.pfi-swatch-color` is now a flex column with `align-items: flex-end`. Semi-transparent backing on the label for borderline contrast.
+- **S7:** Hydration now uses `validatePaletteState(saved)` instead of a bare `typeof` check.
+- **S8:** `extractPixels` throws `new Error('Could not acquire 2D canvas context.')` when `getContext('2d')` returns null.
+- **S9:** Added `neutral` (50–950, 11 entries) and `stone` (50–950, 11 entries) families to `TAILWIND_COLORS`.
+- **S10:** `relativeLuminance` import removed from `utils.js`; now imported from `src/lib/color.js`.
+- **S11:** `hexToRgb` local helper in `tailwind.js` removed; replaced with `parseColor(hex)` from `src/lib/color.js`.
+- **S12:** `extractPixels` lifted to `src/lib/image.js` (shared). `quantize.js` re-exports it via `export {extractPixels} from '../../lib/image'`.
+- **S13:** Colour-count `<input>` gains `aria-describedby="pfi-count-help"` pointing to a sibling span `Between N and M.`.
+- **S14:** `!palette` guard removed from the count-change `useEffect`; only `!lastFileRef.current` remains so re-extraction works after prior errors.
+- **S15:** `.tool-card-title` and `.tool-hint` added to `src/styles/tools.css`. Local `*-card-title` rules removed from 13 tool CSS files (pfi, fg, cjc, ug, ic2, cc, tc×2, tz, ps, hg, jf, rt). Local `pfi-hint`/`fg-hint`/`cjc-hint` rules removed. Classes replaced with `tool-card-title` / `tool-hint` in all JS.
+- **S16:** `paletteToCSSVars(palette, format)` exported from `utils.js`. "Copy as CSS vars" button added alongside "Copy all".
+- **S17:** `file.size > 50_000_000` pre-check added before `createImageBitmap`.
+- **S19:** Tests expanded: single-colour medianCut (count=1); more-colours-than-unique-pixels; nearestTailwind dark grey; palette size after neutral/stone addition; extractPixels null-context error; page tests for extraction flow, createImageBitmap rejection, copy-all toast, swatch copy, and garbage-storage fallback to defaults.
+- **S20:** `splitBucket` gains comment "sorts in place along chosen channel".
+- **S21:** `nearestTailwind` gains comment about squared RGB distance and ΔE 6 worst-case vs LAB.
+**Why:** Review-round-1 findings: correctness (S1-S2), accessibility (S3, S13), state management (S4-S7), robustness (S8, S17), palette quality (S9), code deduplication (S10-S12, S15), new feature (S16), tests (S19), comments (S20-S21).
+**Impact:** +12 new tests (291 total in scope, all green). 13 tool CSS files cleaned up (dead card-title rules removed). `extractPixels` now in `src/lib/image.js`.
+**Files changed:** `src/app/palette-from-image/{page,page.test,utils,utils.test,quantize,tailwind,tailwind.test,palette-from-image.css}.{js,jsx,css}`, `src/lib/image.js`, `src/lib/image.test.js`, `src/styles/tools.css`, `src/app/{favicon-generator,csv-json-converter,uuid-generator,image-converter,contrast-checker,bill-tip-calculator,timestamp-converter,timezone-converter,pdf-splitter,hash-generator,json-formatter,regex-tester}/{page,*.css}.{js,css}`.
+
+---
+
 ## 2026-05-07 - Add `/palette-from-image` (median-cut color palette extractor)
 **What changed:** New `/palette-from-image` route. Upload an image → extract N dominant colors via median-cut quantization. Output as hex, RGB, or nearest Tailwind class.
 - **Quantizer (`quantize.js`):** Hand-rolled median-cut. Skips fully-transparent pixels, picks widest-channel split, returns palette sorted by frequency descending. `extractPixels` downsamples large bitmaps to ≤50 000 sample pixels via canvas. 7 unit tests.

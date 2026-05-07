@@ -5,6 +5,8 @@
 // arbitrary RGB by squared-distance in the RGB cube — perceptual matching
 // (LAB) is overkill for "what's a recognisable name for this swatch?" UX.
 
+import {parseColor} from '../../lib/color';
+
 const TAILWIND_COLORS = [
   ['black', '#000000'],
   ['white', '#ffffff'],
@@ -23,6 +25,16 @@ const TAILWIND_COLORS = [
   ['zinc-300', '#d4d4d8'], ['zinc-400', '#a1a1aa'], ['zinc-500', '#71717a'],
   ['zinc-600', '#52525b'], ['zinc-700', '#3f3f46'], ['zinc-800', '#27272a'],
   ['zinc-900', '#18181b'], ['zinc-950', '#09090b'],
+  // Neutral
+  ['neutral-50', '#fafafa'], ['neutral-100', '#f5f5f5'], ['neutral-200', '#e5e5e5'],
+  ['neutral-300', '#d4d4d4'], ['neutral-400', '#a3a3a3'], ['neutral-500', '#737373'],
+  ['neutral-600', '#525252'], ['neutral-700', '#404040'], ['neutral-800', '#262626'],
+  ['neutral-900', '#171717'], ['neutral-950', '#0a0a0a'],
+  // Stone
+  ['stone-50', '#fafaf9'], ['stone-100', '#f5f5f4'], ['stone-200', '#e7e5e4'],
+  ['stone-300', '#d6d3d1'], ['stone-400', '#a8a29e'], ['stone-500', '#78716c'],
+  ['stone-600', '#57534e'], ['stone-700', '#44403c'], ['stone-800', '#292524'],
+  ['stone-900', '#1c1917'], ['stone-950', '#0c0a09'],
   // Red
   ['red-50', '#fef2f2'], ['red-100', '#fee2e2'], ['red-200', '#fecaca'],
   ['red-300', '#fca5a5'], ['red-400', '#f87171'], ['red-500', '#ef4444'],
@@ -110,21 +122,19 @@ const TAILWIND_COLORS = [
   ['rose-900', '#881337'], ['rose-950', '#4c0519'],
 ];
 
+// S11: use shared parseColor instead of a local hexToRgb reimplementation.
 const TAILWIND_RGB = TAILWIND_COLORS.map(([name, hex]) => ({
   name,
-  rgb: hexToRgb(hex),
+  rgb: parseColor(hex),
 }));
 
-function hexToRgb(hex) {
-  const m = hex.replace('#', '');
-  return {
-    r: parseInt(m.slice(0, 2), 16),
-    g: parseInt(m.slice(2, 4), 16),
-    b: parseInt(m.slice(4, 6), 16),
-  };
-}
-
-/** Find the nearest Tailwind class name for `{r,g,b}`. */
+/**
+ * Find the nearest Tailwind class name for `{r,g,b}`.
+ *
+ * S21: Squared RGB distance — adequate for "nearest recognisable name" UX.
+ * Worst-case error vs LAB ≈ ΔE 6 on saturated mid-tones; revisit if
+ * accuracy complaints land.
+ */
 export function nearestTailwind({r, g, b}) {
   let bestName = TAILWIND_RGB[0].name;
   let bestDist = Infinity;

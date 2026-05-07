@@ -144,7 +144,7 @@ function UuidGeneratorContent() {
 
       <div className="tool-stack">
         <Card>
-          <h2 className="ug-card-title">Type</h2>
+          <h2 className="tool-card-title">Type</h2>
           <fieldset className="ug-types">
             <legend className="tool-sr-only">UUID type</legend>
             {TYPE_OPTIONS.map((opt) => {
@@ -179,7 +179,7 @@ function UuidGeneratorContent() {
         </Card>
 
         <Card>
-          <h2 className="ug-card-title">How many?</h2>
+          <h2 className="tool-card-title">How many?</h2>
           <Slider
             id="ug-count"
             label="Count"
@@ -242,7 +242,7 @@ function UuidGeneratorContent() {
         </span>
 
         <Card>
-          <h2 className="ug-card-title">Result</h2>
+          <h2 className="tool-card-title">Result</h2>
           <div className="ug-list">
             {uuids.length === 0 ? (
               <p className="ug-empty">

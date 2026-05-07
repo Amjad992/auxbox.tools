@@ -239,7 +239,7 @@ function FaviconGeneratorContent() {
 
       <div className="tool-stack">
         <Card>
-          <h2 className="fg-card-title">Source image</h2>
+          <h2 className="tool-card-title">Source image</h2>
           <div aria-busy={busy}>
             <DropZone
               onFiles={handleFiles}
@@ -250,7 +250,7 @@ function FaviconGeneratorContent() {
               disabled={busy}
             />
             {sourceInfo && !busy && (
-              <p className="fg-hint">
+              <p className="tool-hint">
                 {sourceInfo.name} — {sourceInfo.width}×{sourceInfo.height}
                 {(sourceInfo.width < 512 || sourceInfo.height < 512) &&
                   ' — favicons larger than the source will be upscaled.'}
@@ -302,16 +302,16 @@ function FaviconGeneratorContent() {
         )}
 
         {busy && (
-          <p role="status" aria-live="polite" className="fg-hint">
+          <p role="status" aria-live="polite" className="tool-hint">
             Generating…
           </p>
         )}
 
         {result && (
           <Card>
-            <h2 className="fg-card-title">Generated set</h2>
+            <h2 className="tool-card-title">Generated set</h2>
             {staleNotice && (
-              <p className="fg-hint" role="status">
+              <p className="tool-hint" role="status">
                 Settings changed — re-drop the image to regenerate.
               </p>
             )}

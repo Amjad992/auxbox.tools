@@ -197,7 +197,7 @@ function TimestampConverterContent() {
         </Card>
 
         <Card>
-          <h2 className="tc-card-title">Time zone</h2>
+          <h2 className="tool-card-title">Time zone</h2>
           <div className="tc-zone-row">
             <label htmlFor="tc-zone" className="tool-field-label">
               Zone
@@ -218,7 +218,7 @@ function TimestampConverterContent() {
         </Card>
 
         <Card>
-          <h2 className="tc-card-title">Values</h2>
+          <h2 className="tool-card-title">Values</h2>
           <div className="tc-fields">
             <div className="tc-field-row">
               <label htmlFor="tc-iso" className="tool-field-label">

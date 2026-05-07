@@ -7,6 +7,9 @@
 // We avoid pulling in a quantizer library (rgbquant / colorthief) because the
 // hot loop is ~80 lines of straightforward math.
 
+// S12: extractPixels is shared — import from the lib so other tools can use it.
+export {extractPixels} from '../../lib/image';
+
 /**
  * Quantize an RGBA pixel array to `count` representative colors.
  *
@@ -90,6 +93,7 @@ function bucketRange(bucket) {
 
 function splitBucket(bucket) {
   const {channel} = bucketRange(bucket);
+  // S20: sorts in place along chosen channel before splitting at the median.
   bucket.sort((p, q) => p[channel] - q[channel]);
   const mid = bucket.length >> 1;
   return [bucket.slice(0, mid), bucket.slice(mid)];
@@ -112,21 +116,3 @@ function averageBucket(bucket) {
   };
 }
 
-/**
- * Downsample-and-extract pixels from a bitmap-like into a Uint8ClampedArray.
- * Caller passes in the canvas helpers (so this stays jsdom-friendly).
- */
-export function extractPixels(bitmap, maxSamplePixels) {
-  const totalPixels = bitmap.width * bitmap.height;
-  const ratio = Math.min(1, Math.sqrt(maxSamplePixels / totalPixels));
-  const w = Math.max(1, Math.round(bitmap.width * ratio));
-  const h = Math.max(1, Math.round(bitmap.height * ratio));
-  const canvas = document.createElement('canvas');
-  canvas.width = w;
-  canvas.height = h;
-  const ctx = canvas.getContext('2d');
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = 'medium';
-  ctx.drawImage(bitmap, 0, 0, w, h);
-  return ctx.getImageData(0, 0, w, h).data;
-}

@@ -203,7 +203,7 @@ function HashGeneratorContent() {
 
       <div className="tool-stack">
         <Card>
-          <h2 className="hg-card-title">Mode</h2>
+          <h2 className="tool-card-title">Mode</h2>
           <ModeToggle
             ariaLabel="Hash mode"
             options={MODE_OPTIONS}
@@ -213,7 +213,7 @@ function HashGeneratorContent() {
         </Card>
 
         <Card>
-          <h2 className="hg-card-title">
+          <h2 className="tool-card-title">
             {mode === MODES.TEXT ? 'Text' : 'File'}
           </h2>
           {mode === MODES.TEXT ? (
@@ -276,7 +276,7 @@ function HashGeneratorContent() {
         </Card>
 
         <Card>
-          <h2 className="hg-card-title">Hashes</h2>
+          <h2 className="tool-card-title">Hashes</h2>
           <div className="hg-hashes" aria-live="polite" aria-atomic="true">
             {error ? (
               <p className="hg-hash-empty" role="alert">

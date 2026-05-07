@@ -20,7 +20,8 @@ import {
   STATE_AUTOSAVE_DEBOUNCE_MS,
 } from './constants';
 import {extractPixels, medianCut} from './quantize';
-import {formatColour, paletteToText, readableTextOn} from './utils';
+import {formatColour, paletteToCSSVars, paletteToText, readableTextOn} from './utils';
+import {validatePaletteState} from './storageUtils';
 import './palette-from-image.css';
 
 const SCHEMA = {
@@ -50,7 +51,8 @@ function PaletteFromImageContent() {
 
   const hydrated = useHydrateStorage(() => {
     const saved = loadState();
-    if (saved && typeof saved === 'object') {
+    // S7: reject invalid hydrated state via the canonical validator.
+    if (validatePaletteState(saved)) {
       setColourCount(saved.colourCount);
       setFormat(saved.format);
     }
@@ -70,11 +72,19 @@ function PaletteFromImageContent() {
   });
 
   const runExtraction = async (file, count) => {
+    // S4/S18: clear stale palette at the start of each extraction so the UI
+    // never shows old results alongside a new (possibly failing) run.
+    setPalette(null);
+    setSourceInfo(null);
     setBusy(true);
     setError(null);
     const myGen = ++genIdRef.current;
     let bitmap;
     try {
+      // S17: pre-check file size before the browser decodes the whole image.
+      if (file.size > 50_000_000) {
+        throw new Error('File too large (max 50 MB).');
+      }
       bitmap = await createImageBitmap(file, {imageOrientation: 'from-image'});
       const bw = bitmap.width;
       const bh = bitmap.height;
@@ -94,10 +104,14 @@ function PaletteFromImageContent() {
     } catch (e) {
       if (myGen === genIdRef.current) {
         setError(e?.message || 'Failed to extract palette.');
+        // S5: clear stale results on error path so alert is never paired with old data.
+        setPalette(null);
+        setSourceInfo(null);
       }
     } finally {
       bitmap?.close?.();
-      setBusy(false);
+      // S1: guard setBusy so stale extractions don't clear the busy flag.
+      if (myGen === genIdRef.current) setBusy(false);
     }
   };
 
@@ -105,6 +119,9 @@ function PaletteFromImageContent() {
     const file = files?.[0];
     if (!file) return;
     if (!isSupportedImage(file)) {
+      // S5: clear stale palette/sourceInfo when an unsupported file is dropped.
+      setPalette(null);
+      setSourceInfo(null);
       setError('Unsupported image type. Use PNG, JPEG, or WebP.');
       return;
     }
@@ -113,10 +130,10 @@ function PaletteFromImageContent() {
   };
 
   // Re-extract when colour count changes after a file is loaded.
+  // S14: only guard on lastFileRef — re-extract even if a previous run errored.
   useEffect(() => {
-    if (!lastFileRef.current || !palette) return;
+    if (!lastFileRef.current) return;
     runExtraction(lastFileRef.current, colourCount);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [colourCount]);
 
   const copy = useCopyToClipboard({showToast});
@@ -124,6 +141,11 @@ function PaletteFromImageContent() {
   const handleCopyAll = () => {
     if (!palette) return;
     copy(paletteToText(palette, format), {successMessage: 'Palette copied'});
+  };
+
+  const handleCopyCSSVars = () => {
+    if (!palette) return;
+    copy(paletteToCSSVars(palette, format), {successMessage: 'CSS vars copied'});
   };
 
   const handleClear = () => {
@@ -151,7 +173,7 @@ function PaletteFromImageContent() {
       <div className="tool-stack">
         <Card>
           <div aria-busy={busy}>
-            <h2 className="pfi-card-title">Source image</h2>
+            <h2 className="tool-card-title">Source image</h2>
             <DropZone
               onFiles={handleFiles}
               accept={ACCEPT_ATTR}
@@ -181,6 +203,7 @@ function PaletteFromImageContent() {
                 min={MIN_COLOURS}
                 max={MAX_COLOURS}
                 value={colourCount}
+                aria-describedby="pfi-count-help"
                 onChange={(e) => {
                   const n = parseInt(e.target.value, 10);
                   if (Number.isInteger(n) && n >= MIN_COLOURS && n <= MAX_COLOURS) {
@@ -189,6 +212,9 @@ function PaletteFromImageContent() {
                   }
                 }}
               />
+              <span id="pfi-count-help" className="tool-field-helper">
+                Between {MIN_COLOURS} and {MAX_COLOURS}.
+              </span>
             </div>
             <div className="tool-field">
               <label htmlFor="pfi-format" className="tool-field-label">
@@ -220,14 +246,14 @@ function PaletteFromImageContent() {
         )}
 
         {busy && (
-          <p role="status" aria-live="polite" className="pfi-hint">
+          <p role="status" aria-live="polite" className="tool-hint">
             Extracting palette…
           </p>
         )}
 
         {palette && (
           <Card>
-            <h2 className="pfi-card-title">Palette ({palette.length})</h2>
+            <h2 className="tool-card-title">Palette ({palette.length})</h2>
             <div className="pfi-swatches">
               {palette.map((c, i) => {
                 const label = formatColour(c, format);
@@ -244,10 +270,11 @@ function PaletteFromImageContent() {
                   >
                     <span
                       className="pfi-swatch-color"
-                      style={{background: bg, color: fg}}
-                      aria-hidden="true"
-                    />
-                    <span className="pfi-swatch-label">{label}</span>
+                      style={{background: bg}}
+                    >
+                      {/* S6: label lives inside the colour band so fg contrast is visible */}
+                      <span className="pfi-swatch-label" style={{color: fg}}>{label}</span>
+                    </span>
                   </button>
                 );
               })}
@@ -255,6 +282,9 @@ function PaletteFromImageContent() {
             <div className="pfi-actions">
               <Button variant="primary" onClick={handleCopyAll}>
                 Copy all
+              </Button>
+              <Button variant="info" onClick={handleCopyCSSVars}>
+                Copy as CSS vars
               </Button>
               <Button variant="neutral" onClick={handleClear}>
                 Clear

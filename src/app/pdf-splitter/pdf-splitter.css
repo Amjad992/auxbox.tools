@@ -1,12 +1,5 @@
 /* PDF Splitter — local styles. */
 
-.ps-card-title {
-  margin: 0 0 0.75rem;
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
 .ps-card-hint {
   margin: 0 0 0.75rem;
   color: var(--text-secondary);

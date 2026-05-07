@@ -1,12 +1,5 @@
 /* UUID Generator — local styles. */
 
-.ug-card-title {
-  margin: 0 0 0.75rem;
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
 .ug-card-hint {
   margin: 0 0 0.6rem;
   color: var(--text-secondary);

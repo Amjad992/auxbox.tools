@@ -4,6 +4,25 @@
    tool-specific layout, never re-style these.
 ─────────────────────────────────────────────── */
 
+/* ═══ Card title ═══════════════════════════════
+   Section heading inside a Card. Used by all tools that show titled panels
+   (palette-from-image, favicon-generator, csv-json-converter, etc.). */
+.tool-card-title {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* ═══ Hint text ════════════════════════════════
+   Small secondary hint/status line placed below an input or section.
+   Byte-identical consumers: pfi-hint, fg-hint, cjc-hint. */
+.tool-hint {
+  margin: 0.6rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
 /* ═══ Tool stack ═══════════════════════════════
    Default vertical stack used by every tool's main content column. */
 .tool-stack {
