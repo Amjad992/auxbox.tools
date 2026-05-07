@@ -14,6 +14,19 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-07 - Add `/timestamp-converter` (Unix epoch ↔ ISO ↔ human)
+**What changed:** New `/timestamp-converter` route. Four coupled fields — ISO 8601, Unix seconds, Unix milliseconds, human-readable local time — editing any one updates the rest. Time-zone selector (15 curated zones + Local + UTC), Now button, Copy-each + Copy-all + Clear actions.
+- **Math (`utils.js`):** `parseAny` (auto-detects 10-digit seconds vs 13-digit ms, accepts ISO 8601), `toUnixSeconds`, `toUnixMillis`, `toIso`, `toHumanLocal`, `buildAllRepresentations`. 13 unit tests cover empty/null input, magnitude detection, negative seconds (pre-1970), ISO round-trip, zone preservation, invalid input rejection.
+- **UI:** Four labelled inputs in monospace, a separate Card for the zone selector, error region for unparseable input, empty-state hint when nothing entered. The "Human" field is read-only since it's a derived display.
+- **Persistence:** `timestamp_converter_state` stores ONLY `{zone}`. The actual timestamp value is **not persisted** — it's almost always tied to the user's current task and re-typing is faster than rehydrating a stale moment.
+- **8 page tests:** render-all-fields, type-seconds-populates-rest, type-13-digit-ms, type-ISO, Now button, error-on-garbage, Clear, persistence-of-zone-only.
+- **Home tile:** 🕰️ "Timestamp Converter". Sitemap entry priority 0.9.
+**Why:** Build-queue item #6 from the autonomous backlog run. "Smallest possible build" target — small surface, broad demand, zero new deps (Luxon already in deps from freelance-rate-calculator).
+**Impact:** No new dependencies. 21 new tests (13 math + 8 page), all green.
+**Files changed:** `src/app/timestamp-converter/` (new directory: constants, utils, utils.test, storageUtils, StorageContext, layout, page, page.test, css); `src/app/page.js`; `src/app/sitemap.js`.
+
+---
+
 ## 2026-05-07 - JSON Formatter review-round-1 fixes (S1–S6)
 **What changed:** Applied 6 fixes from the general review round on `feat/json-formatter`. Round folder: `playground/reviews/review-rounds/general/2026-05-07-json-formatter/`. Reviewers: Opus #1 + Opus #2 (converging on the same 4 majors); CodeRabbit clean.
 

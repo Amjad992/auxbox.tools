@@ -161,6 +161,14 @@ const TOOLS = [
       'Pretty-print, minify, and validate JSON with line/column error reporting. Sort keys, pick the indent. Runs entirely in your browser.',
     cta: 'Open tool',
   },
+  {
+    href: '/timestamp-converter',
+    icon: '🕰️',
+    name: 'Timestamp Converter',
+    description:
+      'Convert between ISO 8601, Unix seconds, Unix milliseconds, and human-readable local time. Time-zone selector, Now button. Browser-only.',
+    cta: 'Open tool',
+  },
 ];
 
 export default function Home() {

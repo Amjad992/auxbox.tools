@@ -1,0 +1,93 @@
+/* Timestamp Converter — local styles. */
+
+.tc-card-title {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.tc-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.tc-field-row {
+  display: grid;
+  grid-template-columns: 11ch minmax(0, 1fr) auto;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+@media (max-width: 640px) {
+  .tc-field-row {
+    grid-template-columns: 1fr;
+    gap: 0.4rem;
+  }
+}
+
+.tc-field-label {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.tc-field-input {
+  width: 100%;
+  background-color: #1f1f1f;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--text-primary);
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas,
+      monospace);
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tc-field-input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.15);
+}
+
+.tc-field-input--readonly {
+  background-color: #181818;
+  color: var(--text-secondary);
+}
+
+.tc-zone-row {
+  display: grid;
+  grid-template-columns: 11ch minmax(0, 1fr);
+  gap: 0.6rem;
+  align-items: center;
+}
+
+@media (max-width: 640px) {
+  .tc-zone-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+.tc-error {
+  margin: 0.6rem 0 0;
+  color: #ff8b80;
+  font-size: 0.85rem;
+}
+
+.tc-empty {
+  margin: 0;
+  padding: 0.5rem 0;
+  color: var(--text-light);
+  font-style: italic;
+  font-size: 0.9rem;
+}
