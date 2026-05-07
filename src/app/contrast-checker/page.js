@@ -36,6 +36,16 @@ const SCHEMA = {
 };
 
 function Grade({label, threshold, ratio}) {
+  // When no valid color pair is entered (ratio === 0), show a neutral state
+  // rather than a misleading Fail badge.
+  if (ratio === 0) {
+    return (
+      <div className="cc-grade cc-grade--neutral">
+        <span className="cc-grade-label">{label}</span>
+        <span className="cc-grade-status">— · {threshold.toFixed(1)}:1</span>
+      </div>
+    );
+  }
   const passed = ratio >= threshold;
   return (
     <div className={`cc-grade cc-grade--${passed ? 'pass' : 'fail'}`}>
@@ -162,7 +172,6 @@ function ContrastCheckerContent() {
               style={{
                 '--cc-swatch-color': fgParsed ? rgbToCss(fgParsed) : 'transparent',
               }}
-              aria-hidden="true"
             >
               <input
                 type="color"
@@ -173,6 +182,7 @@ function ContrastCheckerContent() {
                   setFg(e.target.value);
                 }}
                 aria-label="Foreground color picker"
+                tabIndex={-1}
               />
             </span>
           </div>
@@ -207,7 +217,6 @@ function ContrastCheckerContent() {
               style={{
                 '--cc-swatch-color': bgParsed ? rgbToCss(bgParsed) : 'transparent',
               }}
-              aria-hidden="true"
             >
               <input
                 type="color"
@@ -218,6 +227,7 @@ function ContrastCheckerContent() {
                   setBg(e.target.value);
                 }}
                 aria-label="Background color picker"
+                tabIndex={-1}
               />
             </span>
           </div>

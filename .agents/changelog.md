@@ -14,6 +14,12 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-07 - Contrast Checker review-round-1 fixes (S1-S8)
+**What changed:** S1: removed `aria-hidden` from swatch spans, added `tabIndex={-1}` on picker inputs to fix ghost keyboard focus. S2: lifted `parseColor`, `relativeLuminance`, `contrastRatio`, `compositeOver`, `rgbToHex`, `rgbToCss` to `src/lib/color.js`; `utils.js` now re-exports; full unit tests in `src/lib/color.test.js`. S3+S5: extended rgb regex to accept percentage channels and percentage alpha. S4: added tests for 4-digit hex, percentage rgb, space-syntax with percent alpha. S6: `Grade` shows neutral `—` state instead of Fail when ratio is 0 (no valid input); added `cc-grade--neutral` CSS. S7: JSDoc on `parseColor` noting rgb channel clamping. S8: inline comment on WCAG-2.x `0.03928` threshold constant. S9 deferred: `useAutoSave` gates on `dirtyRef`, so `markDirty()` calls in `onChange` handlers are required for persistence.
+**Why:** Review-round-1 findings — accessibility blocker, shared-lib lift for reuse by future Color Palette tool, improved color parsing coverage.
+**Impact:** 38 tests pass (12 page + 6 utils smoke + 26 lib). ESLint clean.
+**Files changed:** `src/lib/color.js` (new), `src/lib/color.test.js` (new), `src/app/contrast-checker/utils.js`, `src/app/contrast-checker/utils.test.js`, `src/app/contrast-checker/page.js`, `src/app/contrast-checker/contrast-checker.css`.
+
 ## 2026-05-07 - Add `/contrast-checker` (WCAG color contrast)
 **What changed:** New `/contrast-checker` route. Foreground + background → WCAG contrast ratio + AA/AAA pass/fail for normal and large text.
 - **Math (`utils.js`):** `parseColor` accepts hex (3/4/6/8 digit), `rgb()`, `rgba()`, `hsl()`, `hsla()`. `relativeLuminance` per WCAG 2.x sRGB formula. `contrastRatio` returns the canonical `(L1+0.05)/(L2+0.05)` value. `compositeOver` blends a semi-transparent foreground onto the background so the contrast figure reflects what the user sees. `rgbToHex`, `rgbToCss` helpers.

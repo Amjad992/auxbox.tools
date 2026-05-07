@@ -197,6 +197,10 @@
   color: #ff8b80;
 }
 
+.cc-grade--neutral .cc-grade-status {
+  color: var(--text-secondary);
+}
+
 .cc-actions {
   display: flex;
   flex-wrap: wrap;
