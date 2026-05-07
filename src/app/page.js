@@ -201,6 +201,14 @@ const TOOLS = [
       'Live regex match highlighting + capture-group display. JS regex flags, common-pattern presets (email, URL, IPv4, hex color, ISO date).',
     cta: 'Open tool',
   },
+  {
+    href: '/timezone-converter',
+    icon: '🌐',
+    name: 'Time Zone Converter',
+    description:
+      'One anchor moment, many zones. Pick a date/time + source zone, see the same instant in any number of others. Add up to 12 zones; reorder with up/down.',
+    cta: 'Open tool',
+  },
 ];
 
 export default function Home() {

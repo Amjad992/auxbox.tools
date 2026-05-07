@@ -14,6 +14,19 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-07 - Add `/timezone-converter` (multi-zone clock)
+**What changed:** New `/timezone-converter` route. One anchor moment + zone → same instant rendered in N target zones.
+- **Math (`utils.js`):** Luxon-based `parseLocalInput`, `toLocalInput`, `reZone`, `buildZoneRow` (returns `{formatted, offsetLabel, abbreviation, weekday}`), `nowInZone`. 10 unit tests.
+- **UI:** datetime-local input + zone select for the anchor; Now button. Per-target row with formatted time, weekday, offset, IANA abbreviation. Up/down reorder + remove. Add picker excludes already-added zones + the anchor. 20 zones in the curated list. Cap MAX_TARGETS = 12.
+- **Persistence:** `timezone_converter_state` stores `{anchorZone, targets[]}`. Validator strict-keys, integer/zone whitelist on every entry, ≤ MAX_TARGETS length cap.
+- **6 page tests** for default render, Add appends, Remove deletes, Now sets anchor, persistence round-trip, Reset.
+- **Home tile:** 🌐 "Time Zone Converter".
+**Why:** Build-queue item #11. Remote-work staple. Zero new deps; Luxon already in the project.
+**Impact:** No new dependencies. 16 new tests, all green.
+**Files changed:** `src/app/timezone-converter/` (new directory); `src/app/page.js`; `src/app/sitemap.js`.
+
+---
+
 ## 2026-05-07 - Add `/regex-tester` (live regex match highlighting + capture groups)
 **What changed:** New `/regex-tester` route. Pattern + flags + test text → live match highlighting and capture-group display.
 - **Math (`utils.js`):** `compileRegex(pattern, flags)`, `findMatches(regex, text)` (zero-width-loop guard, named-group capture), `buildHighlightSegments(text, matches)`. 15 unit tests.
