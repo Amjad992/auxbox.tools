@@ -46,9 +46,16 @@
 }
 
 .ic2-formats {
+  border: 0;
+  padding: 0;
+  margin: 0;
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+}
+
+.ic2-formats legend {
+  padding: 0;
 }
 
 .ic2-format-button {

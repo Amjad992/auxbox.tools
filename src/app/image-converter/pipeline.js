@@ -4,15 +4,20 @@
 // at the requested MIME via `canvas.toBlob`. No DOM mounting, no React
 // state. Everything stays on the user's device.
 
+import {ERR_DECODE} from './constants';
 import {
-  ERR_DECODE,
-  ERR_ENCODE,
+  canvasToBlob,
+  isSupportedImage,
   JPEG_MIME,
   MAX_PIXELS,
+  mimeForFile,
   PNG_MIME,
-  SUPPORTED_INPUT_TYPES,
   WEBP_MIME,
-} from './constants';
+} from '../../lib/image';
+
+// Re-export helpers so existing tests and page.js can import from ./pipeline
+// without touching their import paths.
+export {isSupportedImage, mimeForFile};
 
 /**
  * Convert an image to a different MIME.
@@ -32,83 +37,64 @@ export async function convertImage(file, options = {}) {
   if (!target || ![JPEG_MIME, PNG_MIME, WEBP_MIME].includes(target)) {
     throw new Error(`Invalid target format: ${target || 'unset'}`);
   }
+  // S7: quality guard — floor at 0.1 to match the slider minimum.
   const quality =
     typeof options.quality === 'number' &&
-    options.quality > 0 &&
+    options.quality >= 0.1 &&
     options.quality <= 1
       ? options.quality
       : 0.9;
 
   let bitmap;
   try {
-    bitmap = await createImageBitmap(file);
+    // S11: pass imageOrientation so EXIF-rotated JPEGs decode correctly.
+    bitmap = await createImageBitmap(file, {imageOrientation: 'from-image'});
   } catch {
     throw new Error(ERR_DECODE);
   }
 
-  if (bitmap.width * bitmap.height > MAX_PIXELS) {
+  // S12: capture dimensions before close() so the error message is safe.
+  const bw = bitmap.width;
+  const bh = bitmap.height;
+  if (bw * bh > MAX_PIXELS) {
     bitmap.close();
     throw new Error(
-      `Image dimensions (${bitmap.width}×${bitmap.height}) exceed the safe limit (${Math.round(MAX_PIXELS / 1_000_000)} MP).`
+      `Image dimensions (${bw}×${bh}) exceed the safe limit (${Math.round(MAX_PIXELS / 1_000_000)} MP).`
     );
   }
 
+  // S3: wrap the canvas/draw block in try/finally to guarantee bitmap.close()
+  // even if ctx.fillRect or ctx.drawImage throws synchronously.
   const canvas = document.createElement('canvas');
-  canvas.width = bitmap.width;
-  canvas.height = bitmap.height;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) {
+  canvas.width = bw;
+  canvas.height = bh;
+  try {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      throw new Error('Could not get a 2D canvas context.');
+    }
+    // For JPEG/WebP from a transparent PNG, paint a white background to
+    // avoid weird black fill in unsupported alpha cases. For PNG output,
+    // preserve transparency.
+    if (target !== PNG_MIME) {
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+    ctx.drawImage(bitmap, 0, 0);
+  } finally {
     bitmap.close();
-    throw new Error('Could not get a 2D canvas context.');
   }
-  // For JPEG/WebP from a transparent PNG, paint a white background to
-  // avoid weird black fill in unsupported alpha cases. For PNG output,
-  // preserve transparency.
-  if (target !== PNG_MIME) {
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-  }
-  ctx.drawImage(bitmap, 0, 0);
-  bitmap.close();
 
+  // S2: canvasToBlob rejects on null — no post-call null-check needed.
   const blob = await canvasToBlob(
     canvas,
     target,
     target === PNG_MIME ? undefined : quality
   );
-  if (!blob) {
-    throw new Error(`${ERR_ENCODE} (${target})`);
-  }
   return {
     blob,
     mimeType: target,
     width: canvas.width,
     height: canvas.height,
   };
-}
-
-function canvasToBlob(canvas, type, quality) {
-  return new Promise((resolve, reject) => {
-    try {
-      canvas.toBlob((blob) => resolve(blob), type, quality);
-    } catch (err) {
-      reject(err);
-    }
-  });
-}
-
-/** Resolve a File's MIME, falling back to extension. */
-export function mimeForFile(file) {
-  if (!file) return '';
-  if (file.type) return file.type;
-  const name = (file.name || '').toLowerCase();
-  if (name.endsWith('.jpg') || name.endsWith('.jpeg')) return JPEG_MIME;
-  if (name.endsWith('.png')) return PNG_MIME;
-  if (name.endsWith('.webp')) return WEBP_MIME;
-  return '';
-}
-
-/** Is this file's MIME one of the supported input types? */
-export function isSupportedImage(file) {
-  return SUPPORTED_INPUT_TYPES.includes(mimeForFile(file));
 }

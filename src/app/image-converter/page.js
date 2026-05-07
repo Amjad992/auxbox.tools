@@ -10,6 +10,7 @@ import {useToast} from '../../hooks/useToast';
 import {useAutoSave} from '../../hooks/useAutoSave';
 import {useHydrateStorage} from '../../hooks/useHydrateStorage';
 import {formatBytes, formatPercent} from '../../lib/format';
+import {extensionForMime, savingsPct as calcSavingsPct} from '../../lib/image';
 import {StorageProvider, useStorageData} from './StorageContext';
 import {
   ACCEPT_ATTR,
@@ -35,10 +36,6 @@ const SCHEMA = {
   operatingSystem: 'Any',
   offers: {'@type': 'Offer', price: '0', priceCurrency: 'USD'},
 };
-
-function extensionFor(mime) {
-  return TARGET_OPTIONS.find((t) => t.value === mime)?.extension || 'bin';
-}
 
 function ImageConverterContent() {
   const {toasts, showToast, dismissToast} = useToast();
@@ -111,7 +108,7 @@ function ImageConverterContent() {
     const a = document.createElement('a');
     a.href = url;
     const stem = (file?.name || 'image').replace(/\.[^/.]+$/, '');
-    a.download = `${stem}.${extensionFor(result.mimeType)}`;
+    a.download = `${stem}.${extensionForMime(result.mimeType)}`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -148,7 +145,7 @@ function ImageConverterContent() {
 
   const savingsPct = useMemo(() => {
     if (!result || !file) return null;
-    return ((file.size - result.blob.size) / file.size) * 100;
+    return calcSavingsPct(file.size, result.blob.size);
   }, [file, result]);
 
   const showQualitySlider = target !== PNG_MIME;
@@ -250,7 +247,7 @@ function ImageConverterContent() {
                   variant="primary"
                   onClick={handleConvert}
                   disabled={busy}
-                  aria-label="Convert and produce result"
+                  aria-busy={busy}
                 >
                   {busy ? 'Converting…' : 'Convert'}
                 </Button>
@@ -262,40 +259,42 @@ function ImageConverterContent() {
                   Download
                 </Button>
               </div>
-              {result && (
-                <div className="ic2-result" aria-live="polite">
-                  <div className="ic2-result-row ic2-result-row--muted">
-                    <span>Source</span>
-                    <span className="ic2-result-amount">
-                      {formatBytes(file.size)} · {sourceMime}
-                    </span>
-                  </div>
-                  <div className="ic2-result-row">
-                    <span>Output</span>
-                    <span className="ic2-result-amount">
-                      {formatBytes(result.blob.size)} · {result.mimeType} ·{' '}
-                      {result.width}×{result.height}
-                    </span>
-                  </div>
-                  {savingsPct != null && (
+              <div className="ic2-result-region" aria-live="polite" aria-atomic="true">
+                {result && (
+                  <div className="ic2-result">
                     <div className="ic2-result-row ic2-result-row--muted">
-                      <span>Size change</span>
-                      <span
-                        className={`ic2-savings${
-                          savingsPct < 0 ? ' ic2-savings--negative' : ''
-                        }`}
-                      >
-                        {formatPercent(savingsPct)}
+                      <span>Source</span>
+                      <span className="ic2-result-amount">
+                        {formatBytes(file.size)} · {sourceMime}
                       </span>
                     </div>
-                  )}
-                </div>
-              )}
-              {error && (
-                <p className="ic2-error" role="alert">
-                  {error}
-                </p>
-              )}
+                    <div className="ic2-result-row">
+                      <span>Output</span>
+                      <span className="ic2-result-amount">
+                        {formatBytes(result.blob.size)} · {result.mimeType} ·{' '}
+                        {result.width}×{result.height}
+                      </span>
+                    </div>
+                    {savingsPct != null && (
+                      <div className="ic2-result-row ic2-result-row--muted">
+                        <span>Size change</span>
+                        <span
+                          className={`ic2-savings${
+                            savingsPct < 0 ? ' ic2-savings--negative' : ''
+                          }`}
+                        >
+                          {formatPercent(savingsPct)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+                {error && (
+                  <p className="ic2-error" role="alert">
+                    {error}
+                  </p>
+                )}
+              </div>
             </>
           )}
         </Card>

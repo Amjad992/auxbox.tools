@@ -4,6 +4,11 @@ import {
   SUPPORTED_INPUT_TYPES,
   WEBP_MIME,
 } from './constants';
+import {
+  extensionForMime as _extensionForMime,
+  mimeForFile as _mimeForFile,
+  savingsPct as _savingsPct,
+} from '../../lib/image';
 
 /**
  * Compute target dimensions preserving aspect ratio.
@@ -34,35 +39,8 @@ export function computeTargetDimensions(srcW, srcH, maxW, maxH) {
   return {width, height};
 }
 
-/**
- * Savings percentage from `original` → `compressed`. Returns 0 when input is
- * invalid or original is zero. Negative savings (compressed bigger than
- * original) are returned as a negative percentage so the UI can flag them.
- */
-export function savingsPct(originalBytes, compressedBytes) {
-  if (
-    !Number.isFinite(originalBytes) ||
-    !Number.isFinite(compressedBytes) ||
-    originalBytes <= 0
-  ) {
-    return 0;
-  }
-  return ((originalBytes - compressedBytes) / originalBytes) * 100;
-}
-
-/**
- * Determine the effective input MIME type for a File. Some browsers leave
- * `file.type` blank; in that case fall back to the extension.
- */
-export function mimeForFile(file) {
-  if (!file) return '';
-  if (file.type) return file.type;
-  const name = (file.name || '').toLowerCase();
-  if (name.endsWith('.jpg') || name.endsWith('.jpeg')) return JPEG_MIME;
-  if (name.endsWith('.png')) return PNG_MIME;
-  if (name.endsWith('.webp')) return WEBP_MIME;
-  return '';
-}
+// Re-exported from src/lib/image.js — the canonical definitions live there.
+export {_savingsPct as savingsPct, _mimeForFile as mimeForFile};
 
 /**
  * Decide the output MIME for a given input + user options.
@@ -86,21 +64,8 @@ export function outputMimeFor(inputMime, options = {}) {
   }
 }
 
-/**
- * Map a MIME type to an extension for downloaded filenames.
- */
-export function extensionForMime(mime) {
-  switch (mime) {
-    case JPEG_MIME:
-      return 'jpg';
-    case PNG_MIME:
-      return 'png';
-    case WEBP_MIME:
-      return 'webp';
-    default:
-      return 'bin';
-  }
-}
+// Re-exported from src/lib/image.js.
+export {_extensionForMime as extensionForMime};
 
 /**
  * Build a download filename: original basename + suffix + new extension.
@@ -108,7 +73,7 @@ export function extensionForMime(mime) {
  */
 export function buildOutputFilename(originalName, outputMime) {
   const base = (originalName || 'image').replace(/\.[^/.]+$/, '');
-  return `${base}-compressed.${extensionForMime(outputMime)}`;
+  return `${base}-compressed.${_extensionForMime(outputMime)}`;
 }
 
 /**

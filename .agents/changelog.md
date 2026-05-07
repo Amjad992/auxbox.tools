@@ -14,6 +14,26 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-07 - Image Converter review-round-1 fixes (S1-S12)
+**What changed:** Applied 12 fixes from the review round on `feat/image-converter`:
+- **S1 — Shared lib:** Created `src/lib/image.js` with `JPEG_MIME`, `PNG_MIME`, `WEBP_MIME`, `SUPPORTED_INPUT_TYPES`, `MAX_PIXELS`, `mimeForFile`, `isSupportedImage`, `extensionForMime`, `savingsPct`, `canvasToBlob`. Added `src/lib/image.test.js` (19 tests). Migrated `image-compressor/utils.js` and `image-converter/pipeline.js` to import from lib.
+- **S2 — `canvasToBlob` rejects on null:** Updated `canvasToBlob` in lib to reject with a descriptive error instead of resolving `null`. Removed now-redundant null check from `convertImage`.
+- **S3 — `bitmap.close()` in try/finally:** Wrapped canvas/draw block in `try/finally` so bitmap is always released even if `ctx.fillRect`/`ctx.drawImage` throws.
+- **S4 — Always-mounted aria-live region:** Replaced conditional `{result && <div aria-live="polite">}` with a persistent `<div className="ic2-result-region" aria-live="polite" aria-atomic="true">` wrapping both result and error branches.
+- **S5 — Real `convertImage` tests:** Added 5 new tests to `pipeline.test.js`: happy path, pixel-cap with `bitmap.close()` spy, decode failure, null blob rejection, white-fill presence/absence for JPEG vs PNG target.
+- **S6 — Align MAX_PIXELS to 60 MP:** Single canonical `MAX_PIXELS = 60_000_000` in `src/lib/image.js`. `image-compressor/constants.js` re-exports it. Updated compressor's pipeline test (was hard-coding 64 MP and using a 63.9 MP boundary bitmap that would now exceed 60 MP).
+- **S7 — Quality guard floor at 0.1:** Changed `quality > 0` to `quality >= 0.1` to match slider minimum.
+- **S8 — Use lib helpers in `page.js`:** Removed local `extensionFor` function; replaced inline `savingsPct` calc with `calcSavingsPct` from lib.
+- **S9 — Dynamic aria-label:** Removed static `aria-label="Convert and produce result"`; added `aria-busy={busy}` so AT users hear the loading state from visible text.
+- **S10 — Fieldset CSS reset:** Added `border: 0; padding: 0; margin: 0;` + `legend { padding: 0 }` to `.ic2-formats` to suppress browser defaults.
+- **S11 — EXIF orientation:** Passed `{imageOrientation: 'from-image'}` to `createImageBitmap` so EXIF-rotated JPEGs render correctly.
+- **S12 — Capture dimensions before `bitmap.close()`:** Store `bw`/`bh` before closing in the pixel-cap error path so the error message is safe per spec.
+**Why:** Review-round correctness, accessibility, and reuse-first compliance.
+**Impact:** 76 tests across lib + both image tools, all green. ESLint clean.
+**Files changed:** `src/lib/image.js` (new), `src/lib/image.test.js` (new), `src/app/image-converter/pipeline.js`, `src/app/image-converter/pipeline.test.js`, `src/app/image-converter/page.js`, `src/app/image-converter/image-converter.css`, `src/app/image-compressor/utils.js`, `src/app/image-compressor/constants.js`, `src/app/image-compressor/pipeline.test.js`.
+
+---
+
 ## 2026-05-07 - Add `/image-converter` (PNG ↔ JPEG ↔ WebP)
 **What changed:** New `/image-converter` route. Drop a single PNG/JPEG/WebP, pick a target format, optionally tune quality, convert and download.
 - **Math (`pipeline.js`):** `convertImage(file, {target, quality})` decodes via `createImageBitmap`, paints to a `<canvas>` (with white fill for non-PNG targets so transparent PNG → JPEG/WebP doesn't go black), encodes via `canvas.toBlob`. Pixel-cap at 60 MP. `mimeForFile` + `isSupportedImage` helpers. 5 unit tests for the helpers.

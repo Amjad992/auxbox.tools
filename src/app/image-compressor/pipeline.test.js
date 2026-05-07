@@ -11,7 +11,7 @@ describe('compressImage', () => {
       const closeSpy = vi.fn();
       const bigBitmap = {
         width: 9000,
-        height: 9000, // 81,000,000 > MAX_PIXELS (64,000,000)
+        height: 9000, // 81,000,000 > MAX_PIXELS (60,000,000)
         close: closeSpy,
       };
 
@@ -29,10 +29,10 @@ describe('compressImage', () => {
     });
 
     it('does not throw when decoded pixels are within MAX_PIXELS', async () => {
-      // Use a bitmap exactly at the boundary (just under).
+      // Use a bitmap clearly within the 60 MP cap.
       const smallBitmap = {
-        width: 8000,
-        height: 7999, // 63,992,000 < 64,000,000
+        width: 7500,
+        height: 7500, // 56,250,000 < 60,000,000
         close: vi.fn(),
       };
 
@@ -52,7 +52,7 @@ describe('compressImage', () => {
 
     it('MAX_PIXELS is exported from constants', () => {
       expect(typeof MAX_PIXELS).toBe('number');
-      expect(MAX_PIXELS).toBe(64_000_000);
+      expect(MAX_PIXELS).toBe(60_000_000);
     });
   });
 

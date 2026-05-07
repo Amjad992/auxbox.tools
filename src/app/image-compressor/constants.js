@@ -5,10 +5,9 @@
 // compress in a browser, and well under typical mobile RAM headroom.
 export const MAX_FILE_BYTES = 25 * 1024 * 1024;
 
-// Hard decoded-pixel cap (MAJ-1): a small file with extreme pixel dimensions
-// can still OOM the tab. 64 MP (~8000×8000) is well above any reasonable
-// photo while still protecting against pathological inputs.
-export const MAX_PIXELS = 64_000_000;
+// Re-exported from src/lib/image.js — canonical value is 60 MP (shared with
+// image-converter so both tools treat the same image consistently).
+export {MAX_PIXELS} from '../../lib/image';
 
 export const MIN_QUALITY = 0.1;
 export const MAX_QUALITY = 1.0;
