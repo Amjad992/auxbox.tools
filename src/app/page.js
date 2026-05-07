@@ -153,6 +153,14 @@ const TOOLS = [
       'Generate UUID v4 (random) or UUID v7 (timestamp-ordered) in bulk. Per-row copy, copy-all, download .txt. Browser-only.',
     cta: 'Open tool',
   },
+  {
+    href: '/json-formatter',
+    icon: '🧬',
+    name: 'JSON Formatter',
+    description:
+      'Pretty-print, minify, and validate JSON with line/column error reporting. Sort keys, pick the indent. Runs entirely in your browser.',
+    cta: 'Open tool',
+  },
 ];
 
 export default function Home() {

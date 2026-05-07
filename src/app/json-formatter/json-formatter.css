@@ -1,0 +1,83 @@
+/* JSON Formatter — local styles. */
+
+.jf-card-title {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.jf-card-hint {
+  margin: 0 0 0.6rem;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.jf-textarea-input,
+.jf-textarea-output {
+  min-height: 240px;
+}
+
+.jf-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: end;
+  margin-bottom: 0.75rem;
+}
+
+.jf-control {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.jf-toggle-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+
+.jf-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.jf-toggle input {
+  accent-color: var(--primary-color);
+}
+
+.jf-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+.jf-error {
+  margin: 0.6rem 0 0;
+  padding: 0.6rem 0.85rem;
+  background: rgba(231, 76, 60, 0.10);
+  border: 1px solid rgba(231, 76, 60, 0.4);
+  color: #ff8b80;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas,
+      monospace);
+  white-space: pre-wrap;
+}
+
+.jf-success {
+  margin: 0.6rem 0 0;
+  padding: 0.6rem 0.85rem;
+  background: rgba(80, 200, 120, 0.08);
+  border: 1px solid rgba(80, 200, 120, 0.3);
+  color: #6fcf97;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}

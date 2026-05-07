@@ -14,6 +14,19 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-07 - Add `/json-formatter` (pretty-print, minify, validate)
+**What changed:** New `/json-formatter` route. Paste JSON → pretty-print, minify, or validate. Inline error reporting (line/column when the host engine exposes it). Sort-keys-alphabetically toggle, indent picker (2 / 4 / tab), live-format toggle.
+- **Math (`utils.js`):** `formatJson`, `minifyJson`, `validateJson`, `sortObjectKeys`, `locateJsonError`. Pure helpers; 16 unit tests cover indent variants, sort-keys (flat + nested + arrays-preserved), parse-error reporting, empty-input rejection, and minify-strips-whitespace round-trip. Modern Node V8 dropped "position N" from `JSON.parse` errors; the locator now best-effort-degrades to null when no position is exposed (the error message itself is the load-bearing surface).
+- **UI:** mode toggle (Format / Minify), indent select (only in Format mode), Sort-keys checkbox, Live checkbox, input + output textareas (shared `.tool-textarea`), inline error/success status, Copy + "Use as input" actions.
+- **Persistence:** `json_formatter_state` stores only `{mode, indent, sortKeys, liveFormat}`; the input text is **never persisted** (could be sensitive — same posture as hash-generator). Validator strict-keys.
+- **8 page tests:** default render, live-format pretty-prints, malformed JSON shows inline alert, Minify mode produces single-line output, sort-keys alphabetises, settings persist across remount, Clear wipes everything, "Use as input" round-trip with re-format.
+- **Home tile:** 🧬 "JSON Formatter". Sitemap entry priority 0.9.
+**Why:** Build-queue item #5 from the autonomous backlog run. Privacy story: every major free JSON formatter uploads input data; this one doesn't.
+**Impact:** No new dependencies. 24 new tests, all green. Reuses every shared primitive.
+**Files changed:** `src/app/json-formatter/` (new directory: `constants.js`, `utils.js`, `utils.test.js`, `storageUtils.js`, `StorageContext.js`, `layout.js`, `page.js`, `page.test.jsx`, `json-formatter.css`); `src/app/page.js`; `src/app/sitemap.js`.
+
+---
+
 ## 2026-05-07 - UUID Generator review-round-1 fixes (S1–S4)
 **What changed:** Applied 4 fixes from the general review round on `feat/uuid-generator`. Round folder: `playground/reviews/review-rounds/general/2026-05-07-uuid-generator/`. Reviewers: Opus subagent (11 findings, 2 major), CodeRabbit (clean), Copilot (skipped — coordinator proceeded with Opus + CR per "let's have finished" pace).
 
