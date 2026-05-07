@@ -21,19 +21,32 @@ describe('resolveZone', () => {
 
 describe('parseLocalInput', () => {
   it('parses an ISO local string in the given zone', () => {
-    const dt = parseLocalInput('2024-06-15T10:30', 'Europe/Berlin');
-    expect(dt).not.toBeNull();
-    expect(dt.zoneName).toBe('Europe/Berlin');
-    expect(dt.year).toBe(2024);
-    expect(dt.month).toBe(6);
-    expect(dt.hour).toBe(10);
-    expect(dt.minute).toBe(30);
+    const r = parseLocalInput('2024-06-15T10:30', 'Europe/Berlin');
+    expect(r).not.toBeNull();
+    expect(r.dt.zoneName).toBe('Europe/Berlin');
+    expect(r.dt.year).toBe(2024);
+    expect(r.dt.month).toBe(6);
+    expect(r.dt.hour).toBe(10);
+    expect(r.dt.minute).toBe(30);
+    expect(r.normalized).toBe(false);
+    expect(r.normalizedTo).toBeNull();
   });
 
   it('returns null for empty/whitespace/garbage', () => {
     expect(parseLocalInput('', 'utc')).toBeNull();
     expect(parseLocalInput('  ', 'utc')).toBeNull();
     expect(parseLocalInput('not-a-date', 'utc')).toBeNull();
+  });
+
+  it('detects spring-forward DST gap (America/New_York 2024-03-10T02:30)', () => {
+    // 2024-03-10: clocks spring forward from 02:00 to 03:00 in New York.
+    // 02:30 does not exist — Luxon silently advances to 03:30.
+    const r = parseLocalInput('2024-03-10T02:30', 'America/New_York');
+    expect(r).not.toBeNull();
+    expect(r.normalized).toBe(true);
+    expect(r.normalizedTo).toBe('2024-03-10T03:30');
+    expect(r.dt.hour).toBe(3);
+    expect(r.dt.minute).toBe(30);
   });
 });
 

@@ -14,6 +14,26 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-07 - Timezone Converter review-round-1 fixes (S1-S12)
+**What changed:** Applied all 12 review findings to `src/app/timezone-converter/` and lifted shared zone data to `src/lib/timezones.js`.
+- **S1:** Lifted `ZONE_OPTIONS` / `ZONE_VALUES` to `src/lib/timezones.js` (20-entry canonical list). `Asia/Riyadh` label updated to `(AST · Arabia)` (disambiguation). Both `timezone-converter` and `timestamp-converter` constants now import from the lib. Timestamp-converter spreads `ZONE_LOCAL` special before the shared list; gains 6 zones (Denver, Sao Paulo, Lagos, Cairo, Hong Kong, Auckland). Added `src/lib/timezones.test.js` (5 tests: count, shape, no-dupes, Arabia label).
+- **S2:** Removed `.tz-field`, `.tz-field-label`, `.tz-field-input`, `.tz-field-input:focus` from `timezone-converter.css`. Page now uses shared `tool-field`, `tool-field-label`, `tool-field-input`.
+- **S3:** `parseLocalInput` now returns `{dt, normalized, normalizedTo}` instead of a bare DateTime. Callers updated. Spring-forward DST gap renders inline hint "Spring-forward DST gap — interpreted as `<time>`". Utils tests updated to use `r.dt`. Added spring-forward test for `America/New_York 2024-03-10T02:30`.
+- **S4:** `handleAnchorZoneChange` clears `pickerZone` when it matches the new anchor; removes the zone from `targets` if the user picks a target as the anchor. Added 2 page tests.
+- **S5:** "Target zones" card heading changed from `<div>` to `<h2>`.
+- **S6:** Remove button gains `aria-label={`Remove ${label}`}` to match Up/Down pattern.
+- **S7:** Empty-state `<p>` gains `role="status"` and `aria-live="polite"`.
+- **S8:** Added `@media (max-width: 380px)` breakpoint: `.tz-target-row` stacks to 1 column, `.tz-target-actions` aligns to flex-end.
+- **S9:** Added 3 new page tests: empty-state when all targets removed; MAX_TARGETS cap disables picker + shows hint; S4 collision tests.
+- **S10:** Inline `<p className="tz-hint">Maximum N zones reached.</p>` rendered when at cap. Added `.tz-hint` CSS.
+- **S11:** "Remove deletes a target row" test now queries by accessible name `getByRole('button', {name: /Remove America\/New_York/i})`.
+- **S12:** Persistence test uses `loadFromLocalStorage` from `src/lib/storage`; picks `Europe/Berlin` (not in DEFAULT_TARGETS).
+**Why:** Review-round findings on code reuse (S1, S2), DST correctness (S3), state collision bug (S4), a11y (S5, S6, S7), mobile (S8), test quality (S9, S11, S12), UX (S10).
+**Impact:** 21 timezone-converter page tests + 11 utils tests + 5 lib tests = 37 new tests. 1165 total in repo, all green. No new dependencies.
+**Files changed:** `src/lib/timezones.js` (new), `src/lib/timezones.test.js` (new), `src/app/timezone-converter/constants.js`, `src/app/timezone-converter/utils.js`, `src/app/timezone-converter/utils.test.js`, `src/app/timezone-converter/page.js`, `src/app/timezone-converter/page.test.jsx`, `src/app/timezone-converter/timezone-converter.css`, `src/app/timestamp-converter/constants.js`.
+
+---
+
 ## 2026-05-07 - Add `/timezone-converter` (multi-zone clock)
 **What changed:** New `/timezone-converter` route. One anchor moment + zone → same instant rendered in N target zones.
 - **Math (`utils.js`):** Luxon-based `parseLocalInput`, `toLocalInput`, `reZone`, `buildZoneRow` (returns `{formatted, offsetLabel, abbreviation, weekday}`), `nowInZone`. 10 unit tests.

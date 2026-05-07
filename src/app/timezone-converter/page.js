@@ -68,10 +68,12 @@ function TimezoneConverterContent() {
     debounceMs: STATE_AUTOSAVE_DEBOUNCE_MS,
   });
 
-  const anchorDt = useMemo(
+  const anchorResult = useMemo(
     () => parseLocalInput(anchorInput, anchorZone),
     [anchorInput, anchorZone]
   );
+  // Convenience: the DateTime (or null) extracted from the richer result object.
+  const anchorDt = anchorResult ? anchorResult.dt : null;
 
   const handleAnchorZoneChange = (next) => {
     markDirty();
@@ -79,6 +81,13 @@ function TimezoneConverterContent() {
     if (anchorDt) {
       const inNewZone = anchorDt.setZone(resolveZone(next));
       setAnchorInput(toLocalInput(inNewZone));
+    }
+    // S4: clear stale pickerZone when it matches the new anchor zone.
+    if (pickerZone === next) setPickerZone('');
+    // S4: remove from targets if the user picks an existing target as the anchor.
+    if (targets.includes(next)) {
+      markDirty();
+      setTargets((prev) => prev.filter((z) => z !== next));
     }
     setAnchorZone(next);
   };
@@ -140,9 +149,9 @@ function TimezoneConverterContent() {
   );
 
   const isValidAnchor = anchorDt !== null;
-  const anchorAbbr = anchorDt
-    ? anchorDt.toFormat('ZZZZ')
-    : '';
+  const anchorAbbr = anchorDt ? anchorDt.toFormat('ZZZZ') : '';
+  const dstNormalized = anchorResult?.normalized ?? false;
+  const dstNormalizedTo = anchorResult?.normalizedTo ?? null;
 
   return (
     <ToolPage
@@ -158,21 +167,21 @@ function TimezoneConverterContent() {
         <Card>
           <h2 className="tz-card-title">Anchor moment</h2>
           <div className="tz-anchor-row">
-            <div className="tz-field">
-              <label htmlFor="tz-anchor-time" className="tz-field-label">
+            <div className="tool-field">
+              <label htmlFor="tz-anchor-time" className="tool-field-label">
                 Local date/time
               </label>
               <input
                 id="tz-anchor-time"
                 type="datetime-local"
-                className="tz-field-input"
+                className="tool-field-input"
                 value={anchorInput}
                 onChange={(e) => setAnchorInput(e.target.value)}
               />
             </div>
 
-            <div className="tz-field">
-              <label htmlFor="tz-anchor-zone" className="tz-field-label">
+            <div className="tool-field">
+              <label htmlFor="tz-anchor-zone" className="tool-field-label">
                 Zone
               </label>
               <select
@@ -199,6 +208,12 @@ function TimezoneConverterContent() {
               Enter a valid date/time.
             </p>
           )}
+          {isValidAnchor && dstNormalized && (
+            <p className="tz-card-hint" style={{marginTop: '0.5rem'}} role="status" aria-live="polite">
+              Spring-forward DST gap — interpreted as{' '}
+              <code>{dstNormalizedTo}</code>.
+            </p>
+          )}
           {isValidAnchor && anchorAbbr && (
             <p className="tz-card-hint" style={{marginTop: '0.5rem'}}>
               Offset: <code>{anchorAbbr}</code>
@@ -207,9 +222,9 @@ function TimezoneConverterContent() {
         </Card>
 
         <Card>
-          <div className="tz-card-title">Target zones</div>
+          <h2 className="tz-card-title">Target zones</h2>
           {targets.length === 0 ? (
-            <p className="tz-empty">No target zones yet.</p>
+            <p className="tz-empty" role="status" aria-live="polite">No target zones yet.</p>
           ) : (
             <div className="tz-target-list">
               {targetRows.map((row, idx) => {
@@ -248,6 +263,7 @@ function TimezoneConverterContent() {
                       <Button
                         variant="neutral"
                         onClick={() => handleRemoveTarget(row.zone)}
+                        aria-label={`Remove ${label}`}
                       >
                         Remove
                       </Button>
@@ -281,6 +297,9 @@ function TimezoneConverterContent() {
               + Add
             </Button>
           </div>
+          {targets.length >= MAX_TARGETS && (
+            <p className="tz-hint">Maximum {MAX_TARGETS} zones reached.</p>
+          )}
         </Card>
 
         <div className="tz-actions">

@@ -26,37 +26,6 @@
   }
 }
 
-.tz-field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.tz-field-label {
-  color: var(--text-secondary);
-  font-size: 0.85rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-}
-
-.tz-field-input {
-  width: 100%;
-  background-color: #1f1f1f;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 10px 12px;
-  color: var(--text-primary);
-  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas,
-      monospace);
-  font-size: 0.95rem;
-  outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.tz-field-input:focus {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.15);
-}
 
 .tz-target-list {
   display: flex;
@@ -112,6 +81,15 @@
   flex-shrink: 0;
 }
 
+@media (max-width: 380px) {
+  .tz-target-row {
+    grid-template-columns: 1fr;
+  }
+  .tz-target-actions {
+    justify-content: flex-end;
+  }
+}
+
 .tz-add-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -126,6 +104,12 @@
   font-style: italic;
   font-size: 0.9rem;
   text-align: center;
+}
+
+.tz-hint {
+  margin: 0.4rem 0 0;
+  color: var(--text-light);
+  font-size: 0.85rem;
 }
 
 .tz-actions {

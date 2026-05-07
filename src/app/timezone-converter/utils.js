@@ -10,13 +10,28 @@ export function resolveZone(zone) {
 
 /**
  * Parse a "datetime-local"-shaped string ("2024-01-15T12:34") into a Luxon
- * DateTime in the given zone. Returns the DateTime or null when invalid.
+ * DateTime in the given zone.
+ *
+ * Returns null when the input is empty or invalid.
+ *
+ * Returns an object {dt, normalized, normalizedTo} when valid:
+ *   - dt          — the resulting DateTime
+ *   - normalized  — true if Luxon silently shifted the wall-clock time (spring-forward DST gap)
+ *   - normalizedTo — the adjusted time string ("yyyy-LL-dd'T'HH:mm"), or null when not normalized
+ *
+ * Note: fall-back ambiguity (fold, e.g. 2024-11-03T01:30 in America/New_York)
+ * is silently resolved to the pre-fold occurrence (first offset). This is
+ * Luxon's default behaviour. A future version may surface a disambiguation hint.
  */
 export function parseLocalInput(input, zone) {
   if (typeof input !== 'string' || input.trim() === '') return null;
   const z = resolveZone(zone);
   const dt = DateTime.fromISO(input, {zone: z});
-  return dt.isValid ? dt : null;
+  if (!dt.isValid) return null;
+  // Detect spring-forward gap: Luxon silently rolls forward to a valid moment.
+  const echoed = dt.toFormat("yyyy-LL-dd'T'HH:mm");
+  const normalized = echoed !== input;
+  return {dt, normalized, normalizedTo: normalized ? echoed : null};
 }
 
 /** Convert a DateTime to a value suitable for `<input type="datetime-local">`. */
