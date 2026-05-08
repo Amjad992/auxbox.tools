@@ -14,6 +14,24 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-08 - Exchange Rates: full tool (#15)
+**What changed:**
+- New tool at `/exchange-rates`: base currency + date + multi-target rate table with inline amount converter.
+- `src/app/exchange-rates/page.js` — 'use client' React page; base Combobox, DatePicker, target list, amount input, rate table with loading/error states. Session-storage cache (5 min TTL). Storage auto-save via `useAutoSave`. Date clamped to 2017-01-01 historical floor / today max.
+- `src/app/exchange-rates/layout.js` — metadata (title, description, OG, twitter, canonical).
+- `src/app/exchange-rates/constants.js` — API config, defaults, storage key/version, regexes.
+- `src/app/exchange-rates/storageUtils.js` — `validateExchangeRatesState` (permissive regex for currency codes, optional lastDate).
+- `src/app/exchange-rates/StorageContext.js` — via `createStorageContext`.
+- `src/app/exchange-rates/exchange-rates.css` — tool-specific layout only.
+- `src/app/exchange-rates/page.test.jsx` — 10 component tests (smoke, base change, add/remove target, amount conversion, error state, loading state, persistence, reset, empty state).
+- `src/app/page.js` — exchange-rates tile added to TOOLS array.
+- `src/app/sitemap.js` — `/exchange-rates` added.
+**Why:** New tool per plan `playground/roadmap/2026-05-08_00-30_exchange-rates/plan.md`.
+**Impact:** New route. No existing tool changed.
+**Files changed:** All `src/app/exchange-rates/` files (new), `src/app/page.js`, `src/app/sitemap.js`.
+
+---
+
 ## 2026-05-08 - Exchange Rates: forex.js lib + tests
 **What changed:**
 - New `src/lib/forex.js` — pure API helpers: `fetchRates(base, dateOrLatest, signal)` with 3-provider fallback chain (fawazahmed0/jsDelivr → fawazahmed0/Cloudflare → open.er-api for latest-only); `fetchCurrencyList(signal)` with module-scope cache; URL builders; normalizers for both API response shapes (lowercase fawazahmed0 → uppercase, open.er-api already uppercase). Boundary conversion using JS Date for open.er-api's RFC-2822-like timestamp string.

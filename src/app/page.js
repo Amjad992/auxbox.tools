@@ -233,6 +233,14 @@ const TOOLS = [
       'Upload an image → extract its dominant colors via median-cut quantization. Output as hex, RGB, or nearest Tailwind class.',
     cta: 'Open tool',
   },
+  {
+    href: '/exchange-rates',
+    icon: '💱',
+    name: 'Exchange Rates',
+    description:
+      'Look up live or historical currency exchange rates. Pick a base, a date, and any number of targets — see the rate table instantly. Browser-only, no API key.',
+    cta: 'Open tool',
+  },
 ];
 
 export default function Home() {

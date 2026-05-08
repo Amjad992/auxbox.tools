@@ -176,5 +176,11 @@ export default function sitemap() {
       changeFrequency: 'monthly',
       priority: 0.9,
     },
+    {
+      url: `${baseUrl}/exchange-rates`,
+      lastModified: new Date('2026-05-08'),
+      changeFrequency: 'daily',
+      priority: 0.9,
+    },
   ];
 }
