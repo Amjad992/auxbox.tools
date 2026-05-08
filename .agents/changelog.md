@@ -14,6 +14,16 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-08 - Exchange Rates: forex.js lib + tests
+**What changed:**
+- New `src/lib/forex.js` — pure API helpers: `fetchRates(base, dateOrLatest, signal)` with 3-provider fallback chain (fawazahmed0/jsDelivr → fawazahmed0/Cloudflare → open.er-api for latest-only); `fetchCurrencyList(signal)` with module-scope cache; URL builders; normalizers for both API response shapes (lowercase fawazahmed0 → uppercase, open.er-api already uppercase). Boundary conversion using JS Date for open.er-api's RFC-2822-like timestamp string.
+- New `src/lib/forex.test.js` — 19 tests covering URL builders, normalizers, happy paths, fallback chain, all-fail error, no-open-er-for-historical, currency-list caching, and Cloudflare fallback for list.
+**Why:** Lib-first so all API logic is pure, testable, and isolated from React.
+**Impact:** New shared lib. No existing code changed.
+**Files changed:** `src/lib/forex.js` (new), `src/lib/forex.test.js` (new).
+
+---
+
 ## 2026-05-07 - S4: Timezone search combobox + full IANA list
 **What changed:**
 - Extended `src/lib/timezones.js` with `getAllZones()` (full IANA list via `Intl.supportedValuesOf`, fallback to curated list) and `searchZones(query, limit)` (searches by IANA name, city segment, common abbreviations: GMT/UTC/BST/ET/EST/JST/etc., and region keywords: Eastern/Pacific/Japan/etc.). Ranking: exact > prefix > contains.
