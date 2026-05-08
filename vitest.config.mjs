@@ -22,5 +22,10 @@ export default defineConfig({
     include: ['src/**/*.{test,spec}.{js,jsx,ts,tsx}'],
     setupFiles: ['./vitest.setup.js'],
     passWithNoTests: true,
+    // 5s default trips intermittently when the suite runs all 100+ files in
+    // parallel — a few component tests do real keystroke simulation or wait
+    // on debounced storage writes. Bumped to 15s to absorb the load.
+    testTimeout: 15000,
+    hookTimeout: 15000,
   },
 });

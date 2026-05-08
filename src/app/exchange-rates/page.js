@@ -337,12 +337,16 @@ function ExchangeRatesContent() {
     if (!ratesResult) return [];
     return targets.map((code) => {
       const rate = ratesResult.rates[code];
+      const inverseRate = rate && rate !== 0 ? 1 / rate : null;
       return {
         code,
         name: nameOf(code),
         rate: rate ?? null,
-        converted: rate != null ? formatConverted(rate, amount) : null,
-        rateFormatted: rate != null ? formatRate(rate) : null,
+        // Forward: amount × base = ? target
+        forward: rate != null ? formatConverted(rate, amount) : null,
+        // Inverse: amount × target = ? base — printed inline so each row carries its own unit label.
+        inverseFormatted:
+          inverseRate != null ? formatConverted(inverseRate, amount) : null,
         unsupported: rate == null,
       };
     });
@@ -511,8 +515,8 @@ function ExchangeRatesContent() {
                   <tr>
                     <th scope="col">Code</th>
                     <th scope="col">Currency</th>
-                    <th scope="col">1 {base} =</th>
                     <th scope="col">{amount} {base} =</th>
+                    <th scope="col" className="er-th-inverse">Inverse</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -531,10 +535,12 @@ function ExchangeRatesContent() {
                         <td className="er-td-code">{row.code}</td>
                         <td className="er-td-name">{row.name}</td>
                         <td className="er-td-rate">
-                          {row.unsupported ? 'n/a' : row.rateFormatted}
+                          {row.unsupported ? 'n/a' : row.forward}
                         </td>
                         <td className="er-td-converted">
-                          {row.unsupported ? 'n/a' : row.converted}
+                          {row.unsupported
+                            ? 'n/a'
+                            : `${amount} ${row.code} = ${row.inverseFormatted} ${base}`}
                         </td>
                       </tr>
                     ))

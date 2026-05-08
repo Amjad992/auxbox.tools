@@ -469,9 +469,12 @@ describe('<WheelSpinner /> — Save button hard cap (MAJ-2)', () => {
     render(<WheelSpinner />);
     const saveBtn = screen.getByRole('button', {name: /^save$/i});
 
-    // Build 101 unique entries (1 over the cap of 100).
+    // 101 unique entries (1 over the cap of 100). Paste in one shot —
+    // user.type() simulates keystrokes and tips over the 5s vitest default
+    // when the runner is loaded with all suites in parallel.
     const entries = Array.from({length: 101}, (_, i) => `Entry${i + 1}`).join('\n');
-    await user.type(getEntriesTextarea(), entries);
+    await user.click(getEntriesTextarea());
+    await user.paste(entries);
 
     expect(screen.getByText(/maximum 100 entries/i)).toBeInTheDocument();
     expect(saveBtn).toBeDisabled();

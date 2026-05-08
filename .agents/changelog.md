@@ -14,6 +14,16 @@ Append-only log of structural or behavior changes future agents would need to kn
 
 ---
 
+## 2026-05-08 - Exchange Rates: inverse-rate column (round-1 fix)
+**What changed:**
+- Result table column 4 was a duplicate of column 3 at default amount=1; replaced with the inverse direction.
+- Col 3 header is now `{amount} {base} =` (forward, scales with amount). Col 4 header is `Inverse`; cell renders `{amount} {target} = Y {base}` inline so each row carries its own unit label.
+**Why:** User feedback after browser test — both columns showed the same number, defeating the table's purpose.
+**Impact:** Same five visible columns, but col 4 now answers "what's 1 PKR in USD?" without forcing the user to flip the base.
+**Files changed:** `src/app/exchange-rates/page.js`.
+
+---
+
 ## 2026-05-08 - Exchange Rates: full tool (#15)
 **What changed:**
 - New tool at `/exchange-rates`: base currency + date + multi-target rate table with inline amount converter.
